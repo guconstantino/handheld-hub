@@ -718,3 +718,16 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
 .totop svg { transform: rotate(90deg); }
 .totop:hover { background: var(--hover); }
 @media (max-width: 900px) { .totop { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 12px; } }
+
+.totop[hidden] { display: none; }                  /* o display do botão venceria o atributo hidden */
+/* Topo do jogo no celular: capa pequena ao lado do título; botões na largura toda, em duas colunas. */
+@media (max-width: 600px) {
+  .ghero-grid { grid-template-columns: 96px minmax(0, 1fr); align-items: start; column-gap: 14px; row-gap: 10px; }
+  .ghero-text { display: contents; }
+  .ghero-cover { grid-column: 1; grid-row: 1 / span 4; align-self: start; }
+  .ghero-text > * { grid-column: 2; }
+  .ghero-text > :not(.gactions) { justify-self: start; }
+  .ghero-text > .gactions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ghero-text > .gactions > * { justify-content: center; width: 100%; }
+  .ghero h1 { font-size: 24px; }
+}
