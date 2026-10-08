@@ -66,7 +66,15 @@
       for (const f of F) {
         if ((!q || f.title.toLowerCase().includes(q) || f.game_key.includes(q))
           && (!p.get("system") || f.system === p.get("system")) && (!p.get("device") || f.device_id === p.get("device"))
-          && (!p.get("status") || f.status === p.get("status"))) hit.add(f.game_key);
+          && (!p.get("status") || ["nobackup", "driveonly"].includes(p.get("status")) || f.status === p.get("status"))) hit.add(f.game_key);
+      }
+      // Presença: "sem backup" = em algum console mas não no Drive; "só no Drive" = em nenhum console.
+      const pres = p.get("status");
+      if (pres === "nobackup" || pres === "driveonly") {
+        for (const k of [...hit]) {
+          const c = byKey.get(k), drive = c.some((x) => x.device_id === "drive"), cons = c.some((x) => x.device_id !== "drive");
+          if ((pres === "nobackup" && (drive || !cons)) || (pres === "driveonly" && cons)) hit.delete(k);
+        }
       }
       const list = [...hit].map((k) => {
         const copies = byKey.get(k);
@@ -121,7 +129,9 @@
     "/api/health": ({ F, byKey }) => {
       const all = [...byKey.values()].map((c) => ({ system: c[0].system, drive: c.some((f) => f.device_id === "drive"), console: c.some((f) => f.device_id !== "drive") }));
       return {
-        corrupted: F.filter((f) => f.status === "corrupted").sort(byTitle),
+        corrupted: F.filter((f) => f.status === "corrupted").sort(byTitle).map((f) => ({
+          ...f, others: byKey.get(f.game_key).filter((c) => c !== f).map((c) => ({ device_id: c.device_id, location_id: c.location_id, status: c.status })),
+        })),
         noBackup: bySystem(all.filter((g) => !g.drive)), driveOnly: bySystem(all.filter((g) => !g.console)),
       };
     },

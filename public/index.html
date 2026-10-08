@@ -112,6 +112,8 @@
             <option value="ok">OK</option>
             <option value="corrupted">Corrompido</option>
             <option value="unknown">Não verificado</option>
+            <option value="nobackup">Sem backup no Drive</option>
+            <option value="driveonly">Só no Drive</option>
           </select>
           <select id="fSort" aria-label="Ordenar">
             <option value="">Por plataforma</option>
@@ -129,7 +131,13 @@
         <div class="panel table-wrap" id="gamesList">
           <table class="table" id="gamesTable">
             <caption class="sr-only">Jogos e onde está cada cópia</caption>
-            <thead><tr><th scope="col">Jogo</th><th scope="col">Sistema</th><th scope="col">Onde está</th><th scope="col"><span class="sr-only">Drive</span></th></tr></thead>
+            <thead><tr>
+              <th scope="col" data-sort="nome"><button type="button" class="thsort">Jogo</button></th>
+              <th scope="col" data-sort=""><button type="button" class="thsort">Plataforma</button></th>
+              <th scope="col" class="col-wide">Ano</th>
+              <th scope="col" class="col-wide">Desenvolvedora</th>
+              <th scope="col" data-sort="copias"><button type="button" class="thsort">Onde está</button></th>
+              <th scope="col"><span class="sr-only">Drive</span></th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -143,7 +151,7 @@
             <p class="lead">Arquivos com problema e jogos sem cópia de segurança.</p>
           </div>
         </div>
-        <div id="health" class="sections"></div>
+        <div id="health" class="view-stack"></div>
       </section>
     </main>
 

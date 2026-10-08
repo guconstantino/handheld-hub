@@ -382,6 +382,9 @@ const copyChip = (c) => {
 };
 
 const gameHref = (g) => `#game-${encodeURIComponent(g.game_key)}`;
+// Estado vazio com explicação e saída (em vez de só "Nada encontrado").
+const emptyState = (title, hint, withClear = true) => `<div class="empty">${icon("search")}<b>${esc(title)}</b><span>${esc(hint)}</span>
+  ${withClear ? `<button type="button" class="btn" data-clear-all>Limpar filtros</button>` : ""}</div>`;
 
 // Cartões da grade de jogos (tela Jogos e página de plataforma): a capa ocupa o cartão inteiro,
 // nome e sistema ficam sobre ela. Sem capa: a arte da plataforma (lado do logo) no fundo.
@@ -401,7 +404,7 @@ const gridHtml = (games) => games.length ? games.map((g) => {
       </div>
       <div class="gdrive">${driveBtn(g)}</div>
     </li>`;
-}).join("") : `<li class="muted">Nada encontrado.</li>`;
+}).join("") : `<li class="empty-li">${emptyState("Nenhum jogo encontrado", "Tente outro nome, outra plataforma ou tire algum filtro.")}</li>`;
 
 // Exibição em grade ou lista (fica salva neste navegador).
 let viewMode = "grid";
@@ -417,11 +420,42 @@ function renderGames() {
   } else {
     $("#gamesTable tbody").innerHTML = games.length ? games.map((g) => `<tr>
       <td><div class="game-cell"><span class="thumb">${coverImg(g) || icon("gamepad-2")}</span><a class="tlink" href="${gameHref(g)}">${esc(g.title)}</a></div></td>
-      <td class="sys">${esc(g.system)}</td>
+      <td class="sys">${esc(sysName(g.system))}</td>
+      <td class="col-wide num-cell" data-info="${esc(g.game_key)}" data-field="ano">—</td>
+      <td class="col-wide" data-info="${esc(g.game_key)}" data-field="dev">—</td>
       <td><div class="copies">${g.copies.map(copyChip).join("")}</div></td>
-      <td>${driveBtn(g)}</td></tr>`).join("") : `<tr><td colspan="4" class="muted">Nada encontrado.</td></tr>`;
+      <td>${driveBtn(g)}</td></tr>`).join("") : `<tr><td colspan="6">${emptyState("Nenhum jogo encontrado", "Tente outro nome, outra plataforma ou tire algum filtro.")}</td></tr>`;
+    fillInfo();
   }
 }
+// Lista: ano e desenvolvedora vêm da ficha de cada plataforma (um arquivo por plataforma, em cache).
+async function fillInfo() {
+  const cells = [...document.querySelectorAll("#gamesTable [data-info]")];
+  const systems = [...new Set(cells.map((c) => c.dataset.info.split("|")[0]))];
+  const infos = Object.fromEntries(await Promise.all(systems.map(async (sy) => [sy, await getData("info", sy)])));
+  for (const c of cells) {
+    const [sy, ...rest] = c.dataset.info.split("|");
+    const v = infos[sy]?.[rest.join("|")]?.[c.dataset.field];
+    c.textContent = v ?? "—";
+  }
+}
+// Cabeçalho da lista ordena (mesmas opções do seletor "Ordenar"); aria-sort mostra a coluna ativa.
+function markSort() {
+  document.querySelectorAll("#gamesTable th[data-sort]").forEach((th) =>
+    th.setAttribute("aria-sort", th.dataset.sort === $("#fSort").value ? "ascending" : "none"));
+}
+document.querySelectorAll("#gamesTable th[data-sort] .thsort").forEach((b) => (b.onclick = () => {
+  $("#fSort").value = b.closest("th").dataset.sort;
+  setPref("hh_gsort", $("#fSort").value);
+  loadGames();
+}));
+// "Limpar filtros" dos estados vazios.
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("[data-clear-all]")) return;
+  ["#q", "#fDevice", "#fSystem", "#fStatus"].forEach((id) => ($(id).value = ""));
+  loadGames();
+});
+
 document.querySelectorAll(".seg button").forEach((b) => (b.onclick = () => {
   viewMode = b.dataset.mode;
   try { localStorage.setItem("hh_view", viewMode); } catch {}
@@ -458,7 +492,7 @@ function renderChips() {
   const dev = $("#fDevice").value, sys = $("#fSystem").value, st = $("#fStatus").value, q = $("#q").value.trim();
   const devChips = [["", "Todos os lugares"], ...state.devices.map((d) => [d.id, shortName(d)])].map(([id, label]) =>
     `<button type="button" class="chip ${id ? "" : "all"}" data-dev="${esc(id)}" data-set-device="${esc(id)}" aria-pressed="${dev === id}">${id ? `<i class="dot"></i>` : ""}${esc(label)}</button>`).join("");
-  const STATUS = { ok: "OK", corrupted: "Corrompido", unknown: "Não verificado" };
+  const STATUS = { ok: "OK", corrupted: "Corrompido", unknown: "Não verificado", nobackup: "Sem backup no Drive", driveonly: "Só no Drive" };
   const active = [
     sys && ["system", sysName(sys)], st && ["status", STATUS[st]], q && ["q", `“${q}”`],
   ].filter(Boolean);
@@ -490,7 +524,7 @@ async function loadGames(append = false) {
   const r = await api(`/api/games?${p}`);
   if (req !== gamesReq) return;
   state.games = append ? [...(state.games || []), ...r.games] : r.games;
-  if (!append) renderChips();
+  if (!append) { renderChips(); markSort(); }
   renderGames();
   state.offset += r.games.length;
   $("#gamesCount").textContent = `${fmtN(r.total)} ${r.total === 1 ? "jogo" : "jogos"}`;
@@ -679,19 +713,57 @@ async function loadHealthTiles() {
 }
 async function loadHealth() {
   const h = await getHealth();
-  // Listas com rolagem própria: focáveis para rolar pelo teclado (Safari não foca sozinho).
-  const list = (rows, fmt, label) => rows.length ? `<ul class="list" tabindex="0" aria-label="${esc(label)}">${rows.map(fmt).join("")}</ul>` : `<p class="muted small">Nada aqui.</p>`;
+  const sumN = (rows) => rows.reduce((a, r) => a + (r.n || 0), 0);
+  // Para cada corrompido: existe cópia boa (verificada) em outro lugar? Isso define a ação.
+  const action = (c) => {
+    const ok = c.others.find((o) => o.status === "ok");
+    if (ok) return ["ok", `Cópia boa em ${copyLabel(deviceOf(ok.device_id), ok.location_id)}: copie de lá`];
+    const drive = c.others.find((o) => o.device_id === "drive");
+    if (drive) return ["warn", "Há cópia no Drive, não verificada (pode ter o mesmo defeito)"];
+    return ["bad", "Sem outra cópia: baixe de novo da fonte"];
+  };
+  const groups = { ok: [], warn: [], bad: [] };
+  for (const c of h.corrupted) groups[action(c)[0]].push(c);
+  const byLoc = {};
+  for (const c of h.corrupted) byLoc[c.location_id] = (byLoc[c.location_id] || 0) + 1;
+  const sysList = (rows, status, label) => rows.length ? `<ul class="list" tabindex="0" aria-label="${esc(label)}">${rows.map((r) =>
+    `<li><a class="tlink" href="#games" data-go="${status}|${esc(r.system)}">${esc(sysName(r.system))}</a><span>${fmtN(r.n)} jogos</span></li>`).join("")}</ul>` : `<p class="muted small">Nada aqui.</p>`;
+  const item = (c) => { const [kind, text] = action(c); return `<li><a class="tlink" href="${gameHref(c)}">${esc(c.title)}</a>
+      <span class="muted small">${esc(sysName(c.system))} · ${esc(copyLabel(deviceOf(c.device_id), c.location_id))}</span>
+      <span class="fix ${kind}">${esc(text)}</span></li>`; };
   $("#health").innerHTML = `
-    <div class="panel"><h2>${icon("triangle-alert", "sm")}Corrompidos · ${fmtN(h.corrupted.length)}</h2>
-      <p class="muted small" style="margin-bottom:10px">Começo do arquivo zerado. Precisam de cópia nova da fonte.</p>
-      ${list(h.corrupted, (c) => `<li><span>${esc(c.title)}</span><span>${esc(c.system)}</span></li>`, "Corrompidos")}</div>
-    <div class="panel"><h2>${icon("archive", "sm")}Sem backup no Drive</h2>
-      <p class="muted small" style="margin-bottom:10px">Estão em algum console, mas não no Drive.</p>
-      ${list(h.noBackup, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`, "Sem backup no Drive")}</div>
-    <div class="panel"><h2>${icon("cloud", "sm")}Só no Drive</h2>
-      <p class="muted small" style="margin-bottom:10px">Estão no acervo, mas em nenhum console.</p>
-      ${list(h.driveOnly, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`, "Só no Drive")}</div>`;
+    <div class="kpis" role="list" aria-label="Resumo da saúde">
+      ${[["Corrompidos", h.corrupted.length, "triangle-alert", "arquivos com o começo zerado", "corrupted", h.corrupted.length > 0],
+         ["Sem backup no Drive", sumN(h.noBackup), "archive", `jogos em ${h.noBackup.length} plataformas`, "nobackup"],
+         ["Só no Drive", sumN(h.driveOnly), "cloud", `jogos em ${h.driveOnly.length} plataformas`, "driveonly"]]
+        .map(([l, n, ic, sub, st, bad]) => `<div class="kpi ${bad ? "bad" : ""}" role="listitem"><span class="kpi-label">${icon(ic, "sm")}${l}</span>
+          <span class="kpi-value">${fmtN(n)}</span><span class="kpi-sub">${sub}</span>
+          <button type="button" class="btn small-btn" data-go="${st}|">Ver jogos</button></div>`).join("")}
+    </div>
+    <section class="tile" aria-labelledby="t-corr">
+      <div class="tile-head"><h2 id="t-corr">${icon("triangle-alert", "sm")}Corrompidos: o que fazer</h2>
+        <span class="muted small">${Object.entries(byLoc).map(([l, n]) => `${esc(copyLabel(deviceOf(locOf(l).device_id), l))}: ${fmtN(n)}`).join(" · ")}</span></div>
+      <p class="muted small">Os primeiros 256 KB do arquivo estão zerados, então o emulador não abre. O caminho depende de existir outra cópia boa.</p>
+      <div class="fixgroups">
+        ${[["ok", "Copiar de outro lugar", "cópia boa já existe"], ["warn", "Conferir a cópia do Drive", "não verificada"], ["bad", "Baixar de novo", "sem outra cópia"]]
+          .map(([k, t, sub]) => `<details ${groups[k].length && k !== "warn" ? "open" : ""}><summary><span class="fix ${k}">${t}</span> <b>${fmtN(groups[k].length)}</b> <span class="muted small">${sub}</span></summary>
+            ${groups[k].length ? `<ul class="list fixlist" tabindex="0" aria-label="${t}">${groups[k].map(item).join("")}</ul>` : `<p class="muted small">Nenhum.</p>`}</details>`).join("")}
+      </div>
+    </section>
+    <div class="grid-2">
+      <section class="tile" aria-labelledby="t-nob"><h2 id="t-nob">${icon("archive", "sm")}Sem backup no Drive, por plataforma</h2>
+        <p class="muted small" style="margin-bottom:10px">Estão em algum console, mas não no Drive. Vale copiar para o Drive.</p>${sysList(h.noBackup, "nobackup", "Sem backup no Drive")}</section>
+      <section class="tile" aria-labelledby="t-don"><h2 id="t-don">${icon("cloud", "sm")}Só no Drive, por plataforma</h2>
+        <p class="muted small" style="margin-bottom:10px">Estão no acervo, mas em nenhum console. Bom para escolher o que instalar.</p>${sysList(h.driveOnly, "driveonly", "Só no Drive")}</section>
+    </div>`;
 }
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-go]");
+  if (!b) return;
+  e.preventDefault();
+  const [status, system] = b.dataset.go.split("|");
+  goGames({ device: "", status, system: system || "" });
+});
 
 // ---------- início ----------
 (async () => {
