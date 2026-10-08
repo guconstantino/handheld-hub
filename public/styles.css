@@ -440,6 +440,28 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 @media (prefers-reduced-motion: no-preference) { .morerow a:hover img { transform: translateY(-3px); } }
 .morerow a:hover span { color: var(--text); }
 
+/* ---------- listas, vistos e navegação entre jogos ---------- */
+.listbtn { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  background: rgb(0 0 0 / .55); color: #fff; border: 1px solid rgb(255 255 255 / .35); }
+.listbtn:hover { border-color: #fff; }
+.listbtn[aria-pressed="true"] { background: #fff; color: #111; border-color: #fff; font-weight: 600; }
+.listbtn[aria-pressed="true"] .ic { fill: currentColor; }
+.gfav { position: absolute; top: 8px; left: 8px; z-index: 2; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: rgb(0 0 0 / .65); color: #ffd84d; }
+.gfav .ic { fill: currentColor; width: 14px; height: 14px; }
+.gcard:has(.gbad) .gfav { top: 36px; }
+.gnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.gstep { display: inline-flex; align-items: center; gap: 10px; color: #e4e4ea; }
+.gstep .muted { color: #e4e4ea; }
+.stepbtn { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; padding: 5px 10px; border-radius: 8px; color: #fff;
+  border: 1px solid rgb(255 255 255 / .3); background: rgb(0 0 0 / .4); }
+.stepbtn:hover { border-color: #fff; }
+.mine-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.mine h3 { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 10px; }
+.mine .morerow { grid-auto-columns: minmax(96px, 110px); }
+.mine-empty { padding: 20px 0; }
+@media (max-width: 900px) { .mine-grid { grid-template-columns: 1fr; } .stepbtn span { display: none; } }
+
 /* ---------- personalizar ---------- */
 .layout-list { list-style: none; display: grid; gap: 4px; }
 .layout-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 8px; border-radius: 8px; }

@@ -53,6 +53,13 @@
           <button type="button" class="btn" id="customize"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-wrench"/></svg>Personalizar</button>
         </div>
         <div class="bento">
+          <section class="tile b-12 mine" aria-labelledby="t-mine" data-block="meus">
+            <div class="tile-head"><h2 id="t-mine">Seus jogos</h2><span class="muted small" id="mineCounts"></span></div>
+            <div class="mine-grid">
+              <div><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-clock"/></svg>Vistos recentemente</h3><ul class="morerow" id="mineRecent"></ul></div>
+              <div><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-star"/></svg>Favoritos</h3><ul class="morerow" id="mineFav"></ul></div>
+            </div>
+          </section>
           <section class="tile b-hero" id="hero" aria-label="Acervo" data-block="hero"></section>
           <div class="contents" id="stats" data-block="stats"></div>
           <h2 class="b-full" data-part="consoles">Consoles</h2>
@@ -116,6 +123,9 @@
             <option value="unknown">Não verificado</option>
             <option value="nobackup">Sem backup no Drive</option>
             <option value="driveonly">Só no Drive</option>
+            <option value="fav">Favoritos</option>
+            <option value="want">Quero jogar</option>
+            <option value="done">Zerei</option>
           </select>
           <select id="fSort" aria-label="Ordenar">
             <option value="">Por plataforma</option>

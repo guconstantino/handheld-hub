@@ -146,6 +146,8 @@ function route(moveFocus = false) {
   if (target === "platforms" && !state.loaded.platforms) { state.loaded.platforms = true; loadPlatforms(); }
   const pending = target === "platform" ? renderPlatform(arg) : target === "game" ? renderGame(decodeURIComponent(arg || "")) : null;
   if (target === "games" && !state.loaded.games) { state.loaded.games = true; loadGames(); }
+  if (target === "overview" && state.loaded.mine) loadMine();
+  if (target === "overview") state.loaded.mine = true;
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
   if (target === "compare" && !state.loaded.compare) { state.loaded.compare = true; initCompare(); }
   const h1 = document.querySelector(`#view-${target} h1`);
@@ -268,13 +270,15 @@ async function loadSummary() {
 }
 
 // ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
-const BLOCKS = [["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
+const BLOCKS = [["meus", "Seus jogos"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
   ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
 const loadLayout = () => {
   let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
   const ids = BLOCKS.map(([id]) => id);
   const order = (l?.order || []).filter((id) => ids.includes(id));
-  return { order: [...order, ...ids.filter((id) => !order.includes(id))], hidden: l?.hidden || [] };
+  // Bloco novo (que não existia quando a ordem foi salva) entra na posição padrão, não no fim.
+  ids.forEach((id, i) => { if (!order.includes(id)) order.splice(Math.min(i, order.length), 0, id); });
+  return { order, hidden: l?.hidden || [] };
 };
 let layout = loadLayout();
 function applyLayout() {
@@ -387,6 +391,19 @@ async function loadSystems() {
     systems.sort((a, b) => sysName(a).localeCompare(sysName(b))).map((s) => `<option value="${esc(s)}">${esc(sysName(s))}</option>`).join("");
 }
 
+// Seus jogos: vistos recentemente e favoritos (iguais em todos os aparelhos).
+async function loadMine() {
+  const row = async (keys, el, empty) => {
+    const games = await api(`/api/pick?keys=${encodeURIComponent(JSON.stringify(keys.slice(0, 16)))}`);
+    $(el).innerHTML = games.length ? games.map((x) => `<li><a href="${gameHref(x)}">${x.cover ? `<img src="covers/${esc(x.cover)}" alt="" loading="lazy">` : `<img class="gplat" src="platforms/${esc(x.system)}.webp" alt="">`}<span>${esc(x.title)}</span></a></li>`).join("")
+      : `<li class="muted small mine-empty">${empty}</li>`;
+  };
+  await Promise.all([row(LISTS.recent, "#mineRecent", "Os jogos que você abrir aparecem aqui."),
+    row([...LISTS.fav].reverse(), "#mineFav", "Marque jogos com a estrela na página do jogo.")]);
+  const pl = (n, um, varios) => `${fmtN(n)} ${n === 1 ? um : varios}`;
+  $("#mineCounts").textContent = `${pl(LISTS.fav.size, "favorito", "favoritos")} · ${fmtN(LISTS.want.size)} quero jogar · ${pl(LISTS.done.size, "zerado", "zerados")}`;
+}
+
 // Mosaico: capas aleatórias do acervo, cada uma leva à página da plataforma.
 async function loadMosaic() {
   const list = await api("/api/mosaic?n=12");
@@ -445,6 +462,7 @@ const gridHtml = (games) => games.length ? games.map((g) => {
       <div class="gart">${art}</div>
       <a class="gfull" href="${gameHref(g)}" tabindex="-1" aria-hidden="true"></a>
       ${bad ? `<span class="gbad">${icon("triangle-alert", "sm")}Corrompido</span>` : ""}
+      ${LISTS.fav.has(g.game_key) ? `<span class="gfav" title="Favorito">${icon("star", "sm")}<span class="sr-only">Favorito</span></span>` : ""}
       <div class="gover">
         <a class="gtitle glink" href="${gameHref(g)}">${esc(g.title)}</a>
         <span class="gmeta"><span>${esc(sysName(g.system))}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span></span>
@@ -540,7 +558,7 @@ function renderChips() {
   const dev = $("#fDevice").value, sys = $("#fSystem").value, st = $("#fStatus").value, q = $("#q").value.trim();
   const devChips = [["", "Todos os lugares"], ...state.devices.map((d) => [d.id, shortName(d)])].map(([id, label]) =>
     `<button type="button" class="chip ${id ? "" : "all"}" data-dev="${esc(id)}" data-set-device="${esc(id)}" aria-pressed="${dev === id}">${id ? `<i class="dot"></i>` : ""}${esc(label)}</button>`).join("");
-  const STATUS = { ok: "OK", corrupted: "Corrompido", unknown: "Não verificado", nobackup: "Sem backup no Drive", driveonly: "Só no Drive" };
+  const STATUS = { ok: "OK", corrupted: "Corrompido", unknown: "Não verificado", nobackup: "Sem backup no Drive", driveonly: "Só no Drive", fav: "Favoritos", want: "Quero jogar", done: "Zerei" };
   const active = [
     sys && ["system", sysName(sys)], st && ["status", STATUS[st]], q && ["q", `“${q}”`],
   ].filter(Boolean);
@@ -673,16 +691,65 @@ async function renderPlatform(id) {
   resort();
 }
 
+// ---------- favoritos, listas e vistos recentemente (KV no Worker, iguais em todos os aparelhos) ----------
+// Sem o Worker (teste local) ou sem rede, fica no navegador e tenta de novo depois.
+const LISTS = (window.HH_LISTS = { fav: new Set(), want: new Set(), done: new Set(), recent: [] });
+const LIST_LABEL = { fav: ["Favorito", "star"], want: ["Quero jogar", "bookmark"], done: ["Zerei", "circle-check"] };
+let listsRemote = false;
+function setLists(d) {
+  for (const k of ["fav", "want", "done"]) LISTS[k] = new Set(d[k] || []);
+  LISTS.recent = d.recent || [];
+  try { localStorage.setItem("hh_lists", JSON.stringify({ ...d })); } catch {}
+}
+async function loadLists() {
+  try {
+    const r = await fetch("api/lists", { credentials: "same-origin", headers: { accept: "application/json" } });
+    if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) throw new Error(r.status);
+    setLists(await r.json()); listsRemote = true;
+  } catch {
+    try { setLists(JSON.parse(localStorage.getItem("hh_lists")) || {}); } catch { setLists({}); }
+  }
+}
+const listsSnapshot = () => ({ fav: [...LISTS.fav], want: [...LISTS.want], done: [...LISTS.done], recent: LISTS.recent });
+async function putList(list, key, on) {
+  if (!listsRemote) return;
+  try {
+    const r = await fetch("api/lists", { method: "PUT", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ list, key, on }) });
+    if (r.ok) setLists(await r.json());
+  } catch {}
+}
+function toggleList(list, key) {
+  const on = !LISTS[list].has(key);
+  if (on) LISTS[list].add(key); else LISTS[list].delete(key);
+  setLists(listsSnapshot());
+  putList(list, key, on);
+  return on;
+}
+function markSeen(key) {
+  if (LISTS.recent[0] === key) return;
+  LISTS.recent = [key, ...LISTS.recent.filter((k) => k !== key)].slice(0, 30);
+  setLists(listsSnapshot());
+  putList("recent", key, true);
+}
+
 // ---------- página do jogo (dados: libretro-database, um arquivo por plataforma) ----------
 const dataCache = {};
 const getData = (kind, system) => (dataCache[kind + system] ||= fetch(`data/${kind}/${encodeURIComponent(system)}.json`)
   .then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+const gameNeighbors = {};
+document.addEventListener("keydown", (e) => {
+  if ($("#view-game").classList.contains("hidden") || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest?.("input, textarea, select, dialog") || document.querySelector("dialog[open]")) return;
+  const a = document.querySelector(`#gstep [data-step="${e.key === "ArrowLeft" ? "prev" : e.key === "ArrowRight" ? "next" : ""}"]`);
+  if (a) { e.preventDefault(); location.hash = a.getAttribute("href"); }
+});
 const MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 async function renderGame(key) {
   const g = await api(`/api/game?key=${encodeURIComponent(key)}`);
   const v = $("#view-game");
   if (!g) { v.innerHTML = `<a class="back" href="#games">${icon("chevron-left", "sm")}Jogos</a><h1 tabindex="-1">Jogo não encontrado</h1>`; return; }
   document.title = `${g.title} · Handheld Hub`;
+  markSeen(g.game_key);
   const short = g.game_key.split("|").slice(1).join("|");
   const info = (await getData("info", g.system))[short] || {};
   const bad = g.copies.some((c) => c.status === "corrupted");
@@ -694,7 +761,8 @@ async function renderGame(key) {
     <div class="ghero">
       ${g.cover ? `<img class="ghero-bg" src="covers/${esc(g.cover)}" alt="">` : `<img class="ghero-bg" src="platforms/${esc(g.system)}.webp" alt="">`}
       <div class="ghero-in">
-        <a class="back" href="#platform-${esc(g.system)}">${icon("chevron-left", "sm")}${esc(sysName(g.system))}</a>
+        <div class="gnav"><a class="back" href="#platform-${esc(g.system)}">${icon("chevron-left", "sm")}${esc(sysName(g.system))}</a>
+          <span class="gstep" id="gstep"></span></div>
         <div class="ghero-grid">
           <div class="ghero-cover">${g.cover ? `<img src="covers/${esc(g.cover)}" alt="Capa de ${esc(g.title)}">` : `<img class="gplat" src="platforms/${esc(g.system)}.webp" alt="">`}</div>
           <div class="ghero-text">
@@ -702,6 +770,9 @@ async function renderGame(key) {
             <h1 tabindex="-1">${esc(g.title)}</h1>
             <p class="gsub">${[year, info.dev, info.genero].filter(Boolean).map(esc).join(" · ") || "Sem ficha no banco do libretro"}</p>
             ${bad ? `<span class="badge bad">${icon("triangle-alert", "sm")}Tem cópia corrompida</span>` : ""}
+            <div class="gactions">
+              ${Object.entries(LIST_LABEL).map(([l, [label, ic]]) => `<button type="button" class="listbtn" data-list="${l}" aria-pressed="${LISTS[l].has(g.game_key)}">${icon(ic, "sm")}${label}</button>`).join("")}
+            </div>
             <div class="gactions">
               ${driveBtn(g, "Abrir no Drive")}
               <a class="drive-btn" href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">${icon("search", "sm")}Buscar dicas</a>
@@ -733,6 +804,15 @@ async function renderGame(key) {
     <section aria-labelledby="t-more"><div class="tile-head"><h2 id="t-more">Mais de ${esc(sysName(g.system))}</h2>
       <a class="small tlink" href="#platform-${esc(g.system)}">Ver todos</a></div><ul class="morerow" id="gmore"></ul></section>
     <p class="chart-note">Descrição, história e curiosidades chegam na próxima fase (ROADMAP).</p>`;
+  v.querySelectorAll(".listbtn").forEach((b) => (b.onclick = () => b.setAttribute("aria-pressed", String(toggleList(b.dataset.list, g.game_key)))));
+  // Anterior / próximo na plataforma (ordem alfabética); setas ← → do teclado também.
+  (gameNeighbors[g.system] ||= api(`/api/games?system=${encodeURIComponent(g.system)}&sort=nome&limit=5000`)).then((r) => {
+    const i = r.games.findIndex((x) => x.game_key === g.game_key);
+    const prev = r.games[i - 1], next = r.games[i + 1];
+    $("#gstep").innerHTML = `${prev ? `<a class="stepbtn" href="${gameHref(prev)}" data-step="prev" title="${esc(prev.title)}">${icon("chevron-left", "sm")}<span>Anterior</span></a>` : ""}
+      <span class="muted small">${fmtN(i + 1)} de ${fmtN(r.games.length)}</span>
+      ${next ? `<a class="stepbtn" href="${gameHref(next)}" data-step="next" title="${esc(next.title)}"><span>Próximo</span>${icon("chevron-right", "sm")}</a>` : ""}`;
+  });
   // Mais da plataforma: 14 outros jogos com capa, sorteados.
   api(`/api/games?system=${encodeURIComponent(g.system)}&sort=capa&limit=400`).then((r) => {
     const pool = r.games.filter((x) => x.cover && x.game_key !== g.game_key);
@@ -878,10 +958,12 @@ document.addEventListener("click", (e) => {
 // ---------- início ----------
 (async () => {
   try {
+    await loadLists();
     await loadSummary();
     await loadSystems();
     loadTopPlatforms();
     loadMosaic();
+    loadMine();
     loadHealthTiles();
     route();
   } catch (e) {

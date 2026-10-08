@@ -66,7 +66,12 @@
       for (const f of F) {
         if ((!q || f.title.toLowerCase().includes(q) || f.game_key.includes(q))
           && (!p.get("system") || f.system === p.get("system")) && (!p.get("device") || f.device_id === p.get("device"))
-          && (!p.get("status") || ["nobackup", "driveonly"].includes(p.get("status")) || f.status === p.get("status"))) hit.add(f.game_key);
+          && (!p.get("status") || ["nobackup", "driveonly", "fav", "want", "done"].includes(p.get("status")) || f.status === p.get("status"))) hit.add(f.game_key);
+      }
+      // Listas do usuário (favoritos, quero jogar, zerei): vêm de window.HH_LISTS (app.js).
+      if (["fav", "want", "done"].includes(p.get("status"))) {
+        const set = window.HH_LISTS?.[p.get("status")] || new Set();
+        for (const k of [...hit]) if (!set.has(k)) hit.delete(k);
       }
       // Presença: "sem backup" = em algum console mas não no Drive; "só no Drive" = em nenhum console.
       const pres = p.get("status");
@@ -145,6 +150,11 @@
       out.bySystem = Object.values(out.bySystem).sort((a, b) => (b.onlyA + b.onlyB + b.both) - (a.onlyA + a.onlyB + a.both));
       return out;
     },
+    // Vários jogos pela chave, na ordem pedida (favoritos, vistos recentemente).
+    "/api/pick": ({ D, byKey }, p) => (p.get("keys") ? JSON.parse(p.get("keys")) : []).map((k) => {
+      const c = byKey.get(k);
+      return c && { game_key: k, system: c[0].system, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), cover: D.covers[k] || null, copies: c };
+    }).filter(Boolean),
     "/api/health": ({ F, byKey }) => {
       const all = [...byKey.values()].map((c) => ({ system: c[0].system, drive: c.some((f) => f.device_id === "drive"), console: c.some((f) => f.device_id !== "drive") }));
       return {
