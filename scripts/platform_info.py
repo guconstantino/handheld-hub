@@ -91,6 +91,7 @@ def main():
     json.dump(out, open(path, "w"), ensure_ascii=False, separators=(",", ":"))
     print(f"{path}: {sum(1 for r in out.values() if r.get('text'))} textos "
           f"({sum(1 for r in out.values() if r.get('lang') == 'pt')} em PT), {sum(1 for r in out.values() if r['specs'])} fichas")
+    specs_only()                                         # fichas de plataformas sem artigo (arcade, ports…) também entram
 
 
 if __name__ == "__main__":
