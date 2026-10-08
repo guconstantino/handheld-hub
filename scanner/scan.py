@@ -32,6 +32,8 @@ SYSTEM_ALIAS = {"megadrivebr": "megadrive", "snesbr": "snes", "mastersystembr": 
                 "gg": "gamegear", "ms": "mastersystem", "vb": "virtualboy", "atari": "atari2600", "32x": "sega32x",
                 "thirtytwox": "sega32x", "fiftytwohundred": "atari5200", "seventyeighthundred": "atari7800",
                 "commodore": "c64", "neocd": "neogeocd"}
+# Pastas de dados de emulador guardadas junto dos jogos (ex.: Azahar/Citra em n3ds/), também com " (1)" de cópia do Drive.
+EMU_DATA_DIRS = {"user", "config", "nand", "sdmc", "shaders", "states", "sysdata", "cheats", "log", "load", "dump"}
 # Sistemas em que cada subpasta é UM jogo (3DS instalado, PSX multidisco, PC, Lutro).
 # Nos demais, subpastas são só organização (c64/A-Z, gba/hacks) e cada arquivo é um jogo.
 FOLDER_SYSTEMS = {"3ds", "psx", "ps2", "psp", "windows", "lutro", "naomi"}
@@ -74,6 +76,8 @@ def record(loc, rel, size, mtime, head=None):
     if ext in SKIP_EXT:
         return None
     system = SYSTEM_ALIAS.get(folder.strip().lower(), folder.strip().lower())
+    if system in FOLDER_SYSTEMS and re.sub(r" \(\d+\)$", "", parts[1]).lower() in EMU_DATA_DIRS:
+        return None                                      # dados do emulador (Azahar/Citra em n3ds/), não jogo
     title = name[: -(len(ext) + 1)] if ext else name
     status = "unknown"
     if head is not None and ext in SIGNED_EXT:
