@@ -42,7 +42,7 @@
           <h2 class="b-full">Consoles</h2>
           <div class="contents" id="devices"></div>
           <section class="tile b-4" aria-labelledby="t-sys">
-            <h2 id="t-sys">Jogos por plataforma</h2>
+            <div class="tile-head"><h2 id="t-sys">Jogos por plataforma</h2><div id="topSort"></div></div>
             <div id="topSystems"></div>
           </section>
           <section class="tile b-4" aria-labelledby="t-mosaic">
@@ -63,7 +63,7 @@
             <div class="health-tiles" id="healthTiles"></div>
           </section>
           <section class="tile b-12" aria-labelledby="t-cov">
-            <h2 id="t-cov">Capas por sistema</h2>
+            <div class="tile-head"><h2 id="t-cov">Capas por sistema</h2><div id="covSort"></div></div>
             <div id="coverage"></div>
             <p class="chart-note">Sistemas com mais jogos. Capas do libretro, do cartão do Miyoo e do Daijishō no S20.</p>
           </section>
@@ -79,10 +79,13 @@
             <p class="lead" id="platformsLead">Cada sistema com a arte do Daijishō, quantos jogos tem e quantos já têm capa.</p>
           </div>
         </div>
+        <div class="toolbar" id="platformSort"></div>
         <ul class="ptiles" id="platformGrid" aria-label="Plataformas"></ul>
       </section>
 
       <section class="view hidden" id="view-platform"></section>
+
+      <section class="view hidden" id="view-game"></section>
 
       <section class="view hidden" id="view-games">
         <div class="page-head">

@@ -49,6 +49,42 @@ const SYSTEM_NAME = {
   vectrex: "Vectrex", virtualboy: "Virtual Boy", wii: "Wii", windows: "Windows", wswanc: "WonderSwan Color",
 };
 const sysName = (id) => SYSTEM_NAME[id] || id;
+// Ficha de cada plataforma para ordenar/agrupar: [ano de lançamento, geração de console (null = arcade/PC), fabricante].
+const PLATFORM_META = {
+  "3do": [1993, 5, "Panasonic"], "3ds": [2011, 8, "Nintendo"], arcade: [null, null, "Arcade"], atari2600: [1977, 2, "Atari"],
+  atari5200: [1982, 2, "Atari"], atari7800: [1986, 3, "Atari"], atomiswave: [2003, null, "Arcade"], c64: [1982, null, "Commodore"],
+  colecovision: [1982, 2, "Coleco"], cps1: [1988, null, "Arcade"], cps2: [1993, null, "Arcade"], cps3: [1996, null, "Arcade"],
+  dreamcast: [1998, 6, "Sega"], fbneo: [null, null, "Arcade"], fds: [1986, 3, "Nintendo"], gamecube: [2001, 6, "Nintendo"],
+  gamegear: [1990, 4, "Sega"], gb: [1989, 4, "Nintendo"], gba: [2001, 6, "Nintendo"], gbc: [1998, 5, "Nintendo"],
+  intellivision: [1979, 2, "Mattel"], jaguar: [1993, 5, "Atari"], lightgun: [null, null, "Arcade"], lutro: [null, null, "Homebrew"],
+  lynx: [1989, 4, "Atari"], mame: [null, null, "Arcade"], mastersystem: [1985, 3, "Sega"], megadrive: [1988, 4, "Sega"],
+  model2: [1993, null, "Arcade"], model3: [1996, null, "Arcade"], msx: [1983, null, "MSX"], msx2: [1985, null, "MSX"],
+  n64: [1996, 5, "Nintendo"], naomi: [1998, null, "Arcade"], nds: [2004, 7, "Nintendo"], neogeo: [1990, 4, "SNK"],
+  neogeocd: [1994, 5, "SNK"], nes: [1983, 3, "Nintendo"], ngp: [1998, 5, "SNK"], ngpc: [1999, 5, "SNK"],
+  pcengine: [1987, 4, "NEC"], pcenginecd: [1988, 4, "NEC"], pinballfx3: [2017, null, "PC"], ports: [null, null, "Android"],
+  ps2: [2000, 6, "Sony"], psp: [2004, 7, "Sony"], psx: [1994, 5, "Sony"], sega32x: [1994, 4, "Sega"], segacd: [1991, 4, "Sega"],
+  sg1000: [1983, 3, "Sega"], snes: [1990, 4, "Nintendo"], sufami: [1996, 4, "Bandai"], supergrafx: [1989, 4, "NEC"],
+  switch: [2017, 8, "Nintendo"], triforce: [2002, null, "Arcade"], vectrex: [1982, 2, "GCE"], virtualboy: [1995, 5, "Nintendo"],
+  wii: [2006, 7, "Nintendo"], windows: [null, null, "PC"], wswanc: [2000, 5, "Bandai"],
+};
+const meta = (id) => { const [ano, ger, fab] = PLATFORM_META[id] || [null, null, "Outros"]; return { ano, ger, fab }; };
+const genLabel = (g) => (g ? `${g}ª geração` : "Arcade, computadores e outros");
+// Ordenações (a mesma lista serve às plataformas e aos gráficos). Empates sempre por nome.
+const byName = (a, b) => sysName(a.system).localeCompare(sysName(b.system), "pt-BR");
+const SORTS = {
+  jogos: { label: "Mais jogos", fn: (a, b) => b.games - a.games || byName(a, b) },
+  nome: { label: "Nome (A–Z)", fn: byName },
+  ano: { label: "Lançamento (mais antigo)", fn: (a, b) => (meta(a.system).ano ?? 9999) - (meta(b.system).ano ?? 9999) || byName(a, b) },
+  geracao: { label: "Geração", fn: (a, b) => (meta(a.system).ger ?? 99) - (meta(b.system).ger ?? 99) || (meta(a.system).ano ?? 9999) - (meta(b.system).ano ?? 9999) || byName(a, b), group: (p) => genLabel(meta(p.system).ger) },
+  fabricante: { label: "Fabricante", fn: (a, b) => meta(a.system).fab.localeCompare(meta(b.system).fab, "pt-BR") || (meta(a.system).ano ?? 9999) - (meta(b.system).ano ?? 9999), group: (p) => meta(p.system).fab },
+  capasMenos: { label: "Menos capas (%)", fn: (a, b) => a.covered / a.games - b.covered / b.games || b.games - a.games },
+  capasMais: { label: "Mais capas (%)", fn: (a, b) => b.covered / b.games - a.covered / a.games || b.games - a.games },
+};
+const pref = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
+const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+// Seletor de ordenação reutilizável (rótulo visível para acessibilidade).
+const sortSelect = (id, keys, value) => `<label class="sort"><span>Ordenar</span><select id="${id}">${keys.map((k) =>
+  `<option value="${k}" ${k === value ? "selected" : ""}>${SORTS[k].label}</option>`).join("")}</select></label>`;
 
 // Ícone de cada título de seção das fichas (devices.json).
 const SECTION_ICON = {
@@ -99,16 +135,16 @@ document.addEventListener("mousemove", (e) => {
 // ---------- rotas: #overview, #device/<id>, #games, #health ----------
 function route(moveFocus = false) {
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
-  const target = ["overview", "device", "platforms", "platform", "games", "health"].includes(view) ? view : "overview";
+  const target = ["overview", "device", "platforms", "platform", "game", "games", "health"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => {
-    const on = a.dataset.view === ({ device: "overview", platform: "platforms" }[target] || target);
+    const on = a.dataset.view === ({ device: "overview", platform: "platforms", game: "games" }[target] || target);
     a.classList.toggle("active", on);
     if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== `view-${target}`));
   if (target === "device") renderDevice(arg);
   if (target === "platforms" && !state.loaded.platforms) { state.loaded.platforms = true; loadPlatforms(); }
-  const pending = target === "platform" ? renderPlatform(arg) : null;
+  const pending = target === "platform" ? renderPlatform(arg) : target === "game" ? renderGame(decodeURIComponent(arg || "")) : null;
   if (target === "games" && !state.loaded.games) { state.loaded.games = true; loadGames(); }
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
   const h1 = document.querySelector(`#view-${target} h1`);
@@ -204,7 +240,10 @@ async function loadSummary() {
     <ul class="legend">${byDev.map((x) => `<li ${dev(x.d.id)}><span class="sw"></span><span>${esc(x.d.name)}</span><span class="num">${fmtN(x.n)}</span><span class="pct">${fmtP((x.n / sum) * 100)}</span></li>`).join("")}</ul>`;
 
   // Cobertura de capas: sistemas com mais jogos, % com capa (o número fica escrito).
-  const covRows = (s.coverage || []).slice(0, 14);
+  const covAll = (s.coverage || []).slice(0, 14);
+  $("#covSort").innerHTML = sortSelect("cSort", ["jogos", "capasMenos", "capasMais", "nome"], pref("hh_csort", "jogos"));
+  const drawCov = () => {
+  const covRows = [...covAll].sort(SORTS[$("#cSort").value].fn);
   if (window.HH_CHARTS) HH_CHARTS.percent($("#coverage"), covRows, {
     label: (c) => sysName(c.system), done: (c) => c.covered, total: (c) => c.games, href: (c) => `#platform-${c.system}`,
     aria: "Capas por sistema: " + covRows.map((c) => `${sysName(c.system)} ${fmtN(c.covered)} de ${fmtN(c.games)}`).join(", "),
@@ -213,6 +252,9 @@ async function loadSummary() {
     const pct = c.games ? (c.covered / c.games) * 100 : 0;
     return `<li data-tip="${esc(sysName(c.system))}: ${fmtN(c.covered)} de ${fmtN(c.games)} com capa"><a class="name" href="#platform-${esc(c.system)}">${esc(sysName(c.system))}</a><span class="track" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="num">${fmtP(pct)} · ${fmtN(c.covered)}/${fmtN(c.games)}</span></li>`;
   }).join("")}</ul>`;
+  };
+  $("#cSort").onchange = (e) => { setPref("hh_csort", e.target.value); drawCov(); };
+  drawCov();
 
   if (window.HH_CHARTS) HH_CHARTS.stack($("#where .stack-plot"), byDev.map((x) => ({ id: x.d.id, name: x.d.name, n: x.n })), { aria: "Arquivos por lugar" });
 
@@ -280,15 +322,20 @@ async function loadMosaic() {
 
 // Jogos por plataforma: cada jogo conta uma vez, mesmo que esteja em vários lugares.
 async function loadTopPlatforms() {
-  const top = (await getPlatforms()).slice(0, 10);
-  if (window.HH_CHARTS) return HH_CHARTS.bars($("#topSystems"), top, {
-    label: (p) => sysName(p.system), value: (p) => p.games, href: (p) => `#platform-${p.system}`,
-    aria: "Jogos por plataforma: " + top.map((p) => `${sysName(p.system)} ${fmtN(p.games)}`).join(", "),
-  });
-  const max = top.length ? top[0].games : 1;
-  $("#topSystems").innerHTML = `<ul class="barlist">${top.map((p) => `
-    <li data-tip="${esc(sysName(p.system))}: ${fmtN(p.games)} jogos"><a class="name" href="#platform-${esc(p.system)}">${esc(sysName(p.system))}</a><span class="track" aria-hidden="true"><i style="width:${(p.games / max) * 100}%"></i></span><span class="num">${fmtN(p.games)}</span></li>`).join("")}</ul>
-    `;
+  const all = await getPlatforms();
+  const sel = pref("hh_tsort", "jogos");
+  $("#topSort").innerHTML = sortSelect("tSort", ["jogos", "nome", "ano"], sel);
+  const draw = () => {
+    // Sempre as 10 com mais jogos; a ordenação só muda a ordem de exibição.
+    const top = [...all].sort(SORTS.jogos.fn).slice(0, 10).sort(SORTS[$("#tSort").value].fn);
+    if (window.HH_CHARTS) return HH_CHARTS.bars($("#topSystems"), top, {
+      label: (p) => sysName(p.system), value: (p) => p.games, href: (p) => `#platform-${p.system}`,
+      aria: "Jogos por plataforma: " + top.map((p) => `${sysName(p.system)} ${fmtN(p.games)}`).join(", "),
+    });
+    $("#topSystems").textContent = top.map((p) => `${sysName(p.system)}: ${fmtN(p.games)}`).join(" · ");
+  };
+  $("#tSort").onchange = (e) => { setPref("hh_tsort", e.target.value); draw(); };
+  draw();
 }
 
 // Link do Drive do jogo: a cópia no Drive (arquivo ou pasta de jogo), se houver.
@@ -309,6 +356,8 @@ const copyChip = (c) => {
   return `<span class="${bad ? "bad" : ""}" ${dev(c.device_id)} title="${fmtB(c.size)}"><i class="dot"></i>${esc(copyLabel(d, c.location_id))}${bad ? " · corrompido" : ""}</span>`;
 };
 
+const gameHref = (g) => `#game-${encodeURIComponent(g.game_key)}`;
+
 // Cartões da grade de jogos (tela Jogos e página de plataforma): a capa ocupa o cartão inteiro,
 // nome e sistema ficam sobre ela. Sem capa: a arte da plataforma (lado do logo) no fundo.
 const gridHtml = (games) => games.length ? games.map((g) => {
@@ -318,9 +367,10 @@ const gridHtml = (games) => games.length ? games.map((g) => {
     : `<img class="gplat" src="platforms/${esc(g.system)}.webp" alt="" loading="lazy" decoding="async">`;
   return `<li class="gcard ${g.cover ? "" : "nocover"}">
       <div class="gart">${art}</div>
+      <a class="gfull" href="${gameHref(g)}" tabindex="-1" aria-hidden="true"></a>
       ${bad ? `<span class="gbad">${icon("triangle-alert", "sm")}Corrompido</span>` : ""}
       <div class="gover">
-        <span class="gtitle">${esc(g.title)}</span>
+        <a class="gtitle glink" href="${gameHref(g)}">${esc(g.title)}</a>
         <span class="gmeta"><span>${esc(sysName(g.system))}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span></span>
         <span class="sr-only">Onde está: ${g.copies.map((c) => esc(copyLabel(deviceOf(c.device_id), c.location_id))).join(", ")}</span>
       </div>
@@ -341,7 +391,7 @@ function renderGames() {
     $("#gamesGrid").innerHTML = gridHtml(games);
   } else {
     $("#gamesTable tbody").innerHTML = games.length ? games.map((g) => `<tr>
-      <td><div class="game-cell"><span class="thumb">${coverImg(g) || icon("gamepad-2")}</span><span>${esc(g.title)}</span></div></td>
+      <td><div class="game-cell"><span class="thumb">${coverImg(g) || icon("gamepad-2")}</span><a class="tlink" href="${gameHref(g)}">${esc(g.title)}</a></div></td>
       <td class="sys">${esc(g.system)}</td>
       <td><div class="copies">${g.copies.map(copyChip).join("")}</div></td>
       <td>${driveBtn(g)}</td></tr>`).join("") : `<tr><td colspan="4" class="muted">Nada encontrado.</td></tr>`;
@@ -405,11 +455,25 @@ const pct = (p) => (p.games ? (p.covered / p.games) * 100 : 0);
 async function loadPlatforms() {
   const list = await getPlatforms();
   $("#platformsLead").textContent = `${fmtN(list.length)} sistemas. Arte do Daijishō, quantos jogos cada um tem e quantos já têm capa.`;
-  $("#platformGrid").innerHTML = list.map((p) => `<li>
+  const sel = pref("hh_psort", "jogos");
+  $("#platformSort").innerHTML = sortSelect("pSort", ["jogos", "nome", "ano", "geracao", "fabricante", "capasMenos"], sel);
+  $("#pSort").onchange = (e) => { setPref("hh_psort", e.target.value); drawPlatforms(); };
+  drawPlatforms();
+}
+function drawPlatforms() {
+  const sort = SORTS[$("#pSort").value] || SORTS.jogos;
+  const list = [...state.platforms].sort(sort.fn);
+  let last = null;
+  $("#platformGrid").innerHTML = list.map((p) => {
+    const m = meta(p.system), g = sort.group?.(p);
+    const head = g && g !== last ? `<li class="pgroup"><h2>${esc(g)}</h2></li>` : "";
+    last = g;
+    return head + `<li>
     <a class="ptile" href="#platform-${esc(p.system)}">
       <img src="platforms/${esc(p.system)}.webp" alt="" loading="lazy" decoding="async">
-      <span class="pinfo"><b>${esc(sysName(p.system))}</b><span>${fmtN(p.games)} ${p.games === 1 ? "jogo" : "jogos"} · ${fmtP(pct(p))} com capa</span></span>
-    </a></li>`).join("");
+      <span class="pinfo"><b>${esc(sysName(p.system))}</b><span>${fmtN(p.games)} ${p.games === 1 ? "jogo" : "jogos"} · ${fmtP(pct(p))} com capa${m.ano ? ` · ${m.ano}` : ""}</span></span>
+    </a></li>`;
+  }).join("");
 }
 async function renderPlatform(id) {
   const list = await getPlatforms();
@@ -458,6 +522,72 @@ async function renderPlatform(id) {
   watchMore($("#platformMore"));
   await more();
 }
+
+// ---------- página do jogo (dados: libretro-database, um arquivo por plataforma) ----------
+const dataCache = {};
+const getData = (kind, system) => (dataCache[kind + system] ||= fetch(`data/${kind}/${encodeURIComponent(system)}.json`)
+  .then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+const MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+async function renderGame(key) {
+  const g = await api(`/api/game?key=${encodeURIComponent(key)}`);
+  const v = $("#view-game");
+  if (!g) { v.innerHTML = `<a class="back" href="#games">${icon("chevron-left", "sm")}Jogos</a><h1 tabindex="-1">Jogo não encontrado</h1>`; return; }
+  document.title = `${g.title} · Handheld Hub`;
+  const short = g.game_key.split("|").slice(1).join("|");
+  const info = (await getData("info", g.system))[short] || {};
+  const bad = g.copies.some((c) => c.status === "corrupted");
+  const year = info.ano ? `${info.mes ? MONTHS[info.mes - 1] + " de " : ""}${info.ano}` : null;
+  const facts = [["Lançamento", year], ["Desenvolvedora", info.dev], ["Publicadora", info.pub], ["Gênero", info.genero],
+    ["Jogadores", info.jogadores], ["Franquia", info.franquia]].filter(([, x]) => x);
+  const q = encodeURIComponent(`${g.title.replace(/\s*[([].*$/, "")} ${sysName(g.system)} dicas`);
+  v.innerHTML = `
+    <div class="ghero">
+      ${g.cover ? `<img class="ghero-bg" src="covers/${esc(g.cover)}" alt="">` : `<img class="ghero-bg" src="platforms/${esc(g.system)}.webp" alt="">`}
+      <div class="ghero-in">
+        <a class="back" href="#platform-${esc(g.system)}">${icon("chevron-left", "sm")}${esc(sysName(g.system))}</a>
+        <div class="ghero-grid">
+          <div class="ghero-cover">${g.cover ? `<img src="covers/${esc(g.cover)}" alt="Capa de ${esc(g.title)}">` : `<img class="gplat" src="platforms/${esc(g.system)}.webp" alt="">`}</div>
+          <div class="ghero-text">
+            <a class="pchip" href="#platform-${esc(g.system)}">${esc(sysName(g.system))}</a>
+            <h1 tabindex="-1">${esc(g.title)}</h1>
+            <p class="gsub">${[year, info.dev, info.genero].filter(Boolean).map(esc).join(" · ") || "Sem ficha no banco do libretro"}</p>
+            ${bad ? `<span class="badge bad">${icon("triangle-alert", "sm")}Tem cópia corrompida</span>` : ""}
+            <div class="gactions">
+              ${driveBtn(g, "Abrir no Drive")}
+              <a class="drive-btn" href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">${icon("search", "sm")}Buscar dicas</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ggrid">
+      ${facts.length ? `<section class="tile"><h2>Ficha</h2><dl class="kv">${facts.map(([k, x]) => `<dt>${k}</dt><dd>${esc(x)}</dd>`).join("")}</dl></section>` : ""}
+      <section class="tile"><h2>Onde está</h2>
+        <ul class="where-list">${g.copies.map((c) => `<li ${dev(c.device_id)}>
+          <span class="dot"></span><span>${esc(copyLabel(deviceOf(c.device_id), c.location_id))}</span>
+          <span class="muted small">${esc(c.ext === "pasta" ? "pasta" : (c.ext || "").toUpperCase())}${c.size ? " · " + fmtB(c.size) : ""}</span>
+          ${c.status === "corrupted" ? `<span class="badge bad">corrompido</span>` : c.status === "ok" ? `<span class="badge ok">${icon("shield-check", "sm")}ok</span>` : ""}
+          ${c.device_id === "drive" && c.drive_id ? `<a class="small" href="${esc(c.ext === "pasta" ? `https://drive.google.com/drive/folders/${c.drive_id}` : `https://drive.google.com/file/d/${c.drive_id}/view`)}" target="_blank" rel="noopener">abrir</a>` : ""}
+        </li>`).join("")}</ul>
+      </section>
+    </div>
+    <section class="tile" id="gcodes" aria-labelledby="t-codes"><h2 id="t-codes">Códigos</h2><p class="muted small">Carregando…</p></section>
+    <p class="chart-note">Descrição, história e curiosidades chegam na próxima fase (ROADMAP).</p>`;
+  const cheats = (await getData("cheats", g.system))[short] || [];
+  const total = cheats.reduce((n, [, list]) => n + list.length, 0);
+  $("#gcodes").innerHTML = `<h2 id="t-codes">Códigos · ${fmtN(total)}</h2>` + (cheats.length
+    ? `<p class="muted small">Para o RetroArch: Menu rápido → Trapaças → Adicionar. Fonte: libretro-database.</p>
+       ${cheats.map(([src, list], i) => `<details ${i === 0 ? "open" : ""}><summary>${esc(src)} · ${fmtN(list.length)}</summary>
+         <ul class="codes">${list.map(([d, c]) => `<li><span>${esc(d)}</span><code>${esc(c)}</code>
+           <button type="button" class="copy" data-code="${esc(c)}" aria-label="Copiar código: ${esc(d)}">Copiar</button></li>`).join("")}</ul></details>`).join("")}`
+    : `<p class="muted small">Nenhum código no banco do libretro para este jogo.</p>`);
+}
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest(".copy");
+  if (!b) return;
+  try { await navigator.clipboard.writeText(b.dataset.code); b.textContent = "Copiado"; } catch { b.textContent = "Erro"; }
+  setTimeout(() => (b.textContent = "Copiar"), 1500);
+});
 
 // ---------- saúde ----------
 const getHealth = async () => (state.health ||= await api("/api/health"));

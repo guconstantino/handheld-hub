@@ -99,6 +99,13 @@
       }
       return out;
     },
+    // Um jogo: cópias, capa e título (os dados extras vêm de data/info e data/cheats, por plataforma).
+    "/api/game": ({ D, byKey }, p) => {
+      const k = p.get("key"), copies = byKey.get(k);
+      if (!copies) return null;
+      return { game_key: k, system: copies[0].system, title: copies.reduce((t, c) => (c.title < t ? c.title : t), copies[0].title),
+               cover: D.covers[k] || null, copies };
+    },
     "/api/health": ({ F, byKey }) => {
       const all = [...byKey.values()].map((c) => ({ system: c[0].system, drive: c.some((f) => f.device_id === "drive"), console: c.some((f) => f.device_id !== "drive") }));
       return {
