@@ -220,18 +220,37 @@
       "id": "s20-sd",
       "device_id": "s20fe",
       "label": "Cartão SD",
+      "method": "adb",
       "root": "/storage/6847-D042/Rom"
     },
     {
       "id": "s20-int",
       "device_id": "s20fe",
       "label": "Interno",
+      "method": "adb",
       "root": "/sdcard/3-Jogos"
+    },
+    {
+      "id": "miyoo-sd",
+      "device_id": "miyoo",
+      "label": "Cartão SD",
+      "method": "local",
+      "root": "/Volumes/*/Roms",
+      "detect": "../.tmp_update",
+      "read_head": true
+    },
+    {
+      "id": "switch-jksv",
+      "device_id": "switch",
+      "label": "Jogos com save (JKSV)",
+      "method": "ftp",
+      "root": "ftp://192.168.0.253:5000/JKSV/"
     },
     {
       "id": "drive-plataform",
       "device_id": "drive",
       "label": "Retrogame/Plataform",
+      "method": "local",
       "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/Retrogame/Plataform"
     }
   ]

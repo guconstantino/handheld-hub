@@ -21,12 +21,15 @@ ADB_SERIAL = os.environ.get("ANDROID_SERIAL", "")
 SKIP_EXT = {"png", "jpg", "jpeg", "gif", "webp", "mp4", "txt", "xml", "db", "lpl", "srm",
             "sav", "state", "cfg", "ini", "nfo", "dat", "json", "md", "ds_store", "url", "lnk",
             "ico", "pdf", "gdoc", "xlsx", "opt", "rtc", "mcr"}
-SKIP_DIRS = {"media", "ps2_bios", "bios", "apps", "images", "videos", "manuals", "snap", "covers"}
+SKIP_DIRS = {"media", "ps2_bios", "bios", "apps", "images", "videos", "manuals", "snap", "covers", "imgs"}
 # Formatos com assinatura no começo: 8 bytes zerados = arquivo corrompido.
 SIGNED_EXT = {"zip", "7z", "chd", "gcz", "rvz", "wbfs", "nsp", "xci", "pbp", "cso", "rar"}
 # Pasta → sistema canônico (o resto usa o próprio nome da pasta em minúsculas).
 SYSTEM_ALIAS = {"megadrivebr": "megadrive", "snesbr": "snes", "mastersystembr": "mastersystem",
-                "sfc": "snes", "n3ds": "3ds", "pc": "windows"}
+                "sfc": "snes", "n3ds": "3ds", "pc": "windows",
+                # códigos de pasta do OnionOS (Miyoo)
+                "fc": "nes", "ps": "psx", "md": "megadrive", "pce": "pcengine", "ws": "wswanc", "coleco": "colecovision",
+                "gg": "gamegear", "ms": "mastersystem", "vb": "virtualboy", "atari": "atari2600", "32x": "sega32x"}
 # Sistemas em que cada subpasta é UM jogo (3DS instalado, PSX multidisco, PC, Lutro).
 # Nos demais, subpastas são só organização (c64/A-Z, gba/hacks) e cada arquivo é um jogo.
 FOLDER_SYSTEMS = {"3ds", "psx", "ps2", "psp", "windows", "lutro", "naomi"}
@@ -52,6 +55,10 @@ def record(loc, rel, size, mtime, head=None):
         return None
     name = parts[-1]
     ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
+    if folder == "switch":                                # pasta de save do JKSV: o nome inteiro é o título
+        ext = ""
+    if folder.lower() == "ports" and (len(parts) < 3 or parts[1].lower() != "shortcuts" or ext != "port"):
+        return None                                      # Miyoo: só os atalhos .port aparecem no menu
     if ext in SKIP_EXT:
         return None
     system = SYSTEM_ALIAS.get(folder.strip().lower(), folder.strip().lower())
@@ -121,10 +128,12 @@ def scan_adb(loc, root):
     return rows, space
 
 
-def scan_local(loc, root):
+def scan_local(loc, root, detect=None, read_head=False):
     matches = glob.glob(os.path.expanduser(root))
-    if not matches:
-        sys.exit(f"{loc}: pasta não encontrada ({root})")
+    if detect:                                           # ex.: só o cartão que tem .tmp_update (OnionOS)
+        matches = [m for m in matches if os.path.exists(os.path.join(m, detect))]
+    if len(matches) != 1:
+        sys.exit(f"{loc}: esperava 1 pasta para {root}, achei {len(matches)}. O cartão está plugado?")
     base = matches[0]
     rows = []
     for dirpath, dirnames, filenames in os.walk(base):
@@ -135,8 +144,24 @@ def scan_local(loc, root):
                 st = os.stat(full)                       # metadado só: não baixa o arquivo do Drive
             except OSError:
                 continue
-            rows.append((os.path.relpath(full, base), st.st_size, int(st.st_mtime), None))
+            head = None
+            if read_head:                                # disco local (SD plugado): 8 bytes por arquivo é barato
+                try:
+                    with open(full, "rb") as fh:
+                        head = fh.read(8).hex() or "0"
+                except OSError:
+                    pass
+            rows.append((os.path.relpath(full, base), st.st_size, int(st.st_mtime), head))
     return rows, (None, None)
+
+
+def scan_ftp(loc, root):
+    """Switch (ftpd): cada pasta em /JKSV/ é um jogo com save. O ftpd engasga com listagens grandes; curl é estável."""
+    r = subprocess.run(["curl", "-s", "--max-time", "60", "--list-only", root], capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.exit(f"{loc}: FTP não respondeu ({root}). O ftpd está aberto no Switch?")
+    names = [n.strip() for n in r.stdout.splitlines() if n.strip() and not n.startswith(".")]
+    return [("switch/" + n, None, None, None) for n in names], (None, None)
 
 
 # ---------- gravação ----------
@@ -204,7 +229,13 @@ def main():
             entries = [tuple(e) for e in json.load(open(rp))["entries"]] if os.path.exists(rp) else raw_from_d1(loc)
             space = tuple(json.load(open(rp))["space"]) if os.path.exists(rp) else (None, None)
         else:
-            entries, space = scan_adb(loc, l["root"]) if dev["id"] in ("s20fe",) else scan_local(loc, l["root"])
+            method = l.get("method", "local")
+            if method == "adb":
+                entries, space = scan_adb(loc, l["root"])
+            elif method == "ftp":
+                entries, space = scan_ftp(loc, l["root"])
+            else:
+                entries, space = scan_local(loc, l["root"], l.get("detect"), l.get("read_head", False))
             json.dump({"entries": entries, "space": space}, open(raw_path(loc), "w"))
         rows = to_rows(loc, entries)
         path = os.path.join(ROOT, "data", f"{loc}.sql")
