@@ -1017,7 +1017,18 @@ async function renderGame(key) {
     <section aria-labelledby="t-more"><div class="tile-head"><h2 id="t-more">Mais de ${esc(sysName(g.system))}</h2>
       <a class="small tlink" href="#platform-${esc(g.system)}">Ver todos</a></div><ul class="morerow" id="gmore"></ul></section>
 `;
-  v.querySelectorAll(".listbtn").forEach((b) => (b.onclick = () => b.setAttribute("aria-pressed", String(toggleList(b.dataset.list, g.game_key)))));
+  // Marcar numa lista: ícone dá um "pop" e um aviso confirma, com Desfazer (como nos consoles).
+  const LIST_NAME = { playing: "Jogando agora", fav: "Favoritos", want: "Quero jogar", done: "Zerei" };
+  const flip = (b) => {
+    const on = toggleList(b.dataset.list, g.game_key);
+    b.setAttribute("aria-pressed", String(on));
+    b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+    return on;
+  };
+  v.querySelectorAll(".listbtn").forEach((b) => (b.onclick = () => {
+    const on = flip(b);
+    toast(`${on ? "Adicionado a" : "Removido de"} ${LIST_NAME[b.dataset.list]}`, { undo: () => flip(b) });
+  }));
   // Anterior / próximo na plataforma (ordem alfabética); setas ← → do teclado também.
   (gameNeighbors[g.system] ||= api(`/api/games?system=${encodeURIComponent(g.system)}&sort=nome&limit=5000`)).then((r) => {
     const i = r.games.findIndex((x) => x.game_key === g.game_key);
@@ -1328,6 +1339,22 @@ async function loadRelation() {
 $("#relCombos").addEventListener("click", (e) => { const b = e.target.closest("[data-where]"); if (b) goGames({ device: "", system: "", status: "", where: b.dataset.where }); });
 $("#relInstall").addEventListener("click", (e) => { const b = e.target.closest("[data-missing]"); if (b) goGames({ device: "", system: "", status: "", missing: b.dataset.missing }); });
 
+// Aviso rápido no rodapé (some sozinho em 5 s; pausa com o mouse ou o foco em cima). Anunciado pelo leitor de tela.
+function toast(msg, { undo } = {}) {
+  const box = $("#toasts"), el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = `<span>${esc(msg)}</span>${undo ? `<button type="button" class="toast-undo">Desfazer</button>` : ""}`;
+  box.replaceChildren(el);                           // um aviso por vez: o novo substitui o anterior
+  let left = 5000, start = Date.now(), timer;
+  const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 200); };
+  const run = () => { start = Date.now(); timer = setTimeout(close, left); };
+  const pause = () => { clearTimeout(timer); left -= Date.now() - start; };
+  el.addEventListener("mouseenter", pause); el.addEventListener("mouseleave", run);
+  el.addEventListener("focusin", pause); el.addEventListener("focusout", run);
+  el.querySelector(".toast-undo")?.addEventListener("click", () => { undo(); clearTimeout(timer); close(); });
+  run();
+}
+
 // ---------- tema das plataformas ----------
 async function loadThemes() {
   THEME.list = await fetch("data/themes.json").then((r) => (r.ok ? r.json() : [])).catch(() => []);
@@ -1360,12 +1387,15 @@ $("#themeList").onclick = (e) => {
   setPref("hh_theme", THEME.cur?.id || "");
   $("#themeName").textContent = THEME.cur?.name || "Arrow";
   drawThemes();
-  // As telas ficam montadas em cache: troca as imagens de plataforma que já estão na página.
-  document.querySelectorAll('img[src^="platforms/"], img[src^="themes/"]').forEach((img) => {
+  // As telas ficam montadas em cache: troca as imagens de plataforma que já estão na página
+  // (com transição suave quando o navegador tem View Transitions e o movimento não está reduzido).
+  const swap = () => document.querySelectorAll('img[src^="platforms/"], img[src^="themes/"]').forEach((img) => {
     const src = img.getAttribute("src");
     const sys = decodeURIComponent(src.includes("#") ? src.split("#")[1] : src.split("/").pop().replace(/\.webp$/, ""));
-    if (sys && !sys.startsWith("_")) img.setAttribute("src", platImg(sys));
+    if (sys && !sys.startsWith("_") && !img.closest("#themeList")) img.setAttribute("src", platImg(sys));
   });
+  if (document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) document.startViewTransition(swap);
+  else swap();
 };
 
 // Links para outros sites (Drive, Wikipédia, RetroAchievements…) pedem confirmação antes de sair do portal.

@@ -772,3 +772,26 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
 .matrix td.mcell button:hover { outline: 2px solid var(--control); }
 #matrixMore { margin-top: 12px; }
 .matrix tbody th { position: static; font-weight: 550; text-align: left; white-space: nowrap; }   /* só o cabeçalho de colunas fica fixo */
+
+/* ---------- Microinterações ---------- */
+/* Resposta ao toque: tudo que é clicável "afunda" um pouco ao pressionar. */
+@media (prefers-reduced-motion: no-preference) {
+  .btn, .chip, .listbtn, .drive-btn, .seg button, .theme-opt, .combo, .icon-btn, .nav a, .more-btn, .totop { transition: transform .12s ease, background-color .15s, border-color .15s, color .15s, box-shadow .2s; }
+  .btn:active, .chip:active, .listbtn:active, .drive-btn:active, .seg button:active, .theme-opt:active, .icon-btn:active, .nav a:active, .totop:active { transform: scale(.96); }
+  .gcard img, .ptile img { transition: transform .35s cubic-bezier(.2, .7, .2, 1), filter .35s; }
+  .gcard:hover img, .ptile:hover img { transform: scale(1.04); }
+  .listbtn.pop svg { animation: pop .38s cubic-bezier(.3, 1.6, .5, 1); }
+  .toast { animation: toast-in .24s cubic-bezier(.2, .7, .2, 1); }
+  .toast.out { animation: toast-out .2s ease forwards; }
+}
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.45) rotate(-8deg); } 100% { transform: scale(1); } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(8px); } }
+.listbtn[aria-pressed="true"] svg { fill: currentColor; fill-opacity: .25; }
+/* Aviso (toast) no rodapé, acima da barra do celular. */
+.toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50; width: min(440px, calc(100% - 24px)); pointer-events: none; }
+.toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 16px; border-radius: 12px; background: var(--text); color: var(--bg);
+  box-shadow: 0 10px 30px rgb(0 0 0 / .3); font-size: 14px; }
+.toast span { flex: 1; }
+.toast-undo { border: 0; background: none; color: inherit; font: inherit; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px 4px; }
+@media (max-width: 900px) { .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
