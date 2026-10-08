@@ -7,6 +7,7 @@ faltam, converte para WebP de 384 px em public/covers/ e gera data/covers.sql.
   python3 scripts/covers.py --match                 # só casa os nomes e mostra o acerto (não baixa)
   python3 scripts/covers.py gba snes                # baixa as capas desses sistemas
   python3 scripts/covers.py --all                   # todos os sistemas mapeados
+  python3 scripts/covers.py --onion /Volumes/ONION  # completa com as capas do cartão do Miyoo (só leitura)
   python3 scripts/covers.py --sql [--remote]        # grava data/covers.sql no D1
 
 Precisa de Pillow (ex.: ~/.cache/s20fe-outpaint/bin/python). Só a lista de capas de cada
@@ -157,16 +158,51 @@ def download(plan):
     print(f"{ok} novas capas em public/covers/")
 
 
+ONION_MAP = os.path.join(ROOT, "data", "covers-onion.json")
+
+
+def onion(vol):
+    """Capas do OnionOS (Roms/<PASTA>/Imgs/<nome-do-ROM>.png) para os jogos que o libretro não cobre.
+    Só lê o cartão. Grava public/covers/o-<hash>.webp e data/covers-onion.json (game_key → arquivo)."""
+    from PIL import Image
+    plan, _ = match(sorted(LIBRETRO))
+    rows = d1("SELECT game_key, folder, title FROM files WHERE location_id='miyoo-sd'")
+    done = json.load(open(ONION_MAP)) if os.path.exists(ONION_MAP) else {}
+    os.makedirs(OUT, exist_ok=True)
+    new = 0
+    for r in rows:
+        k = r["game_key"]
+        if k in plan or k in done:
+            continue
+        src = os.path.join(vol, "Roms", r["folder"], "Imgs", r["title"] + ".png")
+        if not os.path.exists(src):
+            continue
+        name = "o-" + cover_file(k)
+        try:
+            im = Image.open(src).convert("RGB")
+            im.thumbnail((SIZE, SIZE * 2))
+            im.save(os.path.join(OUT, name), "WEBP", quality=80, method=6)
+        except Exception:
+            continue
+        done[k] = name
+        new += 1
+    json.dump(done, open(ONION_MAP, "w"), ensure_ascii=False)
+    print(f"{new} capas novas do OnionOS ({len(done)} no total)")
+
+
 def write_sql(remote=False):
-    """Registra no D1 só as capas que existem em public/covers/."""
+    """Registra no D1 só as capas que existem em public/covers/ (libretro primeiro, OnionOS completa)."""
     plan, _ = match(sorted(LIBRETRO))
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    rows = [(k, cover_file(k)) for k in plan if os.path.exists(os.path.join(OUT, cover_file(k)))]
+    rows = [(k, cover_file(k), "libretro") for k in plan if os.path.exists(os.path.join(OUT, cover_file(k)))]
+    have = {k for k, _, _ in rows}
+    extra = json.load(open(ONION_MAP)) if os.path.exists(ONION_MAP) else {}
+    rows += [(k, f, "onion") for k, f in extra.items() if k not in have and os.path.exists(os.path.join(OUT, f))]
     q = lambda v: "'" + v.replace("'", "''") + "'"
-    out = ["DELETE FROM covers WHERE source='libretro';"]
+    out = ["DELETE FROM covers WHERE source IN ('libretro','onion');"]
     for i in range(0, len(rows), 200):
         out.append("INSERT OR REPLACE INTO covers (game_key,file,source,updated_at) VALUES " +
-                   ",".join(f"({q(k)},{q(f)},'libretro',{q(ts)})" for k, f in rows[i:i + 200]) + ";")
+                   ",".join(f"({q(k)},{q(f)},{q(src)},{q(ts)})" for k, f, src in rows[i:i + 200]) + ";")
     path = os.path.join(ROOT, "data", "covers.sql")
     open(path, "w").write("\n".join(out) + "\n")
     subprocess.run(["npx", "wrangler", "d1", "execute", "gamehub", "--remote" if remote else "--local", "--file", path],
@@ -178,6 +214,9 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if "--sql" in args:
         write_sql("--remote" in args)
+        sys.exit()
+    if "--onion" in args:
+        onion(args[args.index("--onion") + 1])
         sys.exit()
     systems = sorted(LIBRETRO) if ("--all" in args or "--match" in args) else [a for a in args if not a.startswith("--")]
     unknown = [s for s in systems if s not in LIBRETRO]
