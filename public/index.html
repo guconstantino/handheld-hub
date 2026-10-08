@@ -14,6 +14,7 @@
     <a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true"><svg class="ic sm"><use href="icons.svg#i-gamepad-2"/></svg></span>Handheld Hub</a>
     <nav class="nav" aria-label="Seções">
       <a href="#overview" data-view="overview"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layers"/></svg><span>Visão geral</span></a>
+      <a href="#platforms" data-view="platforms"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layout-grid"/></svg><span>Plataformas</span></a>
       <a href="#games" data-view="games"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-gamepad-2"/></svg><span>Jogos</span></a>
       <a href="#health" data-view="health"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-shield-check"/></svg><span>Saúde</span></a>
     </nav>
@@ -62,6 +63,18 @@
 
       <section class="view hidden" id="view-device"></section>
 
+      <section class="view hidden" id="view-platforms">
+        <div class="page-head">
+          <div>
+            <h1 tabindex="-1">Plataformas</h1>
+            <p class="lead" id="platformsLead">Cada sistema com a arte do Daijishō, quantos jogos tem e quantos já têm capa.</p>
+          </div>
+        </div>
+        <ul class="ptiles" id="platformGrid" aria-label="Plataformas"></ul>
+      </section>
+
+      <section class="view hidden" id="view-platform"></section>
+
       <section class="view hidden" id="view-games">
         <div class="page-head">
           <div>
@@ -108,7 +121,7 @@
 
     <footer>
       <div id="footer" role="status">Carregando…</div>
-      <p class="credits">Fotos: Switch OLED por PantheraLeo1359531 e Galaxy S20 FE por GadgetsGuy (Wikimedia Commons, CC BY 4.0); Miyoo Mini Plus do site oficial da Miyoo.</p>
+      <p class="credits">Fotos: Switch OLED por PantheraLeo1359531 e Galaxy S20 FE por GadgetsGuy (Wikimedia Commons, CC BY 4.0); Miyoo Mini Plus do site oficial da Miyoo. Plataformas: pacote "Arrow" do Daijishō, por Post Mortem (MIT). Capas: libretro, OnionOS e Daijishō.</p>
     </footer>
   </div>
   <div class="tip hidden" id="tip" aria-hidden="true"></div>

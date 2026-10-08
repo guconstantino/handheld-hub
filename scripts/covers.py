@@ -8,6 +8,7 @@ faltam, converte para WebP de 384 px em public/covers/ e gera data/covers.sql.
   python3 scripts/covers.py gba snes                # baixa as capas desses sistemas
   python3 scripts/covers.py --all                   # todos os sistemas mapeados
   python3 scripts/covers.py --onion /Volumes/ONION  # completa com as capas do cartão do Miyoo (só leitura)
+  python3 scripts/covers.py --daijisho              # completa com as capas do Daijishō no S20 via adb (só leitura)
   python3 scripts/covers.py --sql [--remote]        # grava data/covers.sql no D1
 
 Precisa de Pillow (ex.: ~/.cache/s20fe-outpaint/bin/python). Só a lista de capas de cada
@@ -190,6 +191,63 @@ def onion(vol):
     print(f"{new} capas novas do OnionOS ({len(done)} no total)")
 
 
+DAIJI_MAP = os.path.join(ROOT, "data", "covers-daijisho.json")
+DAIJI_ROOT = "/storage/6847-D042/Rom"           # mesmo root do local s20-sd (scanner/devices.json)
+
+
+def daijisho():
+    """Capas do Daijishō no S20 (<pasta>/media/box/<nome-do-ROM>.png|jpg) para jogos ainda sem capa.
+    Só lê o aparelho (adb shell find + adb pull em lotes). ANDROID_SERIAL escolhe o device."""
+    import tempfile
+    from PIL import Image
+    adb = ["adb"] + (["-s", os.environ["ANDROID_SERIAL"]] if os.environ.get("ANDROID_SERIAL") else [])
+    listing = subprocess.run(adb + ["shell", f'cd "{DAIJI_ROOT}" && find . -path "*/media/box/*" -type f'],
+                             capture_output=True, text=True, check=True).stdout.splitlines()
+    boxes = {}
+    for line in listing:
+        parts = line[2:].split("/")                        # ./<pasta>/media/box/<nome>.<ext>
+        if len(parts) == 4:
+            boxes[(parts[0], parts[3].rsplit(".", 1)[0])] = line[2:]
+    plan, _ = match(sorted(LIBRETRO))
+    have = set(plan) | set(json.load(open(ONION_MAP)) if os.path.exists(ONION_MAP) else {})
+    done = json.load(open(DAIJI_MAP)) if os.path.exists(DAIJI_MAP) else {}
+    rows = d1("SELECT game_key, folder, rel_path, title FROM files WHERE location_id IN ('s20-sd','s20-int')")
+    want = {}
+    for r in rows:
+        k = r["game_key"]
+        if k in have or k in done or k in want:
+            continue
+        base = r["rel_path"].rsplit("/", 1)[-1]
+        for name in (r["title"], base.rsplit(".", 1)[0]):
+            if (r["folder"], name) in boxes:
+                want[k] = boxes[(r["folder"], name)]
+                break
+    print(f"{len(boxes)} capas no Daijishō, {len(want)} para jogos ainda sem capa")
+    os.makedirs(OUT, exist_ok=True)
+    keys = list(want)
+    with tempfile.TemporaryDirectory() as tmp:
+        for i in range(0, len(keys), 100):
+            batch = keys[i:i + 100]
+            subprocess.run(adb + ["pull"] + [f"{DAIJI_ROOT}/{want[k]}" for k in batch] + [tmp],
+                           capture_output=True, text=True)
+            for k in batch:
+                src = os.path.join(tmp, want[k].rsplit("/", 1)[-1])
+                if not os.path.exists(src):
+                    continue
+                name = "d-" + cover_file(k)
+                try:
+                    im = Image.open(src).convert("RGB")
+                    im.thumbnail((SIZE, SIZE * 2))
+                    im.save(os.path.join(OUT, name), "WEBP", quality=80, method=6)
+                    done[k] = name
+                except Exception:
+                    pass
+                os.remove(src)
+            print(f"  {min(i + 100, len(keys))}/{len(keys)}")
+            json.dump(done, open(DAIJI_MAP, "w"), ensure_ascii=False)
+    print(f"{len(done)} capas do Daijishō no total")
+
+
 def write_sql(remote=False):
     """Registra no D1 só as capas que existem em public/covers/ (libretro primeiro, OnionOS completa)."""
     plan, _ = match(sorted(LIBRETRO))
@@ -198,8 +256,11 @@ def write_sql(remote=False):
     have = {k for k, _, _ in rows}
     extra = json.load(open(ONION_MAP)) if os.path.exists(ONION_MAP) else {}
     rows += [(k, f, "onion") for k, f in extra.items() if k not in have and os.path.exists(os.path.join(OUT, f))]
+    have = {k for k, _, _ in rows}
+    daiji = json.load(open(DAIJI_MAP)) if os.path.exists(DAIJI_MAP) else {}
+    rows += [(k, f, "daijisho") for k, f in daiji.items() if k not in have and os.path.exists(os.path.join(OUT, f))]
     q = lambda v: "'" + v.replace("'", "''") + "'"
-    out = ["DELETE FROM covers WHERE source IN ('libretro','onion');"]
+    out = ["DELETE FROM covers;"]
     for i in range(0, len(rows), 200):
         out.append("INSERT OR REPLACE INTO covers (game_key,file,source,updated_at) VALUES " +
                    ",".join(f"({q(k)},{q(f)},{q(src)},{q(ts)})" for k, f, src in rows[i:i + 200]) + ";")
@@ -214,6 +275,9 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if "--sql" in args:
         write_sql("--remote" in args)
+        sys.exit()
+    if "--daijisho" in args:
+        daijisho()
         sys.exit()
     if "--onion" in args:
         onion(args[args.index("--onion") + 1])

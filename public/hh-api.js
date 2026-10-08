@@ -75,6 +75,20 @@
       const limit = Math.min(Number(p.get("limit")) || 100, 500), offset = Number(p.get("offset")) || 0;
       return { total: list.length, games: list.slice(offset, offset + limit).map((g) => ({ ...g, cover: D.covers[g.game_key] || null })) };
     },
+    // Uma linha por plataforma: jogos, capas, cópias por console, corrompidos e sem backup no Drive.
+    "/api/platforms": ({ D, F, byKey }) => {
+      const m = {};
+      for (const [k, copies] of byKey) {
+        const sys = copies[0].system;
+        const p = (m[sys] ||= { system: sys, games: 0, covered: 0, files: 0, corrupted: 0, noBackup: 0, byDevice: {} });
+        p.games++; p.files += copies.length;
+        if (D.covers[k]) p.covered++;
+        if (copies.some((c) => c.status === "corrupted")) p.corrupted++;
+        if (!copies.some((c) => c.device_id === "drive")) p.noBackup++;
+        for (const dev of new Set(copies.map((c) => c.device_id))) p.byDevice[dev] = (p.byDevice[dev] || 0) + 1;
+      }
+      return Object.values(m).sort((a, b) => b.games - a.games);
+    },
     "/api/health": ({ F, byKey }) => {
       const all = [...byKey.values()].map((c) => ({ system: c[0].system, drive: c.some((f) => f.device_id === "drive"), console: c.some((f) => f.device_id !== "drive") }));
       return {

@@ -33,6 +33,23 @@ const dev = (id) => `data-dev="${esc(id)}"`;
 // Ordem fixa dos consoles nos gráficos (a cor segue o console, nunca a posição).
 const ORDER = ["switch", "s20fe", "drive", "miyoo"];
 
+// Nome de exibição de cada sistema (o id fica nos filtros e no código).
+const SYSTEM_NAME = {
+  "3do": "3DO", "3ds": "Nintendo 3DS", arcade: "Arcade", atari2600: "Atari 2600", atari5200: "Atari 5200",
+  atari7800: "Atari 7800", atomiswave: "Atomiswave", c64: "Commodore 64", colecovision: "ColecoVision",
+  cps1: "CPS-1", cps2: "CPS-2", cps3: "CPS-3", dreamcast: "Dreamcast", fbneo: "FinalBurn Neo", fds: "Famicom Disk System",
+  gamecube: "GameCube", gamegear: "Game Gear", gb: "Game Boy", gba: "Game Boy Advance", gbc: "Game Boy Color",
+  intellivision: "Intellivision", jaguar: "Atari Jaguar", lightgun: "Light Gun", lutro: "Lutro", lynx: "Atari Lynx",
+  mame: "MAME", mastersystem: "Master System", megadrive: "Mega Drive", model2: "Sega Model 2", model3: "Sega Model 3",
+  msx: "MSX", msx2: "MSX2", n64: "Nintendo 64", naomi: "NAOMI", nds: "Nintendo DS", neogeo: "Neo Geo",
+  neogeocd: "Neo Geo CD", nes: "NES", ngp: "Neo Geo Pocket", ngpc: "Neo Geo Pocket Color", pcengine: "PC Engine",
+  pcenginecd: "PC Engine CD", pinballfx3: "Pinball FX3", ports: "Ports", ps2: "PlayStation 2", psp: "PSP",
+  psx: "PlayStation", sega32x: "Sega 32X", segacd: "Sega CD", sg1000: "SG-1000", snes: "Super Nintendo",
+  sufami: "Sufami Turbo", supergrafx: "SuperGrafx", switch: "Nintendo Switch", triforce: "Triforce",
+  vectrex: "Vectrex", virtualboy: "Virtual Boy", wii: "Wii", windows: "Windows", wswanc: "WonderSwan Color",
+};
+const sysName = (id) => SYSTEM_NAME[id] || id;
+
 // Ícone de cada título de seção das fichas (devices.json).
 const SECTION_ICON = {
   "Emuladores": "gamepad-2", "Ports nativos": "package", "Ajustes": "wrench", "Atenção": "triangle-alert",
@@ -82,14 +99,16 @@ document.addEventListener("mousemove", (e) => {
 // ---------- rotas: #overview, #device/<id>, #games, #health ----------
 function route(moveFocus = false) {
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
-  const target = ["overview", "device", "games", "health"].includes(view) ? view : "overview";
+  const target = ["overview", "device", "platforms", "platform", "games", "health"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => {
-    const on = a.dataset.view === (target === "device" ? "overview" : target);
+    const on = a.dataset.view === ({ device: "overview", platform: "platforms" }[target] || target);
     a.classList.toggle("active", on);
     if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== `view-${target}`));
   if (target === "device") renderDevice(arg);
+  if (target === "platforms" && !state.loaded.platforms) { state.loaded.platforms = true; loadPlatforms(); }
+  if (target === "platform") renderPlatform(arg);
   if (target === "games" && !state.loaded.games) { state.loaded.games = true; loadGames(); }
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
   const h1 = document.querySelector(`#view-${target} h1`);
@@ -244,6 +263,17 @@ const copyChip = (c) => {
   return `<span class="${bad ? "bad" : ""}" ${dev(c.device_id)} title="${fmtB(c.size)}"><i class="dot"></i>${esc(copyLabel(d, c.location_id))}${bad ? " · corrompido" : ""}</span>`;
 };
 
+// Cartões da grade de jogos (tela Jogos e página de plataforma).
+const gridHtml = (games) => games.length ? games.map((g) => `<li class="gcard">
+      <div class="gcover">${coverImg(g) || `<div class="ph">${icon("gamepad-2")}<span>${esc(sysName(g.system))}</span></div>`}</div>
+      <div class="gbody">
+        <span class="gtitle">${esc(g.title)}</span>
+        <span class="gmeta"><span class="sys">${esc(g.system)}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span>
+          <span class="sr-only">Onde está: ${g.copies.map((c) => esc(copyLabel(deviceOf(c.device_id), c.location_id))).join(", ")}</span>
+          ${g.copies.some((c) => c.status === "corrupted") ? `<span class="bad">· corrompido</span>` : ""}</span>
+        ${driveBtn(g)}
+      </div></li>`).join("") : `<li class="muted">Nada encontrado.</li>`;
+
 // Exibição em grade ou lista (fica salva neste navegador).
 let viewMode = "grid";
 try { viewMode = localStorage.getItem("hh_view") || "grid"; } catch {}
@@ -254,15 +284,7 @@ function renderGames() {
   $("#gamesGrid").classList.toggle("hidden", !grid);
   $("#gamesList").classList.toggle("hidden", grid);
   if (grid) {
-    $("#gamesGrid").innerHTML = games.length ? games.map((g) => `<li class="gcard">
-      <div class="gcover">${coverImg(g) || `<div class="ph">${icon("gamepad-2")}<span>${esc(g.system)}</span></div>`}</div>
-      <div class="gbody">
-        <span class="gtitle">${esc(g.title)}</span>
-        <span class="gmeta"><span class="sys">${esc(g.system)}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span>
-          <span class="sr-only">Onde está: ${g.copies.map((c) => esc(copyLabel(deviceOf(c.device_id), c.location_id))).join(", ")}</span>
-          ${g.copies.some((c) => c.status === "corrupted") ? `<span class="bad">· corrompido</span>` : ""}</span>
-        ${driveBtn(g)}
-      </div></li>`).join("") : `<li class="muted">Nada encontrado.</li>`;
+    $("#gamesGrid").innerHTML = gridHtml(games);
   } else {
     $("#gamesTable tbody").innerHTML = games.length ? games.map((g) => `<tr>
       <td><div class="game-cell"><span class="thumb">${coverImg(g) || icon("gamepad-2")}</span><span>${esc(g.title)}</span></div></td>
@@ -296,6 +318,64 @@ let t;
 $("#q").oninput = () => { clearTimeout(t); t = setTimeout(() => loadGames(), 250); };
 ["#fDevice", "#fSystem", "#fStatus"].forEach((s) => ($(s).onchange = () => loadGames()));
 $("#more").onclick = () => loadGames(true);
+
+// ---------- plataformas (arte do pacote "Arrow" do Daijishō) ----------
+const getPlatforms = async () => (state.platforms ||= await api("/api/platforms"));
+const pct = (p) => (p.games ? (p.covered / p.games) * 100 : 0);
+async function loadPlatforms() {
+  const list = await getPlatforms();
+  $("#platformsLead").textContent = `${fmtN(list.length)} sistemas. Arte do Daijishō, quantos jogos cada um tem e quantos já têm capa.`;
+  $("#platformGrid").innerHTML = list.map((p) => `<li>
+    <a class="ptile" href="#platform-${esc(p.system)}">
+      <img src="platforms/${esc(p.system)}.webp" alt="" loading="lazy" decoding="async">
+      <span class="pinfo"><b>${esc(sysName(p.system))}</b><span>${fmtN(p.games)} ${p.games === 1 ? "jogo" : "jogos"} · ${fmtP(pct(p))} com capa</span></span>
+    </a></li>`).join("");
+}
+async function renderPlatform(id) {
+  const list = await getPlatforms();
+  const i = list.findIndex((p) => p.system === id);
+  const p = list[i];
+  if (!p) { $("#view-platform").innerHTML = `<a class="back" href="#platforms">${icon("chevron-left", "sm")}Plataformas</a><h1 tabindex="-1">Plataforma não encontrada</h1>`; return; }
+  document.title = `${sysName(p.system)} · Handheld Hub`;
+  const devs = ORDER.filter((d) => p.byDevice[d]);
+  const sum = devs.reduce((a, d) => a + p.byDevice[d], 0) || 1;
+  $("#view-platform").innerHTML = `
+    <div>
+      <a class="back" href="#platforms">${icon("chevron-left", "sm")}Plataformas</a>
+      <h1 tabindex="-1" class="ptitle">${esc(sysName(p.system))}</h1>
+    </div>
+    <div class="phero">
+      <img src="platforms/${esc(p.system)}.webp" alt="">
+      <span class="pbadge">${icon("gamepad-2", "sm")}${fmtN(p.games)} ${p.games === 1 ? "jogo" : "jogos"} · plataforma ${i + 1} de ${list.length}</span>
+    </div>
+    <div class="kpis" role="list" aria-label="Números da plataforma">
+      ${[["Jogos", fmtN(p.games), "gamepad-2"], ["Com capa", fmtP(pct(p)), "image", `${fmtN(p.covered)} de ${fmtN(p.games)}`],
+         ["Arquivos", fmtN(p.files), "folder-open", "cópias em todos os lugares"],
+         ["Sem backup", fmtN(p.noBackup), "archive", "não estão no Drive"],
+         ["Corrompidos", fmtN(p.corrupted), "triangle-alert", "", p.corrupted > 0]]
+        .map(([l, v, ic, sub, bad]) => `<div class="kpi ${bad ? "bad" : ""}" role="listitem"><span class="kpi-label">${icon(ic, "sm")}${l}</span><span class="kpi-value">${v}</span>${sub ? `<span class="kpi-sub">${sub}</span>` : ""}</div>`).join("")}
+    </div>
+    <section class="panel" aria-labelledby="t-pwhere">
+      <h2 id="t-pwhere">Onde estão os jogos</h2>
+      <div class="stack" aria-hidden="true">${devs.map((d) => `<i ${dev(d)} style="flex:${p.byDevice[d]}" data-tip="${esc(deviceOf(d).name)}: ${fmtN(p.byDevice[d])} jogos"></i>`).join("")}</div>
+      <ul class="legend">${devs.map((d) => `<li ${dev(d)}><span class="sw"></span><span>${esc(deviceOf(d).name)}</span><span class="num">${fmtN(p.byDevice[d])}</span><span class="pct">${fmtP((p.byDevice[d] / sum) * 100)}</span></li>`).join("")}</ul>
+      <p class="chart-note">Um jogo pode estar em mais de um lugar.</p>
+    </section>
+    <div>
+      <h2>Jogos</h2>
+      <ul class="grid" id="platformGames"></ul>
+      <button class="btn hidden" id="platformMore" style="margin-top:16px">Carregar mais</button>
+    </div>`;
+  let offset = 0;
+  const more = async () => {
+    const r = await api(`/api/games?system=${encodeURIComponent(p.system)}&limit=60&offset=${offset}`);
+    $("#platformGames").insertAdjacentHTML("beforeend", gridHtml(r.games));
+    offset += r.games.length;
+    $("#platformMore").classList.toggle("hidden", offset >= r.total);
+  };
+  $("#platformMore").onclick = more;
+  await more();
+}
 
 // ---------- saúde ----------
 const getHealth = async () => (state.health ||= await api("/api/health"));
