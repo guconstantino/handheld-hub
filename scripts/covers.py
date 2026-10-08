@@ -295,20 +295,44 @@ ARCADE_DATS = ["metadat/mame/MAME.dat", "metadat/fbneo-split/FBNeo - Arcade Game
 ARCADE_THUMBS = ["MAME", "FBNeo - Arcade Games", "Atomiswave", "Sega - Naomi", "Sega - Naomi 2"]
 
 
-def rom_titles():
-    """Nome curto da ROM ("commando") → título completo ("Commando (World)"), lendo os DATs do libretro.
+_ROM_INFO = None
+
+
+def rom_info():
+    """Nome curto da ROM ("commando") → {name, ano, dev, pub} pelos DATs do libretro.
     O primeiro DAT que conhece o nome vence (MAME atual primeiro)."""
+    global _ROM_INFO
+    if _ROM_INFO is not None:
+        return _ROM_INFO
     out = {}
+    field = lambda block, *names: next((m.group(1) for n in names for m in [re.search(rf'^\s*{n} "([^"]*)"', block, re.M)] if m), None)
     for rel in ARCADE_DATS:
         path = os.path.join(LRDB, rel)
         if not os.path.exists(path):
             continue
         for block in open(path, encoding="utf-8", errors="replace").read().split("\ngame (")[1:]:
-            name = re.search(r'^\s*name "([^"]+)"', block, re.M)
+            name = field(block, "name")
             short = re.search(r'^\s*id "([^"]+)"', block, re.M) or re.search(r'rom \( name "?([^\s"]+?)\.zip', block)
-            if name and short:
-                out.setdefault(short.group(1).lower(), name.group(1).replace(" _ ", " & "))   # o DAT grava "&" como "_"
+            if not (name and short) or short.group(1).lower() in out:
+                continue
+            # O DAT grava "&" como "_" e junta nomes alternativos com " / " (fica o primeiro).
+            rec = {"name": name.replace(" _ ", " & ").split(" / ")[0]}
+            year = field(block, "year", "releaseyear")
+            if year and year.isdigit():
+                rec["ano"] = int(year)
+            dev, pub = field(block, "developer", "manufacturer"), field(block, "publisher")
+            if dev:
+                rec["dev"] = dev
+            if pub:
+                rec["pub"] = pub
+            out[short.group(1).lower()] = rec
+    _ROM_INFO = out
     return out
+
+
+def rom_titles():
+    """Nome curto da ROM → título completo ("commando" → "Commando (World)")."""
+    return {k: v["name"] for k, v in rom_info().items()}
 
 
 def arcade():

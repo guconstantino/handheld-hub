@@ -92,6 +92,26 @@ def main():
             json.dump(cheats, open(os.path.join(ROOT, "public", "data", "cheats", f"{system}.json"), "w"), ensure_ascii=False, separators=(",", ":"))
         tot_info += len(info); tot_cht += len(cheats)
         print(f"{system:14s} dados {len(info):5d}/{len(rows):<5d} códigos {len(cheats):5d}")
+    # Arcade: o arquivo tem o nome curto da ROM; ano e fabricante vêm do DAT. (Os cht do FBNeo são por
+    # endereço de memória, sem código para copiar: o RetroArch carrega pelo menu.)
+    from covers import rom_info
+    from catalog import ARCADE
+    meta = rom_info()
+    for system in sorted(ARCADE):
+        rows = by_sys.get(system, [])
+        if not rows:
+            continue
+        info = {}
+        for g in rows:
+            key = g["game_key"].split("|", 1)[1]
+            m = meta.get(key)
+            if m:
+                rec = {k: v for k, v in m.items() if k != "name"}
+                if rec:
+                    info[key] = rec
+        json.dump(info, open(os.path.join(ROOT, "public", "data", "info", f"{system}.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+        tot_info += len(info)
+        print(f"{system:14s} dados {len(info):5d}/{len(rows):<5d}")
     print(f"total: dados de {tot_info} jogos, códigos de {tot_cht}")
 
 
