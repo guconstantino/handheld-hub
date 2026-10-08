@@ -3,6 +3,9 @@
 ## Estado atual
 Fase 1 pronta localmente: S20 FE (SD + interno) e Drive indexados; portal com visão geral, busca de jogos e saúde do acervo em `wrangler dev`. Fase 2 concluída: os 3 consoles e o Drive no catálogo. Próximo: produção (com ok) ou lista completa do Switch.
 
+## Onde paramos (2026-10-07)
+Handoff completo (portal + console) em `s20fe-gamesirx5lite/docs/STATE.md`, seção "Onde paramos". Próximo: o Gustavo escolhe entre lista completa do Switch (DBI), produção (só com ok) ou voltar aos problemas do console.
+
 ## Fases
 - [x] **Fase 0 — Fundação:** schema D1, Worker só leitura, scanner Python, portal herdado do Handheld Hub.
 - [x] **Fase 1 — S20 FE + Drive:** varredura, detecção de corrompidos, agrupamento por jogo.
