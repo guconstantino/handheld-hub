@@ -883,6 +883,7 @@ async function renderGame(key) {
         </div>
       </div>
     </div>
+    <section class="tile gabout hidden" id="gabout" aria-labelledby="t-gabout"></section>
     <div class="ggrid">
       ${facts.length ? `<section class="tile"><h2>Ficha</h2><dl class="kv">${facts.map(([k, x]) => `<dt>${k}</dt><dd>${esc(x)}</dd>`).join("")}</dl></section>` : ""}
       <section class="tile"><h2>Onde está · ${fmtN(g.copies.length)} ${g.copies.length === 1 ? "cópia" : "cópias"}</h2>
@@ -906,7 +907,7 @@ async function renderGame(key) {
     <section class="tile" id="gcodes" aria-labelledby="t-codes"><h2 id="t-codes">Códigos</h2><p class="muted small">Carregando…</p></section>
     <section aria-labelledby="t-more"><div class="tile-head"><h2 id="t-more">Mais de ${esc(sysName(g.system))}</h2>
       <a class="small tlink" href="#platform-${esc(g.system)}">Ver todos</a></div><ul class="morerow" id="gmore"></ul></section>
-    <p class="chart-note">Descrição, história e curiosidades chegam na próxima fase (ROADMAP).</p>`;
+`;
   v.querySelectorAll(".listbtn").forEach((b) => (b.onclick = () => b.setAttribute("aria-pressed", String(toggleList(b.dataset.list, g.game_key)))));
   // Anterior / próximo na plataforma (ordem alfabética); setas ← → do teclado também.
   (gameNeighbors[g.system] ||= api(`/api/games?system=${encodeURIComponent(g.system)}&sort=nome&limit=5000`)).then((r) => {
@@ -922,6 +923,23 @@ async function renderGame(key) {
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     $("#gmore").innerHTML = pool.slice(0, 14).map((x) => `<li><a href="${gameHref(x)}"><img src="covers/${esc(x.cover)}" alt="" loading="lazy" decoding="async"><span>${esc(x.title)}</span></a></li>`).join("")
       || `<li class="muted small">Sem outros jogos com capa nesta plataforma.</li>`;
+  });
+  // Sobre o jogo: introdução da Wikipédia (casada pelo Wikidata), um arquivo por plataforma.
+  getData("about", g.system).then((all) => {
+    const ab = all[short];
+    if (!ab) return;
+    $("#gabout").classList.remove("hidden");
+    $("#gabout").innerHTML = `<h2 id="t-gabout">Sobre o jogo</h2>
+      ${ab.lang === "en" ? `<p class="muted small">Sem artigo em português; resumo da Wikipédia em inglês.</p>` : ""}
+      <div class="prose">${ab.text.map((t, i) => `<p ${i ? `class="more-p"` : ""}>${esc(t)}</p>`).join("")}</div>
+      ${ab.text.length > 1 ? `<button type="button" class="linkbtn" id="gmore2" aria-expanded="false">Ler mais</button>` : ""}
+      <p class="muted small credit">Texto: <a class="tlink" href="${esc(ab.url)}" target="_blank" rel="noopener">Wikipédia</a> (CC BY-SA 4.0).</p>`;
+    $("#gmore2")?.addEventListener("click", (e) => {
+      const open = e.target.getAttribute("aria-expanded") !== "true";
+      e.target.setAttribute("aria-expanded", String(open));
+      e.target.textContent = open ? "Ler menos" : "Ler mais";
+      $("#gabout").classList.toggle("open", open);
+    });
   });
   drawGameRA(g);
   const cheats = (await getData("cheats", g.system))[short] || [];
