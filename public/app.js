@@ -176,7 +176,14 @@ function route(moveFocus = false) {
 const KEEP_SCROLL = new Set(["overview", "games", "platforms", "lists", "health", "compare"]);
 const scrollMem = {};
 let curView = null;
-addEventListener("scroll", () => { if (curView) scrollMem[curView] = scrollY; }, { passive: true });
+addEventListener("scroll", () => {
+  if (curView) scrollMem[curView] = scrollY;
+  $("#toTop").hidden = scrollY < innerHeight * 2;
+}, { passive: true });
+$("#toTop").onclick = () => {
+  scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  focusHeading();                                     // teclado/leitor de tela também voltam ao começo
+};
 // Com fx.js, a troca de tela usa View Transitions (a arte da plataforma "cresce" até o topo).
 window.addEventListener("hashchange", () => {
   if (!window.HH_TRANSITION) return route(true);
@@ -1344,7 +1351,10 @@ $("#themeList").onclick = (e) => {
     RA.ready = loadRA();
     loadHealthTiles();
     route();
+    $("#boot").remove();
   } catch (e) {
     $("#footer").textContent = `Erro ao carregar: ${e.message}`;
+    $("#boot").classList.add("failed");
+    $("#boot").setAttribute("aria-label", `Erro ao carregar o acervo: ${e.message}`);
   }
 })();

@@ -18,10 +18,12 @@ CFG = json.load(open(os.path.join(ROOT, "scanner", "devices.json")))
 ADB_SERIAL = os.environ.get("ANDROID_SERIAL", "")
 
 # Arquivos que não são jogo (mídia, saves, metadados de front-end).
-SKIP_EXT = {"png", "jpg", "jpeg", "gif", "webp", "mp4", "txt", "xml", "db", "lpl", "srm",
+SKIP_EXT = {"nomedia", "png", "jpg", "jpeg", "gif", "webp", "mp4", "txt", "xml", "db", "lpl", "srm",
             "sav", "state", "cfg", "ini", "nfo", "dat", "json", "md", "ds_store", "url", "lnk",
             "ico", "pdf", "gdoc", "xlsx", "opt", "rtc", "mcr"}
 SKIP_DIRS = {"media", "ps2_bios", "bios", "apps", "images", "videos", "manuals", "snap", "covers", "imgs"}
+# O Drive duplica pastas como "media (1)": compara sem o " (n)" do fim.
+skip_dir = lambda d: re.sub(r"\s*\(\d+\)$", "", d.strip().lower()) in SKIP_DIRS
 # Formatos com assinatura no começo: 8 bytes zerados = arquivo corrompido.
 SIGNED_EXT = {"zip", "7z", "chd", "gcz", "rvz", "wbfs", "nsp", "xci", "pbp", "cso", "rar"}
 # Pasta → sistema canônico (o resto usa o próprio nome da pasta em minúsculas).
@@ -68,7 +70,7 @@ def record(loc, rel, size, mtime, head=None):
     if len(parts) < 2:
         return None                                      # arquivo solto na raiz: não é jogo
     folder = parts[0]
-    if any(p.lower() in SKIP_DIRS for p in parts[:-1]) or parts[-1].startswith("."):
+    if any(skip_dir(p) for p in parts[:-1]) or parts[-1].startswith("."):
         return None
     name = parts[-1]
     ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
@@ -160,7 +162,7 @@ def scan_local(loc, root, detect=None, read_head=False, with_ids=False):
     base = matches[0]
     rows, ids = [], {}
     for dirpath, dirnames, filenames in os.walk(base):
-        dirnames[:] = [d for d in dirnames if d.lower() not in SKIP_DIRS and not d.startswith(".")]
+        dirnames[:] = [d for d in dirnames if not skip_dir(d) and not d.startswith(".")]
         if with_ids:                                     # pastas de jogo (psx/<jogo>) também ganham link
             for d in dirnames:
                 rel = os.path.relpath(os.path.join(dirpath, d), base)

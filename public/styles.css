@@ -704,3 +704,17 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
   .fmore.open { display: flex; }
   .filters .search { flex: 1 1 0; min-width: 0; }          /* busca e "Filtros" na mesma linha */
 }
+
+/* Barra de carregamento no topo enquanto o catálogo chega (some ao terminar). */
+.boot { position: fixed; inset: 0 0 auto; height: 3px; z-index: 100; overflow: hidden; background: color-mix(in srgb, var(--text) 10%, transparent); }
+.boot::after { content: ""; position: absolute; inset: 0; width: 35%; background: var(--focus); border-radius: 3px; }
+@media (prefers-reduced-motion: no-preference) { .boot::after { animation: boot 1.1s ease-in-out infinite; } }
+@keyframes boot { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+.boot.failed::after { width: 100%; background: var(--danger); animation: none; }
+
+/* "Voltar ao topo" nas listas longas (aparece depois de duas telas de rolagem). */
+.totop { position: fixed; right: 20px; bottom: 20px; z-index: 9; display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px;
+  border: 1px solid var(--control); border-radius: 999px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; box-shadow: 0 4px 16px rgb(0 0 0 / .18); }
+.totop svg { transform: rotate(90deg); }
+.totop:hover { background: var(--hover); }
+@media (max-width: 900px) { .totop { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 12px; } }

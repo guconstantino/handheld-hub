@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="boot" id="boot" role="progressbar" aria-label="Carregando o acervo"></div>
   <button class="skip" id="skip">Pular para o conteúdo</button>
 
   <header class="side">
@@ -268,6 +269,7 @@
     <label class="keys-toggle"><input type="checkbox" id="singleKeys" checked> Atalhos de uma tecla (<kbd>?</kbd> <kbd>g</kbd> <kbd>t</kbd>)</label>
     <form method="dialog"><button class="btn">Fechar</button></form>
   </dialog>
+  <button type="button" class="totop" id="toTop" hidden><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-chevron-left"/></svg>Voltar ao topo</button>
   <dialog class="palette shortcuts themes-dlg" id="themeDlg" aria-labelledby="t-theme">
     <h2 id="t-theme">Tema das plataformas</h2>
     <p class="muted small">Pacotes de papéis de parede da comunidade do Daijishō. Fica salvo neste aparelho.</p>
