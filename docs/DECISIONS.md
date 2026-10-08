@@ -52,3 +52,9 @@ Formato ADR curto. Mais recente no topo. Data AAAA-MM-DD.
 
 - **Contexto:** já existia um painel visual dos 3 consoles com dados escritos à mão (alguns errados, ex.: Exynos).
 - **Decisão:** herdar o `styles.css` e a identidade; o conteúdo passa a vir da API. Specs ficam em `scanner/devices.json`.
+
+## 2026-10-08 — Portal multiusuário, com o admin no controle
+
+- **Contexto:** o sobrinho do Gustavo (e possivelmente outros) vai usar o portal; o Gustavo administra.
+- **Decisão (regra para tudo que for construído):** o acervo é um só (o do Gustavo), mas **cada usuário tem o que é pessoal**: listas, vistos, preferências, tema, usuário do RetroAchievements. Tudo pessoal é guardado pela identidade do usuário (hoje o e-mail do Access; KV `lists:<id>`, `prefs:<id>`). Ações de manutenção (varrer, consertar, rotinas) e a visão de quem usa ficam **só no painel de admin** (papel pelo segredo `ADMINS`). Recurso novo deve responder: "o que é do usuário e o que é do admin?".
+- **Login:** continua pelo Cloudflare Access (código por e-mail). O login próprio (usuário/senha para os sobrinhos, PIN de 6 dígitos para o Gustavo, sessão HMAC sem ler o KV a cada arquivo, bloqueio após 5 erros) está desenhado e guardado no ramo `wip/login-proprio`, sem integrar — o Gustavo decide depois. Integrar exige trocar a policy do Access (ação dele).
