@@ -521,6 +521,9 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .layout-list .icon-btn { width: 30px; height: 30px; font-size: 15px; }
 .layout-list .icon-btn:disabled { opacity: .3; cursor: default; }
 .layout-actions { display: flex; justify-content: space-between; gap: 8px; }
+.leave { width: min(460px, calc(100% - 24px)); }
+.leave .leave-url { overflow-wrap: anywhere; margin-top: -6px; }
+.leave .layout-actions { justify-content: flex-end; }
 
 /* ---------- comparar ---------- */
 .cmp-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }

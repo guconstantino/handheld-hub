@@ -1190,6 +1190,41 @@ document.addEventListener("click", (e) => {
 });
 
 // ---------- início ----------
+// Links para outros sites (Drive, Wikipédia, RetroAchievements…) pedem confirmação antes de sair do portal.
+// Delegação: vale para links criados depois. "Não perguntar de novo" fica por site, neste aparelho.
+(() => {
+  const dlg = $("#leaveDlg"), KEY = "hh-trusted-hosts";
+  const trusted = () => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; } };
+  let pending = null;
+  const go = ({ url, blank }) => (blank ? window.open(url, "_blank", "noopener") : location.assign(url));
+  const intercept = (e) => {
+    const a = e.target.closest?.("a[href]");
+    if (!a || e.defaultPrevented || (e.type === "auxclick" && e.button !== 1)) return;
+    const url = new URL(a.href, location.href);
+    if (!/^https?:$/.test(url.protocol) || url.origin === location.origin) return;
+    const host = url.hostname.replace(/^www\./, "");
+    const blank = a.target === "_blank" || e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1;
+    if (trusted().includes(host)) return;                    // segue o comportamento normal do link
+    e.preventDefault();
+    pending = { url: url.href, blank, host };
+    $("#leaveHost").textContent = host;
+    $("#leaveUrl").textContent = url.href.length > 120 ? url.href.slice(0, 117) + "…" : url.href;
+    $("#leaveTrust").checked = false;
+    dlg.showModal();
+  };
+  document.addEventListener("click", intercept);
+  document.addEventListener("auxclick", intercept);
+  // Abre no próprio clique do botão (gesto do usuário): o Safari bloqueia janela aberta depois.
+  $("#leaveGo").onclick = () => {
+    if (!pending) return dlg.close();
+    if ($("#leaveTrust").checked) { try { localStorage.setItem(KEY, JSON.stringify([...new Set([...trusted(), pending.host])])); } catch {} }
+    const p = pending; pending = null;
+    dlg.close();
+    go(p);
+  };
+  dlg.addEventListener("close", () => { pending = null; });
+})();
+
 (async () => {
   try {
     await loadLists();
