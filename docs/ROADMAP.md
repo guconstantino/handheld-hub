@@ -29,6 +29,7 @@ Handoff completo (portal + console) em `s20fe-gamesirx5lite/docs/STATE.md`, seç
 - [x] **Capas e nomes de arcade (2026-10-08):** `covers.py --arcade` traduz o nome curto da ROM ("kof98") pelo DAT do libretro (MAME, FBNeo, MAME 2003/2010, Atomiswave) e casa com as capas de arcade do libretro: +615 capas (MAME 225→673 de 688). O catálogo leva `names` e o portal mostra o título completo, com o arquivo real na tabela de cópias. +258 capas em GB, Atari 2600, MSX2 e outros; total 15.229.
 - [ ] **Backlog — capas de plataforma de todos os temas do Daijishō (pedido 2026-10-08, sem pressa):** baixar todos os pacotes de `TapiocaFox/Daijishou/themes/platform_wallpapers_packs` (~90) para poder trocar o visual das plataformas (seletor de tema). Ficariam no R2 (milhares de arquivos).
 - [x] **Confirmar antes de sair do portal (2026-10-08):** todo link para outro site (Drive, Wikipédia, RetroAchievements…) abre o diálogo "Sair do Handheld Hub?" com o domínio e o endereço; foco em "Ficar aqui", Esc fecha. Vale também para Cmd/Ctrl/meio-clique. "Não perguntar de novo para este site" fica salvo por aparelho (`localStorage`).
+- [ ] **Ideia — catálogo mais leve:** `catalog.json` tem 1,5 MB comprimido (IDs do Drive 441 KB, nomes das capas 294 KB). Mover os IDs do Drive para um arquivo carregado depois e derivar o nome da capa do `game_key` (sha1) cortaria ~45% da primeira visita. Visitas seguintes já são 304 (ETag).
 - [ ] **Depois:** pendências de cada repo no painel, varredura agendada.
 
 ## Fora do escopo
