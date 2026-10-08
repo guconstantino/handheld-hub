@@ -1,0 +1,60 @@
+{
+  "devices": [
+    {
+      "id": "s20fe",
+      "name": "Galaxy S20 FE",
+      "kind": "console",
+      "accent": "#3b82f6",
+      "notes": "Front-end Daijishō, gerenciado via adb. Repo: s20fe-gamesirx5lite.",
+      "specs": {
+        "Modelo": "SM-G780G",
+        "SoC / GPU": "Snapdragon 865 / Adreno 650",
+        "RAM": "6 GB",
+        "Tela": "6,5\" 1080×2400 (20:9)",
+        "Sistema": "Android 13",
+        "Controle": "GameSir X5 Lite",
+        "Emuladores": "RetroArch 1.21, Dolphin 2609, NetherSX2, DuckStation, PPSSPP, Azahar, melonDS"
+      }
+    },
+    {
+      "id": "miyoo",
+      "name": "Miyoo Mini Plus",
+      "kind": "console",
+      "accent": "#f59e0b",
+      "notes": "OnionOS. Repo: miyoominiplus. Ainda não escaneado pelo hub.",
+      "specs": {
+        "SoC": "SigmaStar dual-core",
+        "RAM": "128 MB",
+        "Tela": "3,5\" IPS 4:3",
+        "Sistema": "OnionOS, RetroArch 1.22",
+        "Saves": "rclone → Google Drive"
+      }
+    },
+    {
+      "id": "switch",
+      "name": "Nintendo Switch OLED",
+      "kind": "console",
+      "accent": "#ff384c",
+      "notes": "CFW Atmosphère + hekate, emuMMC. Repo: switch-cfw. Ainda não escaneado pelo hub.",
+      "specs": {
+        "Firmware": "22.5.0",
+        "CFW": "Atmosphère 1.11.2 (emuMMC)",
+        "Modchip": "Picofly / HWFLY",
+        "Transferência": "DBI (USB) e ftpd :5000"
+      }
+    },
+    {
+      "id": "drive",
+      "name": "Google Drive",
+      "kind": "backup",
+      "accent": "#10b981",
+      "notes": "Acervo em Games/Retrogame/Plataform (pasta sincronizada no Mac). Só nome e tamanho: o conteúdo não é baixado na varredura.",
+      "specs": {}
+    }
+  ],
+  "locations": [
+    { "id": "s20-sd",  "device_id": "s20fe", "label": "Cartão SD (KODAK)", "root": "/storage/6847-D042/Rom" },
+    { "id": "s20-int", "device_id": "s20fe", "label": "Interno (3-Jogos)", "root": "/sdcard/3-Jogos" },
+    { "id": "drive-plataform", "device_id": "drive", "label": "Retrogame/Plataform", "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/Retrogame/Plataform" }
+  ]
+}

@@ -1,0 +1,30 @@
+# Sistema
+.DS_Store
+._*
+Thumbs.db
+
+# Segredos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Editores e agentes
+.idea/
+.vscode/
+.claude/settings.local.json
+
+# Logs
+*.log
+# Web
+node_modules/
+dist/
+build/
+.vercel/
+.cache/
+
+# Projeto
+data/
+.wrangler/
+.dev.vars

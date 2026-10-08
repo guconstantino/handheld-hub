@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "handheld-hub", "runtimeExecutable": "npx", "runtimeArgs": ["wrangler", "dev", "--local", "--port", "8787"], "port": 8787 }
+  ]
+}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handheld Hub</title>
+  <meta name="description" content="Painel dos consoles portáteis do Gustavo: S20 FE, Miyoo Mini Plus e Switch OLED, com o catálogo de jogos.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="hub.css">
+</head>
+<body>
+  <div class="ambient-glow glow-switch"></div>
+  <div class="ambient-glow glow-s20fe"></div>
+  <div class="ambient-glow glow-miyoo"></div>
+
+  <div class="app-container">
+    <header class="top-nav">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6" width="20" height="12" rx="3"></rect>
+            <path d="M6 12h4m-2-2v4"></path>
+            <line x1="15" y1="11" x2="15" y2="11.01"></line>
+            <line x1="18" y1="13" x2="18" y2="13.01"></line>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">Handheld Hub</div>
+          <div class="brand-subtitle">Consoles e acervo de jogos do Gustavo</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="themeToggle" class="action-btn" title="Alternar tema" aria-label="Alternar tema">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <nav class="nav-tabs" id="tabs">
+      <button class="tab-btn active" data-view="overview">Visão geral</button>
+      <button class="tab-btn" data-view="games">Jogos</button>
+      <button class="tab-btn" data-view="health">Saúde do acervo</button>
+    </nav>
+
+    <main>
+      <!-- Visão geral -->
+      <section class="view" id="view-overview">
+        <div class="kpi-banner" id="kpis"></div>
+        <div class="cards-grid hub-devices" id="devices"></div>
+      </section>
+
+      <!-- Jogos -->
+      <section class="view hidden" id="view-games">
+        <div class="hub-filters">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="search" id="q" placeholder="Buscar jogo (ex.: zelda, mario kart)…" autocomplete="off">
+          </div>
+          <select id="fDevice" aria-label="Filtrar por device"><option value="">Todos os lugares</option></select>
+          <select id="fSystem" aria-label="Filtrar por sistema"><option value="">Todos os sistemas</option></select>
+          <select id="fStatus" aria-label="Filtrar por estado">
+            <option value="">Qualquer estado</option>
+            <option value="ok">OK</option>
+            <option value="corrupted">Corrompido</option>
+            <option value="unknown">Não verificado</option>
+          </select>
+        </div>
+        <p class="hub-count" id="gamesCount"></p>
+        <div class="hub-table-wrap"><table class="hub-table" id="gamesTable">
+          <thead><tr><th>Jogo</th><th>Sistema</th><th>Onde está</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <button class="btn-action btn-secondary hidden" id="more">Carregar mais</button>
+      </section>
+
+      <!-- Saúde -->
+      <section class="view hidden" id="view-health">
+        <div class="cards-grid" id="health"></div>
+      </section>
+    </main>
+
+    <footer class="app-footer"><span id="footer">Carregando…</span></footer>
+  </div>
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="app.js"></script>
+</body>
+</html>
