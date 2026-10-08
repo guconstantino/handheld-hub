@@ -301,6 +301,18 @@ a.name:hover { text-decoration-color: var(--text); }
 .pbadge { position: absolute; left: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
   border-radius: 999px; background: rgb(0 0 0 / .72); color: #fff; font-size: 14px; font-weight: 550; }
 
+/* ---------- chips de filtro ---------- */
+.chips-bar { display: grid; gap: 8px; margin-top: -12px; }
+.chiprow { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; transition: border-color .15s, background .15s; }
+.chip:hover { border-color: var(--control); color: var(--text); }
+.chip[aria-pressed="true"] { border-color: var(--accent, var(--text)); color: var(--text); background: color-mix(in srgb, var(--accent, var(--text)) 12%, var(--surface)); font-weight: 550; }
+.chip.all[aria-pressed="true"] { border-color: var(--text); background: var(--hover); }
+.chip.active { border-color: var(--focus); color: var(--text); background: color-mix(in srgb, var(--focus) 10%, var(--surface)); }
+.chip.ghost { border-style: dashed; }
+@media (max-width: 900px) { .chips-bar { margin-top: -4px; } .chiprow { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } }
+
 /* ---------- ordenação ---------- */
 .tile-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .tile-head h2 { margin: 0; }
@@ -452,6 +464,9 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .copies .bad { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
 .btn { align-self: flex-start; background: var(--surface); border: 1px solid var(--control); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
 .btn:hover { border-color: var(--text); }
+.btn { display: inline-flex; align-items: center; gap: 8px; }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; }
+.btn.primary:hover { opacity: .9; }
 
 .list { list-style: none; font-size: 14px; max-height: 480px; overflow-y: auto; }
 .list li { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--line); }

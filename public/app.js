@@ -182,7 +182,7 @@ function storageHtml(s) {
 // ---------- visão geral ----------
 async function loadSummary() {
   const s = await api("/api/summary");
-  state.devices = s.devices; state.locations = s.locations;
+  state.devices = s.devices; state.locations = s.locations; state.stats = s.stats || {};
   const t = s.totals;
   // Espaço livre somado de tudo que tem tamanho conhecido (varrido ou declarado na ficha).
   const disks = s.devices.flatMap((d) => storageOf(d)).filter((x) => x.total);
@@ -266,12 +266,27 @@ async function loadSummary() {
 }
 
 // ---------- detalhe do console ----------
+// Abre a tela Jogos já filtrada (usado pela página do console e pelos chips).
+function goGames(filters = {}) {
+  location.hash = "#games";
+  setTimeout(() => {
+    for (const [id, v] of Object.entries({ "#fDevice": filters.device, "#fSystem": filters.system, "#fStatus": filters.status }))
+      if (v !== undefined) $(id).value = v;
+    loadGames();
+  }, 0);
+}
+
 function renderDevice(id) {
   const d = deviceOf(id);
   if (!d.id) { $("#view-device").innerHTML = `<a class="back" href="#overview">${icon("chevron-left", "sm")}Visão geral</a><h1 tabindex="-1">Console não encontrado</h1>`; return; }
+  document.title = `${d.name} · Handheld Hub`;
   const sp = d.specs || {};
   const facts = Object.entries(sp.facts || {});
   const locs = state.locations.filter((l) => l.device_id === d.id);
+  const st = state.stats?.[d.id] || { games: 0, systems: 0, covered: 0, noBackup: 0, driveOnly: 0 };
+  const bad = locs.reduce((n, l) => n + (l.corrupted || 0), 0);
+  const disks = storageOf(d).filter((x) => x.total);
+  const free = disks.reduce((n, x) => n + (x.free || 0), 0), total = disks.reduce((n, x) => n + x.total, 0);
   $("#view-device").setAttribute("data-dev", d.id);
   $("#view-device").innerHTML = `
     <div>
@@ -280,25 +295,45 @@ function renderDevice(id) {
         <div>
           <div class="detail-head"><span class="dot"></span><h1 tabindex="-1">${esc(d.name)}</h1></div>
           <p class="lead">${esc(d.notes || "")}</p>
+          ${locs.length ? `<p style="margin-top:16px"><button type="button" class="btn primary" id="devGames">${icon("gamepad-2", "sm")}Ver os ${fmtN(st.games)} jogos deste console</button></p>` : ""}
         </div>
         ${cover(d)}
       </div>
     </div>
+    <div class="kpis" role="list" aria-label="Números do console">
+      ${[["Jogos", fmtN(st.games), "gamepad-2"], ["Plataformas", fmtN(st.systems), "layers"],
+         ["Com capa", st.games ? fmtP((st.covered / st.games) * 100) : "—", "image", `${fmtN(st.covered)} de ${fmtN(st.games)}`],
+         d.id === "drive" ? ["Só no Drive", fmtN(st.driveOnly), "cloud", "em nenhum console"] : ["Sem backup", fmtN(st.noBackup), "archive", "não estão no Drive"],
+         total ? ["Espaço livre", fmtB(free), "hard-drive", `de ${fmtB(total)}`] : ["Arquivos", fmtN(locs.reduce((n, l) => n + (l.files || 0), 0)), "folder-open"],
+         ["Corrompidos", fmtN(bad), "triangle-alert", "", bad > 0]]
+        .map(([l, v, ic, sub, isBad]) => `<div class="kpi ${isBad ? "bad" : ""}" role="listitem"><span class="kpi-label">${icon(ic, "sm")}${l}</span><span class="kpi-value">${v}</span>${sub ? `<span class="kpi-sub">${sub}</span>` : ""}</div>`).join("")}
+    </div>
+    <section class="tile" aria-labelledby="t-devsys">
+      <div class="tile-head"><h2 id="t-devsys">Jogos por plataforma neste console</h2></div>
+      <div id="devSystems"></div>
+    </section>
     <div class="detail-grid">
       ${facts.length ? `<div>${sectionTitle("Ficha")}<div class="panel"><dl class="kv">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div></div>` : ""}
       <div>${sectionTitle("Armazenamento")}<div class="panel">${storageOf(d).map(storageHtml).join("") || `<p class="muted small">Sem dados.</p>`}
         ${locs.map((l) => `<p class="muted small" style="margin-top:10px">${esc(l.label)}: ${fmtN(l.files)} itens${l.bytes ? `, ${fmtB(l.bytes)}` : ""} · varrido ${fmtDate(l.last_scan)}${l.corrupted ? ` · <span style="color:var(--danger)">${fmtN(l.corrupted)} corrompidos</span>` : ""}</p>`).join("")}
-        ${locs.length ? `<p style="margin-top:14px"><a class="small" href="#games" onclick="setTimeout(()=>{$('#fDevice').value='${esc(d.id)}';loadGames()},0)">Ver jogos deste console</a></p>` : ""}
       </div></div>
     </div>
     ${(sp.sections || []).length ? `<div class="sections">${sp.sections.map((s) => `
       <div>${sectionTitle(s.title)}<div class="tags">${s.items.map((i) => `<span>${esc(i)}</span>`).join("")}</div></div>`).join("")}</div>` : ""}
     ${sp.source ? `<p class="source">Fonte: repo ${esc(sp.source)} · snapshot de ${fmtDate(sp.snapshot)}</p>` : ""}`;
+  $("#devGames")?.addEventListener("click", () => goGames({ device: d.id, system: "", status: "" }));
+  // Plataformas deste console (jogos únicos), as 15 maiores; cada barra abre a plataforma.
+  const rows = (state.sysRows || []).filter((r) => r.device_id === d.id).sort((a, b) => b.games - a.games).slice(0, 15);
+  if (!rows.length) $("#devSystems").innerHTML = `<p class="muted small">Sem jogos varridos neste console.</p>`;
+  else if (window.HH_CHARTS) HH_CHARTS.bars($("#devSystems"), rows, {
+    label: (r) => sysName(r.system), value: (r) => r.games, href: (r) => `#platform-${r.system}`, color: `--acc-${d.id}`,
+    aria: `Jogos por plataforma em ${d.name}: ` + rows.map((r) => `${sysName(r.system)} ${fmtN(r.games)}`).join(", "),
+  });
 }
 
 // ---------- jogos ----------
 async function loadSystems() {
-  const rows = await api("/api/systems");
+  const rows = (state.sysRows = await api("/api/systems"));
   const systems = [...new Set(rows.map((r) => r.system))].sort();
   $("#fSystem").innerHTML = `<option value="">Todas as plataformas</option>` +
     systems.sort((a, b) => sysName(a).localeCompare(sysName(b))).map((s) => `<option value="${esc(s)}">${esc(sysName(s))}</option>`).join("");
@@ -418,6 +453,32 @@ const autoLoad = async (btn, load) => {
   try { do { await load(); } while (stillNear(btn)); } finally { busy = false; }
 };
 
+// Chips: atalhos para cada console (com a cor dele) e os filtros ativos como etiquetas removíveis.
+function renderChips() {
+  const dev = $("#fDevice").value, sys = $("#fSystem").value, st = $("#fStatus").value, q = $("#q").value.trim();
+  const devChips = [["", "Todos os lugares"], ...state.devices.map((d) => [d.id, shortName(d)])].map(([id, label]) =>
+    `<button type="button" class="chip ${id ? "" : "all"}" data-dev="${esc(id)}" data-set-device="${esc(id)}" aria-pressed="${dev === id}">${id ? `<i class="dot"></i>` : ""}${esc(label)}</button>`).join("");
+  const STATUS = { ok: "OK", corrupted: "Corrompido", unknown: "Não verificado" };
+  const active = [
+    sys && ["system", sysName(sys)], st && ["status", STATUS[st]], q && ["q", `“${q}”`],
+  ].filter(Boolean);
+  $("#gChips").innerHTML = `<div class="chiprow" role="group" aria-label="Lugar">${devChips}</div>` + (active.length
+    ? `<div class="chiprow" aria-label="Filtros ativos">${active.map(([k, label]) =>
+        `<button type="button" class="chip active" data-clear="${k}" aria-label="Remover filtro ${esc(label)}">${esc(label)} <span aria-hidden="true">✕</span></button>`).join("")}
+       <button type="button" class="chip ghost" data-clear="all">Limpar tudo</button></div>` : "");
+}
+$("#gChips")?.addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.setDevice !== undefined) $("#fDevice").value = b.dataset.setDevice;
+  const c = b.dataset.clear;
+  if (c === "system" || c === "all") $("#fSystem").value = "";
+  if (c === "status" || c === "all") $("#fStatus").value = "";
+  if (c === "q" || c === "all") $("#q").value = "";
+  if (c === "all") $("#fDevice").value = "";
+  loadGames();
+});
+
 let gamesReq = 0;
 async function loadGames(append = false) {
   const req = ++gamesReq;                 // descarta respostas antigas (busca digitada durante a carga)
@@ -429,6 +490,7 @@ async function loadGames(append = false) {
   const r = await api(`/api/games?${p}`);
   if (req !== gamesReq) return;
   state.games = append ? [...(state.games || []), ...r.games] : r.games;
+  if (!append) renderChips();
   renderGames();
   state.offset += r.games.length;
   $("#gamesCount").textContent = `${fmtN(r.total)} ${r.total === 1 ? "jogo" : "jogos"}`;
@@ -635,7 +697,7 @@ async function loadHealth() {
 (async () => {
   try {
     await loadSummary();
-    loadSystems();
+    await loadSystems();
     loadTopPlatforms();
     loadMosaic();
     loadHealthTiles();
