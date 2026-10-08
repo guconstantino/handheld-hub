@@ -47,7 +47,7 @@
     const take = (arr, n) => arr.filter((x) => x.sc > 0).sort((a, b) => b.sc - a.sc).slice(0, n);
     const acts = q ? take(ACTIONS.map((a) => ({ ...a, sc: score(a.label, q) })), 4) : ACTIONS.slice(0, 4).map((a) => ({ ...a, sc: 1 }));
     if (acts.length) out.push(["Telas e ações", acts]);
-    const plats = (state.platforms || []).map((p) => ({ label: sysName(p.system), sub: `${fmtN(p.games)} jogos`, img: `platforms/${p.system}.webp`,
+    const plats = (state.platforms || []).map((p) => ({ label: sysName(p.system), sub: `${fmtN(p.games)} jogos`, img: (window.HH_PLATIMG || ((x) => `platforms/${x}.webp`))(p.system),
       run: go(`#platform-${p.system}`), sc: q ? Math.max(score(sysName(p.system), q), score(p.system, q)) : 0 }));
     const pl = take(plats, q ? 5 : 0);
     if (pl.length) out.push(["Plataformas", pl]);

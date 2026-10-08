@@ -1,2 +1,4 @@
 # Capas ficam no R2 (bucket gamehub-media, servidas pelo Worker em /covers/*): fora do limite de 20 mil arquivos dos assets.
 covers/
+# Temas de plataforma (scripts/theme_packs.py): também no R2, em /themes/*.
+themes/

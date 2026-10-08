@@ -104,6 +104,7 @@
             <h1 tabindex="-1">Plataformas</h1>
             <p class="lead" id="platformsLead">Cada sistema com a arte do Daijishō, quantos jogos tem e quantos já têm capa.</p>
           </div>
+          <button type="button" class="btn" id="themeBtn" aria-haspopup="dialog"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-image"/></svg><span>Tema: <b id="themeName">Arrow</b></span></button>
         </div>
         <div class="toolbar" id="platformSort"></div>
         <ul class="ptiles" id="platformGrid" aria-label="Plataformas"></ul>
@@ -122,6 +123,8 @@
         </div>
         <div class="filters">
           <label class="search"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-search"/></svg><input type="search" id="q" placeholder="Buscar jogo" autocomplete="off" aria-label="Buscar jogo"></label>
+          <button type="button" class="btn fmore-btn" id="fMoreBtn" aria-expanded="false" aria-controls="fMore"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layers"/></svg><span id="fMoreLabel">Filtros</span></button>
+          <div class="fmore" id="fMore">
           <select id="fDevice" aria-label="Lugar"><option value="">Todos os lugares</option></select>
           <select id="fSystem" aria-label="Plataforma"><option value="">Todas as plataformas</option></select>
           <select id="fStatus" aria-label="Estado">
@@ -142,6 +145,7 @@
             <option value="capa">Com capa primeiro</option>
             <option value="copias">Mais cópias</option>
           </select>
+          </div>
           <div class="seg" role="group" aria-label="Exibição">
             <button type="button" data-mode="grid" aria-pressed="false"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layout-grid"/></svg>Grade</button>
             <button type="button" data-mode="list" aria-pressed="true"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-list"/></svg>Lista</button>
@@ -263,6 +267,13 @@
     </dl>
     <label class="keys-toggle"><input type="checkbox" id="singleKeys" checked> Atalhos de uma tecla (<kbd>?</kbd> <kbd>g</kbd> <kbd>t</kbd>)</label>
     <form method="dialog"><button class="btn">Fechar</button></form>
+  </dialog>
+  <dialog class="palette shortcuts themes-dlg" id="themeDlg" aria-labelledby="t-theme">
+    <h2 id="t-theme">Tema das plataformas</h2>
+    <p class="muted small">Pacotes de papéis de parede da comunidade do Daijishō. Fica salvo neste aparelho.</p>
+    <input type="search" class="theme-filter" id="themeFilter" placeholder="Filtrar temas" aria-label="Filtrar temas" autocomplete="off">
+    <ul class="theme-list" id="themeList"></ul>
+    <form method="dialog" class="layout-actions"><span class="muted small" id="themeCount"></span><button class="btn primary">Pronto</button></form>
   </dialog>
   <dialog class="palette shortcuts leave" id="leaveDlg" aria-labelledby="t-leave" aria-describedby="leaveDesc">
     <h2 id="t-leave">Sair do Handheld Hub?</h2>

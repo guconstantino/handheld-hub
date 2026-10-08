@@ -82,6 +82,16 @@ const SORTS = {
 };
 const pref = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
 const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+// Tema das plataformas: "Arrow" (padrão, em public/platforms/) ou um pacote do Daijishō (R2, /themes/<id>/).
+// Plataforma que o tema não cobre usa a imagem padrão do próprio tema; sem ela, volta para o Arrow.
+const THEME = { list: [], cur: null };
+const platImg = (s) => {
+  const t = THEME.cur;
+  if (t && t.systems.includes(s)) return `themes/${t.id}/${encodeURIComponent(s)}.webp`;
+  if (t && t.default) return `themes/${t.id}/_default.webp#${encodeURIComponent(s)}`;   // #sistema: troca ao vivo
+  return `platforms/${encodeURIComponent(s)}.webp`;
+};
+window.HH_PLATIMG = platImg;
 // Seletor de ordenação reutilizável (rótulo visível para acessibilidade).
 const sortSelect = (id, keys, value) => `<label class="sort"><span>Ordenar</span><select id="${id}">${keys.map((k) =>
   `<option value="${k}" ${k === value ? "selected" : ""}>${SORTS[k].label}</option>`).join("")}</select></label>`;
@@ -121,7 +131,8 @@ $("#themeToggle").onclick = () => {
 themeLabel();
 
 // Atalho "Pular para o conteúdo": foca o título da tela atual (o hash é usado pelas rotas).
-const focusHeading = () => { const h = document.querySelector(".view:not(.hidden) h1"); if (h) h.focus(); };
+// preventScroll: o foco vai ao título (leitor de tela anuncia a tela) sem desfazer a rolagem restaurada.
+const focusHeading = () => { const h = document.querySelector(".view:not(.hidden) h1"); if (h) h.focus({ preventScroll: true }); };
 $("#skip").onclick = focusHeading;
 
 // Dica flutuante dos gráficos (só mouse; o mesmo dado está escrito na legenda ou na linha).
@@ -134,6 +145,7 @@ document.addEventListener("mousemove", (e) => {
 
 // ---------- rotas: #overview, #device/<id>, #games, #health ----------
 function route(moveFocus = false) {
+  curView = null;                                   // a troca de tela muda a altura: não gravar essa rolagem
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
   const target = ["overview", "device", "platforms", "platform", "game", "games", "lists", "compare", "health"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => {
@@ -153,12 +165,18 @@ function route(moveFocus = false) {
   if (target === "lists") drawLists();
   const h1 = document.querySelector(`#view-${target} h1`);
   document.title = h1 && target !== "overview" ? `${h1.textContent} · Handheld Hub` : "Handheld Hub";
-  window.scrollTo(0, 0);
+  // Telas de lista voltam para onde estavam (abrir um jogo e voltar não perde a posição); detalhe abre no topo.
+  window.scrollTo(0, KEEP_SCROLL.has(target) ? scrollMem[target] || 0 : 0);
+  curView = target;
   window.HH_CHARTS?.redraw();                       // gráficos desenhados com a tela escondida ganham a largura certa
   // Troca de tela sem recarregar: leva o foco ao título para o leitor de tela anunciar a tela nova.
   if (moveFocus) (pending || Promise.resolve()).then(focusHeading);
   return pending;
 }
+const KEEP_SCROLL = new Set(["overview", "games", "platforms", "lists", "health", "compare"]);
+const scrollMem = {};
+let curView = null;
+addEventListener("scroll", () => { if (curView) scrollMem[curView] = scrollY; }, { passive: true });
 // Com fx.js, a troca de tela usa View Transitions (a arte da plataforma "cresce" até o topo).
 window.addEventListener("hashchange", () => {
   if (!window.HH_TRANSITION) return route(true);
@@ -271,7 +289,8 @@ async function loadSummary() {
 }
 
 // ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
-const BLOCKS = [["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
+// Ordem padrão: primeiro o que o acervo tem (resposta da tela), depois o pessoal (listas, conquistas).
+const BLOCKS = [["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
   ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
 const loadLayout = () => {
   let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
@@ -396,7 +415,7 @@ async function loadSystems() {
 async function loadMine() {
   const row = async (keys, el, empty) => {
     const games = await api(`/api/pick?keys=${encodeURIComponent(JSON.stringify(keys.slice(0, 16)))}`);
-    $(el).innerHTML = games.length ? games.map((x) => `<li><a href="${gameHref(x)}">${x.cover ? `<img src="covers/${esc(x.cover)}" alt="" loading="lazy">` : `<img class="gplat" src="platforms/${esc(x.system)}.webp" alt="">`}<span>${esc(x.title)}</span></a></li>`).join("")
+    $(el).innerHTML = games.length ? games.map((x) => `<li><a href="${gameHref(x)}">${x.cover ? `<img src="covers/${esc(x.cover)}" alt="" loading="lazy">` : `<img class="gplat" src="${platImg(x.system)}" alt="">`}<span>${esc(x.title)}</span></a></li>`).join("")
       : `<li class="muted small mine-empty">${empty}</li>`;
   };
   $("#minePlayingWrap").classList.toggle("hidden", !LISTS.playing.size);
@@ -486,7 +505,7 @@ const gridHtml = (games) => games.length ? games.map((g) => {
   const bad = g.copies.some((c) => c.status === "corrupted");
   const art = g.cover
     ? `<img class="gblur" src="covers/${esc(g.cover)}" alt="" loading="lazy" decoding="async"><img class="gimg" src="covers/${esc(g.cover)}" alt="" loading="lazy" decoding="async">`
-    : `<img class="gplat" src="platforms/${esc(g.system)}.webp" alt="" loading="lazy" decoding="async">`;
+    : `<img class="gplat" src="${platImg(g.system)}" alt="" loading="lazy" decoding="async">`;
   return `<li class="gcard ${g.cover ? "" : "nocover"}">
       <div class="gart">${art}</div>
       <a class="gfull" href="${gameHref(g)}" tabindex="-1" aria-hidden="true"></a>
@@ -613,6 +632,7 @@ let gamesReq = 0;
 async function loadGames(append = false) {
   const req = ++gamesReq;                 // descarta respostas antigas (busca digitada durante a carga)
   if (!append) state.offset = 0;
+  if (!append) window.HH_FILTERCOUNT?.();
   const p = new URLSearchParams({ limit: 100, offset: state.offset });
   if ($("#fSort").value) p.set("sort", $("#fSort").value);
   for (const [k, el] of [["q", "#q"], ["device", "#fDevice"], ["system", "#fSystem"], ["status", "#fStatus"]])
@@ -655,7 +675,7 @@ function drawPlatforms() {
     last = g;
     return head + `<li>
     <a class="ptile" href="#platform-${esc(p.system)}">
-      <img src="platforms/${esc(p.system)}.webp" alt="" loading="lazy" decoding="async">
+      <img src="${platImg(p.system)}" alt="" loading="lazy" decoding="async">
       <span class="pinfo"><b>${esc(sysName(p.system))}</b><span>${fmtN(p.games)} ${p.games === 1 ? "jogo" : "jogos"} · ${fmtP(pct(p))} com capa${m.ano ? ` · ${m.ano}` : ""}</span></span>
     </a></li>`;
   }).join("");
@@ -674,7 +694,7 @@ async function renderPlatform(id) {
       <h1 tabindex="-1" class="ptitle">${esc(sysName(p.system))}</h1>
     </div>
     <div class="phero">
-      <img src="platforms/${esc(p.system)}.webp" alt="">
+      <img src="${platImg(p.system)}" alt="">
       <span class="pbadge">${icon("gamepad-2", "sm")}${fmtN(p.games)} ${p.games === 1 ? "jogo" : "jogos"} · plataforma ${i + 1} de ${list.length}</span>
     </div>
     <div class="kpis" role="list" aria-label="Números da plataforma">
@@ -872,6 +892,8 @@ function drawRA() {
         <span><b>${esc(a.title)}</b><span class="muted small">${k ? `<a class="tlink" href="#game-${encodeURIComponent(k)}">${esc(a.game)}</a>` : esc(a.game)} · <time datetime="${esc(a.date.replace(" ", "T"))}">${when}</time>${a.hardcore ? " · hardcore" : ""}</span></span>
         <span class="ach-pts">${fmtN(a.points)}</span></li>`;
     }).join("")}</ul>` : "";
+  clampList($("#raRecent"), 6, "Jogados recentemente");
+  if ($("#raAch .ach")) clampList($("#raAch .ach"), 6, "Últimas conquistas");
   const started = d.progress.filter((g) => g.earned > 0).sort((a, b) => b.earned / b.total - a.earned / a.total);
   $("#raNote").textContent = started.length
     ? `${fmtN(started.length)} jogos com conquistas desbloqueadas.`
@@ -932,12 +954,12 @@ async function renderGame(key) {
   const q = encodeURIComponent(`${g.title.replace(/\s*[([].*$/, "")} ${sysName(g.system)} dicas`);
   v.innerHTML = `
     <div class="ghero">
-      ${g.cover ? `<img class="ghero-bg" src="covers/${esc(g.cover)}" alt="">` : `<img class="ghero-bg" src="platforms/${esc(g.system)}.webp" alt="">`}
+      ${g.cover ? `<img class="ghero-bg" src="covers/${esc(g.cover)}" alt="">` : `<img class="ghero-bg" src="${platImg(g.system)}" alt="">`}
       <div class="ghero-in">
         <div class="gnav"><a class="back" href="#platform-${esc(g.system)}">${icon("chevron-left", "sm")}${esc(sysName(g.system))}</a>
           <span class="gstep" id="gstep"></span></div>
         <div class="ghero-grid">
-          <div class="ghero-cover">${g.cover ? `<img src="covers/${esc(g.cover)}" alt="Capa de ${esc(g.title)}">` : `<img class="gplat" src="platforms/${esc(g.system)}.webp" alt="">`}</div>
+          <div class="ghero-cover">${g.cover ? `<img src="covers/${esc(g.cover)}" alt="Capa de ${esc(g.title)}">` : `<img class="gplat" src="${platImg(g.system)}" alt="">`}</div>
           <div class="ghero-text">
             <a class="pchip" href="#platform-${esc(g.system)}">${esc(sysName(g.system))}</a>
             <h1 tabindex="-1">${esc(g.title)}</h1>
@@ -1201,6 +1223,81 @@ document.addEventListener("click", (e) => {
 });
 
 // ---------- início ----------
+// Lista longa mostra os primeiros N itens e um botão "Mostrar mais" (aria-expanded) logo depois.
+function clampList(ul, n, what) {
+  ul.nextElementSibling?.classList.contains("more-btn") && ul.nextElementSibling.remove();
+  const total = ul.children.length;
+  ul.classList.toggle("clamped", total > n);
+  ul.style.setProperty("--clamp", n);
+  if (total <= n) return;
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "btn more-btn"; b.setAttribute("aria-expanded", "false");
+  const label = () => (ul.classList.contains("open") ? "Mostrar menos" : `Mostrar mais (${total - n})`);
+  b.textContent = label();
+  b.setAttribute("aria-label", `${what}: ${label().toLowerCase()}`);
+  b.onclick = () => {
+    ul.classList.toggle("open");
+    b.setAttribute("aria-expanded", ul.classList.contains("open"));
+    b.textContent = label();
+    b.setAttribute("aria-label", `${what}: ${label().toLowerCase()}`);
+  };
+  ul.after(b);
+}
+
+// Botão "Filtros" (tela estreita): abre/fecha os seletores e mostra quantos estão ativos.
+(() => {
+  const btn = $("#fMoreBtn"), box = $("#fMore");
+  if (!btn) return;
+  const count = () => {
+    const n = ["#fDevice", "#fSystem", "#fStatus"].filter((id) => $(id).value).length;
+    $("#fMoreLabel").textContent = n ? `Filtros (${n})` : "Filtros";
+  };
+  btn.onclick = () => { box.classList.toggle("open"); btn.setAttribute("aria-expanded", box.classList.contains("open")); };
+  box.addEventListener("change", count);
+  window.HH_FILTERCOUNT = count;                     // filtros trocados por link/chip também atualizam o número
+  count();
+})();
+
+// ---------- tema das plataformas ----------
+async function loadThemes() {
+  THEME.list = await fetch("data/themes.json").then((r) => (r.ok ? r.json() : [])).catch(() => []);
+  THEME.cur = THEME.list.find((t) => t.id === pref("hh_theme", "")) || null;
+  $("#themeName").textContent = THEME.cur?.name || "Arrow";
+  if (!THEME.list.length) $("#themeBtn").hidden = true;
+}
+function drawThemes() {
+  const q = $("#themeFilter").value.trim().toLowerCase();
+  const all = [{ id: "", name: "Arrow", authors: ["Post Mortem"], systems: null }, ...THEME.list];
+  const shown = all.filter((t) => !q || t.name.toLowerCase().includes(q) || t.authors.join(" ").toLowerCase().includes(q));
+  const cur = THEME.cur?.id || "";
+  $("#themeCount").textContent = `${fmtN(shown.length)} de ${fmtN(all.length)} temas`;
+  $("#themeList").innerHTML = shown.map((t) => {
+    // Prévia comparável: a mesma plataforma (Super Nintendo) em todos os temas; miniatura do pacote só se faltar.
+    const pick = t.id && ["snes", "gba", "megadrive", "psx"].find((x) => t.systems.includes(x));
+    const img = !t.id ? "platforms/snes.webp" : pick ? `themes/${t.id}/${pick}.webp` : t.thumb ? `themes/${t.id}/_thumb.webp` : `themes/${t.id}/${t.systems[0]}.webp`;
+    return `<li><button type="button" class="theme-opt" data-theme="${esc(t.id)}" aria-pressed="${t.id === cur}">
+      <img src="${esc(img)}" alt="" loading="lazy" decoding="async">
+      <span><b>${esc(t.name)}${t.id ? "" : " (padrão)"}</b><span class="muted small">${esc(t.authors.join(", ") || "autor não informado")}${t.systems ? ` · ${fmtN(t.systems.length)} plataformas` : ""}</span></span>
+    </button></li>`;
+  }).join("") || `<li class="muted small">Nenhum tema com esse nome.</li>`;
+}
+$("#themeBtn").onclick = () => { $("#themeFilter").value = ""; drawThemes(); $("#themeDlg").showModal(); };
+$("#themeFilter").oninput = drawThemes;
+$("#themeList").onclick = (e) => {
+  const b = e.target.closest("[data-theme]");
+  if (!b) return;
+  THEME.cur = THEME.list.find((t) => t.id === b.dataset.theme) || null;
+  setPref("hh_theme", THEME.cur?.id || "");
+  $("#themeName").textContent = THEME.cur?.name || "Arrow";
+  drawThemes();
+  // As telas ficam montadas em cache: troca as imagens de plataforma que já estão na página.
+  document.querySelectorAll('img[src^="platforms/"], img[src^="themes/"]').forEach((img) => {
+    const src = img.getAttribute("src");
+    const sys = decodeURIComponent(src.includes("#") ? src.split("#")[1] : src.split("/").pop().replace(/\.webp$/, ""));
+    if (sys && !sys.startsWith("_")) img.setAttribute("src", platImg(sys));
+  });
+};
+
 // Links para outros sites (Drive, Wikipédia, RetroAchievements…) pedem confirmação antes de sair do portal.
 // Delegação: vale para links criados depois. "Não perguntar de novo" fica por site, neste aparelho.
 (() => {
@@ -1238,7 +1335,7 @@ document.addEventListener("click", (e) => {
 
 (async () => {
   try {
-    await loadLists();
+    await Promise.all([loadLists(), loadThemes()]);
     await loadSummary();
     await loadSystems();
     loadTopPlatforms();

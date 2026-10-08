@@ -6,7 +6,7 @@ import { raRoute } from "./ra.js";
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.pathname.startsWith("/covers/")) return cover(request, env, ctx, url);
+    if (url.pathname.startsWith("/covers/") || url.pathname.startsWith("/themes/")) return cover(request, env, ctx, url);
     if (url.pathname === "/api/lists") return lists(request, env);
     if (url.pathname.startsWith("/api/ra/")) return ra(request, env, ctx, url);
     return env.ASSETS.fetch(request);
@@ -18,8 +18,8 @@ async function cover(request, env, ctx, url) {
   const cache = caches.default;
   const hit = await cache.match(request);
   if (hit) return hit;
-  const key = decodeURIComponent(url.pathname.slice(1));          // "covers/<arquivo>.webp"
-  if (!/^covers\/[\w.-]+\.webp$/.test(key)) return new Response("não encontrado", { status: 404 });
+  const key = decodeURIComponent(url.pathname.slice(1));          // "covers/<arquivo>.webp" ou "themes/<tema>/<sistema>.webp"
+  if (!/^(covers\/[\w.-]+|themes\/[a-z0-9-]+\/[\w.-]+)\.webp$/.test(key)) return new Response("não encontrado", { status: 404 });
   const obj = await env.MEDIA.get(key);
   if (!obj) return env.ASSETS.fetch(request);                       // sem a capa no R2 (rodar npm run r2): os assets respondem 404
   const res = new Response(obj.body, {

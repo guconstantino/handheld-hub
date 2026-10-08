@@ -525,6 +525,16 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .layout-list .icon-btn:disabled { opacity: .3; cursor: default; }
 .layout-actions { display: flex; justify-content: space-between; gap: 8px; }
 .leave { width: min(460px, calc(100% - 24px)); }
+.themes-dlg { width: min(860px, calc(100% - 24px)); max-height: 86vh; }
+.theme-filter { width: 100%; padding: 8px 12px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
+.theme-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 10px; overflow-y: auto; min-height: 0; padding: 2px; }
+.theme-opt { display: grid; gap: 6px; width: 100%; text-align: left; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: none; color: var(--text); cursor: pointer; font: inherit; }
+.theme-opt img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: var(--hover); }
+.theme-opt > span { display: grid; gap: 2px; padding: 0 4px 4px; font-size: 14px; }
+.theme-opt:hover { border-color: var(--control); background: var(--hover); }
+.theme-opt[aria-pressed="true"] { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+#themeBtn { display: inline-flex; align-items: center; gap: 8px; }
+.page-head:has(#themeBtn) { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
 .leave .leave-url { overflow-wrap: anywhere; margin-top: -6px; }
 .leave .layout-actions { justify-content: flex-end; }
 
@@ -679,4 +689,18 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
   .seg { order: -1; }
   .filters select { flex: 1 1 calc(50% - 4px); min-width: 0; }
   .search { flex-basis: 100%; }
+}
+
+/* Lista recolhível (clampList): até 6 itens, o resto aparece com "Mostrar mais". */
+.clamped:not(.open) > li:nth-child(n + 7) { display: none; }
+.more-btn { margin-top: 10px; }
+
+/* Filtros de Jogos: no desktop os seletores ficam em linha; em tela estreita vão para trás do botão "Filtros". */
+.fmore { display: contents; }
+.fmore-btn { display: none; }
+@media (max-width: 900px) {
+  .fmore-btn { display: inline-flex; align-items: center; gap: 6px; align-self: stretch; }
+  .fmore { display: none; width: 100%; flex-wrap: wrap; gap: 8px; }
+  .fmore.open { display: flex; }
+  .filters .search { flex: 1 1 0; min-width: 0; }          /* busca e "Filtros" na mesma linha */
 }
