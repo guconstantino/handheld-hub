@@ -126,6 +126,25 @@
     "/api/index": (X) => (X.index ||= [...X.byKey].map(([k, c]) => ({
       k, s: c[0].system, t: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), c: X.D.covers[k] || null,
     }))),
+    // Comparar dois lugares: só em A, só em B e em ambos (jogos únicos), por plataforma, e a lista de cada lado.
+    "/api/compare": ({ D, byKey }, p) => {
+      const A = p.get("a"), B = p.get("b"), sys = p.get("system") || "";
+      const out = { onlyA: [], onlyB: [], both: 0, bySystem: {} };
+      for (const [k, c] of byKey) {
+        const s = c[0].system, inA = c.some((x) => x.device_id === A), inB = c.some((x) => x.device_id === B);
+        if (!inA && !inB) continue;
+        const row = (out.bySystem[s] ||= { system: s, onlyA: 0, onlyB: 0, both: 0 });
+        const g = { game_key: k, system: s, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), cover: D.covers[k] || null, copies: c };
+        if (inA && inB) { row.both++; out.both++; }
+        else if (inA) { row.onlyA++; if (!sys || s === sys) out.onlyA.push(g); }
+        else { row.onlyB++; if (!sys || s === sys) out.onlyB.push(g); }
+      }
+      const name = (a, b) => a.title.localeCompare(b.title, "pt-BR");
+      out.onlyA.sort(name); out.onlyB.sort(name);
+      out.totals = { onlyA: Object.values(out.bySystem).reduce((n, r) => n + r.onlyA, 0), onlyB: Object.values(out.bySystem).reduce((n, r) => n + r.onlyB, 0) };
+      out.bySystem = Object.values(out.bySystem).sort((a, b) => (b.onlyA + b.onlyB + b.both) - (a.onlyA + a.onlyB + a.both));
+      return out;
+    },
     "/api/health": ({ F, byKey }) => {
       const all = [...byKey.values()].map((c) => ({ system: c[0].system, drive: c.some((f) => f.device_id === "drive"), console: c.some((f) => f.device_id !== "drive") }));
       return {

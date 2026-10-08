@@ -34,6 +34,7 @@
     { label: "Plataformas", sub: "Tela", icon: "layout-grid", run: go("#platforms"), keys: "g p" },
     { label: "Jogos", sub: "Tela", icon: "gamepad-2", run: go("#games"), keys: "g j" },
     { label: "Saúde do acervo", sub: "Tela", icon: "shield-check", run: go("#health"), keys: "g s" },
+    { label: "Comparar consoles", sub: "Tela", icon: "columns", run: go("#compare"), keys: "g c" },
     { label: "Alternar tema claro/escuro", sub: "Ação", icon: "sun-moon", run: () => document.getElementById("themeToggle").click(), keys: "t" },
     { label: "Jogos com capa corrompida", sub: "Filtro", icon: "triangle-alert", run: () => { location.hash = "#games"; setTimeout(() => { const s = document.getElementById("fStatus"); s.value = "corrupted"; s.dispatchEvent(new Event("change")); }, 0); } },
   ];
@@ -135,7 +136,7 @@
     const k = e.key.toLowerCase();
     if (prefix === "g") {
       prefix = null;
-      const dest = { v: "#overview", p: "#platforms", j: "#games", s: "#health" }[k];
+      const dest = { v: "#overview", p: "#platforms", j: "#games", s: "#health", c: "#compare" }[k];
       if (dest) { e.preventDefault(); location.hash = dest; }
       return;
     }

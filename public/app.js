@@ -135,7 +135,7 @@ document.addEventListener("mousemove", (e) => {
 // ---------- rotas: #overview, #device/<id>, #games, #health ----------
 function route(moveFocus = false) {
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
-  const target = ["overview", "device", "platforms", "platform", "game", "games", "health"].includes(view) ? view : "overview";
+  const target = ["overview", "device", "platforms", "platform", "game", "games", "compare", "health"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => {
     const on = a.dataset.view === ({ device: "overview", platform: "platforms", game: "games" }[target] || target);
     a.classList.toggle("active", on);
@@ -147,6 +147,7 @@ function route(moveFocus = false) {
   const pending = target === "platform" ? renderPlatform(arg) : target === "game" ? renderGame(decodeURIComponent(arg || "")) : null;
   if (target === "games" && !state.loaded.games) { state.loaded.games = true; loadGames(); }
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
+  if (target === "compare" && !state.loaded.compare) { state.loaded.compare = true; initCompare(); }
   const h1 = document.querySelector(`#view-${target} h1`);
   document.title = h1 && target !== "overview" ? `${h1.textContent} · Handheld Hub` : "Handheld Hub";
   window.scrollTo(0, 0);
@@ -261,9 +262,56 @@ async function loadSummary() {
   $("#fDevice").innerHTML = `<option value="">Todos os lugares</option>` +
     s.devices.map((d) => `<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("");
   const last = s.locations.map((l) => l.last_scan).filter(Boolean).sort().pop();
+  applyLayout();
   $("#footer").textContent = `Última varredura: ${fmtDate(last)}`;
   $("#scan").textContent = `Varrido em ${fmtDate(last)}`;
 }
+
+// ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
+const BLOCKS = [["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
+  ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
+const loadLayout = () => {
+  let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
+  const ids = BLOCKS.map(([id]) => id);
+  const order = (l?.order || []).filter((id) => ids.includes(id));
+  return { order: [...order, ...ids.filter((id) => !order.includes(id))], hidden: l?.hidden || [] };
+};
+let layout = loadLayout();
+function applyLayout() {
+  layout.order.forEach((id, i) => {
+    const el = document.querySelector(`#view-overview [data-block="${id}"]`);
+    if (!el) return;
+    // Wrappers "display: contents" não aceitam order: aplica nos filhos (e no título dos consoles).
+    const parts = el.classList.contains("contents") ? [...el.children] : [el];
+    if (id === "consoles") parts.unshift(document.querySelector('#view-overview [data-part="consoles"]'));
+    for (const p of parts) { p.style.order = i * 10; p.classList.toggle("hidden", layout.hidden.includes(id)); }
+  });
+}
+function drawLayoutList() {
+  const names = Object.fromEntries(BLOCKS);
+  $("#layoutList").innerHTML = layout.order.map((id, i) => `<li>
+    <label><input type="checkbox" data-show="${id}" ${layout.hidden.includes(id) ? "" : "checked"}> ${esc(names[id])}</label>
+    <span><button type="button" class="icon-btn" data-up="${id}" ${i ? "" : "disabled"} aria-label="Subir ${esc(names[id])}">↑</button>
+    <button type="button" class="icon-btn" data-down="${id}" ${i < layout.order.length - 1 ? "" : "disabled"} aria-label="Descer ${esc(names[id])}">↓</button></span></li>`).join("");
+}
+const saveLayout = () => { try { localStorage.setItem("hh_layout", JSON.stringify(layout)); } catch {} applyLayout(); drawLayoutList(); };
+$("#customize").onclick = () => { drawLayoutList(); $("#layoutDlg").showModal(); };
+$("#layoutReset").onclick = () => { layout = { order: BLOCKS.map(([id]) => id), hidden: [] }; saveLayout(); };
+$("#layoutList").addEventListener("change", (e) => {
+  const id = e.target.dataset.show;
+  if (!id) return;
+  layout.hidden = e.target.checked ? layout.hidden.filter((x) => x !== id) : [...layout.hidden, id];
+  saveLayout();
+  $(`#layoutList [data-show="${id}"]`)?.focus();
+});
+$("#layoutList").addEventListener("click", (e) => {
+  const up = e.target.dataset.up, down = e.target.dataset.down, id = up || down;
+  if (!id) return;
+  const i = layout.order.indexOf(id), j = up ? i - 1 : i + 1;
+  [layout.order[i], layout.order[j]] = [layout.order[j], layout.order[i]];
+  saveLayout();
+  $(`#layoutList [data-${up ? "up" : "down"}="${id}"]`)?.focus();
+});
 
 // ---------- detalhe do console ----------
 // Abre a tela Jogos já filtrada (usado pela página do console e pelos chips).
@@ -664,13 +712,21 @@ async function renderGame(key) {
     </div>
     <div class="ggrid">
       ${facts.length ? `<section class="tile"><h2>Ficha</h2><dl class="kv">${facts.map(([k, x]) => `<dt>${k}</dt><dd>${esc(x)}</dd>`).join("")}</dl></section>` : ""}
-      <section class="tile"><h2>Onde está</h2>
-        <ul class="where-list">${g.copies.map((c) => `<li ${dev(c.device_id)}>
-          <span class="dot"></span><span>${esc(copyLabel(deviceOf(c.device_id), c.location_id))}</span>
-          <span class="muted small">${esc(c.ext === "pasta" ? "pasta" : (c.ext || "").toUpperCase())}${c.size ? " · " + fmtB(c.size) : ""}</span>
-          ${c.status === "corrupted" ? `<span class="badge bad">corrompido</span>` : c.status === "ok" ? `<span class="badge ok">${icon("shield-check", "sm")}ok</span>` : ""}
-          ${c.device_id === "drive" && c.drive_id ? `<a class="small" href="${esc(c.ext === "pasta" ? `https://drive.google.com/drive/folders/${c.drive_id}` : `https://drive.google.com/file/d/${c.drive_id}/view`)}" target="_blank" rel="noopener">abrir</a>` : ""}
-        </li>`).join("")}</ul>
+      <section class="tile"><h2>Onde está · ${fmtN(g.copies.length)} ${g.copies.length === 1 ? "cópia" : "cópias"}</h2>
+        ${bad ? (() => {
+          const good = g.copies.find((c) => c.status === "ok");
+          const where = good ? copyLabel(deviceOf(good.device_id), good.location_id) : null;
+          return `<p class="gwarn">${icon("triangle-alert", "sm")}<span>Há cópia corrompida${where ? `. Cópia boa em <b>${esc(where)}</b>: copie de lá.` : g.copies.some((c) => c.device_id === "drive") ? ". A cópia do Drive não foi verificada." : ". Baixe de novo da fonte."}</span></p>`;
+        })() : ""}
+        <table class="table copies-table"><caption class="sr-only">Cópias deste jogo</caption>
+          <thead><tr><th scope="col">Lugar</th><th scope="col">Formato</th><th scope="col">Tamanho</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Abrir</span></th></tr></thead>
+          <tbody>${g.copies.map((c) => `<tr ${dev(c.device_id)}>
+            <td><span class="cell-dev"><i class="dot"></i>${esc(copyLabel(deviceOf(c.device_id), c.location_id))}</span></td>
+            <td>${esc(c.ext === "pasta" ? "pasta" : (c.ext || "—").toUpperCase())}</td>
+            <td class="num-cell">${c.size ? fmtB(c.size) : "—"}</td>
+            <td>${c.status === "corrupted" ? `<span class="badge bad">corrompido</span>` : c.status === "ok" ? `<span class="badge ok">${icon("shield-check", "sm")}ok</span>` : `<span class="muted small">não verificado</span>`}</td>
+            <td>${c.device_id === "drive" && c.drive_id ? `<a class="small tlink" href="${esc(c.ext === "pasta" ? `https://drive.google.com/drive/folders/${c.drive_id}` : `https://drive.google.com/file/d/${c.drive_id}/view`)}" target="_blank" rel="noopener">Abrir no Drive</a>` : ""}</td>
+          </tr>`).join("")}</tbody></table>
       </section>
     </div>
     <section class="tile" id="gcodes" aria-labelledby="t-codes"><h2 id="t-codes">Códigos</h2><p class="muted small">Carregando…</p></section>
@@ -699,6 +755,60 @@ document.addEventListener("click", async (e) => {
   try { await navigator.clipboard.writeText(b.dataset.code); b.textContent = "Copiado"; } catch { b.textContent = "Erro"; }
   setTimeout(() => (b.textContent = "Copiar"), 1500);
 });
+
+// ---------- comparar dois lugares ----------
+const cmp = { side: "A", system: "", list: [], offset: 0 };
+function initCompare() {
+  const opts = state.devices.map((d) => `<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("");
+  $("#cmpA").innerHTML = opts; $("#cmpB").innerHTML = opts;
+  $("#cmpA").value = pref("hh_cmpA", "s20fe"); $("#cmpB").value = pref("hh_cmpB", "miyoo");
+  $("#cmpA").onchange = $("#cmpB").onchange = () => { setPref("hh_cmpA", $("#cmpA").value); setPref("hh_cmpB", $("#cmpB").value); cmp.system = ""; drawCompare(); };
+  $("#cmpSwap").onclick = () => { const a = $("#cmpA").value; $("#cmpA").value = $("#cmpB").value; $("#cmpB").value = a; $("#cmpA").onchange(); };
+  document.querySelectorAll("#view-compare [data-side]").forEach((b) => (b.onclick = () => { cmp.side = b.dataset.side; drawCompareList(); }));
+  $("#cmpMore").onclick = () => autoLoad($("#cmpMore"), async () => moreCompare());
+  watchMore($("#cmpMore"));
+  drawCompare();
+}
+async function drawCompare() {
+  const A = $("#cmpA").value, B = $("#cmpB").value;
+  const nA = shortName(deviceOf(A)), nB = shortName(deviceOf(B));
+  const r = (cmp.data = await api(`/api/compare?a=${A}&b=${B}`));
+  $("#cmpKpis").innerHTML = [[`Só no ${nA}`, r.totals.onlyA, A], ["Em ambos", r.both, ""], [`Só no ${nB}`, r.totals.onlyB, B]]
+    .map(([l, n, d]) => `<div class="kpi" role="listitem" ${d ? dev(d) : ""}><span class="kpi-label">${d ? `<i class="dot"></i>` : icon("columns", "sm")}${esc(l)}</span><span class="kpi-value">${fmtN(n)}</span><span class="kpi-sub">jogos</span></div>`).join("");
+  // Barra por plataforma: só em A (cor de A) | em ambos (neutro) | só em B (cor de B). Números escritos ao lado.
+  const rows = r.bySystem.filter((x) => x.onlyA + x.onlyB > 0).slice(0, 20);
+  $("#cmpSystems").innerHTML = rows.length ? `<ul class="cmprows">${rows.map((x) => {
+    const t = x.onlyA + x.both + x.onlyB || 1;
+    return `<li><button type="button" class="cmpsys ${cmp.system === x.system ? "on" : ""}" data-sys="${esc(x.system)}" aria-pressed="${cmp.system === x.system}">${esc(sysName(x.system))}</button>
+      <span class="cmpbar" aria-hidden="true"><i ${dev(A)} style="flex:${x.onlyA}"></i><i class="both" style="flex:${x.both}"></i><i ${dev(B)} style="flex:${x.onlyB}"></i></span>
+      <span class="cmpnum"><b ${dev(A)}>${fmtN(x.onlyA)}</b> · ${fmtN(x.both)} · <b ${dev(B)}>${fmtN(x.onlyB)}</b></span></li>`; }).join("")}</ul>
+    <p class="chart-note">Cada linha: só no ${esc(nA)} · em ambos · só no ${esc(nB)}.</p>` : emptyState("Nada diferente", "Os dois lugares têm os mesmos jogos.", false);
+  $("#cmpSystems").querySelectorAll("[data-sys]").forEach((b) => (b.onclick = () => {
+    cmp.system = cmp.system === b.dataset.sys ? "" : b.dataset.sys;
+    drawCompare();
+  }));
+  drawCompareList();
+}
+function drawCompareList() {
+  const r = cmp.data, A = $("#cmpA").value, B = $("#cmpB").value;
+  const filt = (l) => (cmp.system ? l.filter((g) => g.system === cmp.system) : l);
+  const la = filt(r.onlyA), lb = filt(r.onlyB);
+  $("#cmpTabA").textContent = `Só no ${shortName(deviceOf(A))} (${fmtN(la.length)})`;
+  $("#cmpTabB").textContent = `Só no ${shortName(deviceOf(B))} (${fmtN(lb.length)})`;
+  document.querySelectorAll("#view-compare [data-side]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.side === cmp.side)));
+  $("#cmpFilter").innerHTML = cmp.system ? `<button type="button" class="chip active" id="cmpClear">${esc(sysName(cmp.system))} <span aria-hidden="true">✕</span></button>` : "";
+  $("#cmpClear")?.addEventListener("click", () => { cmp.system = ""; drawCompare(); });
+  cmp.list = cmp.side === "A" ? la : lb;
+  cmp.offset = 0;
+  $("#cmpGames").innerHTML = "";
+  moreCompare();
+}
+function moreCompare() {
+  if (!cmp.list.length) { $("#cmpGames").innerHTML = `<li class="empty-li">${emptyState("Nada faltando aqui", "Todos os jogos deste lado também estão no outro lugar.", false)}</li>`; $("#cmpMore").classList.add("hidden"); return; }
+  $("#cmpGames").insertAdjacentHTML("beforeend", gridHtml(cmp.list.slice(cmp.offset, cmp.offset + 60)));
+  cmp.offset += 60;
+  $("#cmpMore").classList.toggle("hidden", cmp.offset >= cmp.list.length);
+}
 
 // ---------- saúde ----------
 const getHealth = async () => (state.health ||= await api("/api/health"));

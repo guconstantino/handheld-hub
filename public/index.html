@@ -28,6 +28,7 @@
       <a href="#overview" data-view="overview"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layers"/></svg><span>Visão geral</span></a>
       <a href="#platforms" data-view="platforms"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layout-grid"/></svg><span>Plataformas</span></a>
       <a href="#games" data-view="games"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-gamepad-2"/></svg><span>Jogos</span></a>
+      <a href="#compare" data-view="compare"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-columns"/></svg><span>Comparar</span></a>
       <a href="#health" data-view="health"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-shield-check"/></svg><span>Saúde</span></a>
     </nav>
     <div class="side-foot">
@@ -49,30 +50,31 @@
             <h1 tabindex="-1">Visão geral</h1>
             <p class="lead">Onde estão os jogos, quanto espaço sobra e o que precisa de atenção.</p>
           </div>
+          <button type="button" class="btn" id="customize"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-wrench"/></svg>Personalizar</button>
         </div>
         <div class="bento">
-          <section class="tile b-hero" id="hero" aria-label="Acervo"></section>
-          <div class="contents" id="stats"></div>
-          <h2 class="b-full">Consoles</h2>
-          <div class="contents" id="devices"></div>
-          <section class="tile b-4" aria-labelledby="t-sys">
+          <section class="tile b-hero" id="hero" aria-label="Acervo" data-block="hero"></section>
+          <div class="contents" id="stats" data-block="stats"></div>
+          <h2 class="b-full" data-part="consoles">Consoles</h2>
+          <div class="contents" id="devices" data-block="consoles"></div>
+          <section class="tile b-4" aria-labelledby="t-sys" data-block="plataformas">
             <div class="tile-head"><h2 id="t-sys">Jogos por plataforma</h2><div id="topSort"></div></div>
             <div id="topSystems"></div>
           </section>
-          <section class="tile b-4" aria-labelledby="t-mosaic">
+          <section class="tile b-4" aria-labelledby="t-mosaic" data-block="mosaico">
             <h2 id="t-mosaic">Do acervo</h2>
             <ul class="mosaic" id="mosaic"></ul>
           </section>
-          <section class="tile b-4" aria-labelledby="t-where">
+          <section class="tile b-4" aria-labelledby="t-where" data-block="onde">
             <h2 id="t-where">Onde estão os arquivos</h2>
             <div id="where"></div>
           </section>
-          <section class="tile b-8" aria-labelledby="t-cov">
+          <section class="tile b-8" aria-labelledby="t-cov" data-block="capas">
             <div class="tile-head"><h2 id="t-cov">Capas por sistema</h2><div id="covSort"></div></div>
             <div id="coverage"></div>
             <p class="chart-note">Sistemas com mais jogos. Capas do libretro, do cartão do Miyoo e do Daijishō no S20.</p>
           </section>
-          <section class="b-4 health-col" aria-labelledby="t-health">
+          <section class="b-4 health-col" aria-labelledby="t-health" data-block="saude">
             <h2 id="t-health">Saúde do acervo</h2>
             <div class="health-tiles" id="healthTiles"></div>
           </section>
@@ -144,6 +146,33 @@
         <button class="btn hidden" id="more">Carregar mais</button>
       </section>
 
+      <section class="view hidden" id="view-compare">
+        <div class="page-head">
+          <div>
+            <h1 tabindex="-1">Comparar</h1>
+            <p class="lead">O que está num lugar e falta no outro. Ajuda a decidir o que copiar para onde.</p>
+          </div>
+        </div>
+        <div class="cmp-controls">
+          <label class="sort"><span>Lugar A</span><select id="cmpA"></select></label>
+          <button type="button" class="icon-btn" id="cmpSwap" aria-label="Trocar A e B" title="Trocar A e B"><svg class="ic" aria-hidden="true"><use href="icons.svg#i-arrow-left-right"/></svg></button>
+          <label class="sort"><span>Lugar B</span><select id="cmpB"></select></label>
+        </div>
+        <div class="kpis" id="cmpKpis" role="list" aria-label="Resumo da comparação"></div>
+        <section class="tile" aria-labelledby="t-cmpsys">
+          <div class="tile-head"><h2 id="t-cmpsys">Por plataforma</h2><span class="muted small">Clique numa plataforma para ver só os jogos dela</span></div>
+          <div id="cmpSystems"></div>
+        </section>
+        <div>
+          <div class="tile-head">
+            <div class="seg" role="group" aria-label="Lista"><button type="button" data-side="A" aria-pressed="true" id="cmpTabA"></button><button type="button" data-side="B" aria-pressed="false" id="cmpTabB"></button></div>
+            <div id="cmpFilter"></div>
+          </div>
+          <ul class="grid" id="cmpGames"></ul>
+          <button class="btn hidden" id="cmpMore" style="margin-top:16px">Carregar mais</button>
+        </div>
+      </section>
+
       <section class="view hidden" id="view-health">
         <div class="page-head">
           <div>
@@ -174,6 +203,14 @@
     <p class="sr-only" id="palLive" aria-live="polite"></p>
   </dialog>
 
+  <dialog class="palette shortcuts" id="layoutDlg" aria-labelledby="t-layout">
+    <h2 id="t-layout">Personalizar a visão geral</h2>
+    <p class="muted small">Mostre, esconda e reordene os blocos. Fica salvo neste navegador.</p>
+    <ul class="layout-list" id="layoutList"></ul>
+    <div class="layout-actions"><button type="button" class="btn" id="layoutReset">Restaurar padrão</button>
+      <form method="dialog"><button class="btn primary">Pronto</button></form></div>
+  </dialog>
+
   <dialog class="palette shortcuts" id="shortcuts" aria-labelledby="t-keys">
     <h2 id="t-keys">Atalhos de teclado</h2>
     <dl class="keys">
@@ -182,6 +219,7 @@
       <dt><kbd>g</kbd> <kbd>v</kbd></dt><dd>Ir para a visão geral</dd>
       <dt><kbd>g</kbd> <kbd>p</kbd></dt><dd>Ir para plataformas</dd>
       <dt><kbd>g</kbd> <kbd>j</kbd></dt><dd>Ir para jogos</dd>
+      <dt><kbd>g</kbd> <kbd>c</kbd></dt><dd>Ir para comparar</dd>
       <dt><kbd>g</kbd> <kbd>s</kbd></dt><dd>Ir para a saúde do acervo</dd>
       <dt><kbd>t</kbd></dt><dd>Alternar tema claro/escuro</dd>
       <dt><kbd>Esc</kbd></dt><dd>Fechar</dd>
