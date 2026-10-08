@@ -397,6 +397,34 @@ function goGames(filters = {}) {
   }, 0);
 }
 
+// Relação do aparelho com os outros: só aqui (risco), pronto para instalar e jogos em comum.
+async function drawDeviceRelation(d) {
+  const x = await api("/api/insights"), el = $("#devRel");
+  if (!el || $("#view-device").dataset.dev !== d.id) return;
+  const only = x.combos.find((c) => c.devices.length === 1 && c.devices[0] === d.id)?.n || 0;
+  const mine = x.combos.filter((c) => c.devices.includes(d.id)).reduce((n, c) => n + c.n, 0) || 1;
+  const others = state.devices.filter((o) => o.id !== d.id).map((o) => ({ o, n: x.combos.filter((c) => c.devices.includes(d.id) && c.devices.includes(o.id)).reduce((n, c) => n + c.n, 0) }));
+  const inst = x.install.find((i) => i.device === d.id);
+  const drive = d.id === "drive";
+  el.innerHTML = `<div class="tile-head"><h2 id="t-devrel">Relação com os outros aparelhos</h2></div>
+    <div class="rel-grid">
+      <div class="rel-cards">
+        <button type="button" class="relcard ${only && !drive ? "warn" : ""}" data-go-where="${esc(d.id)}" ${only ? "" : "disabled"}>
+          <span class="muted small">${drive ? "Só no Drive (em nenhum console)" : "Só neste aparelho (sem backup)"}</span><b class="kpi-value">${fmtN(only)}</b>
+          <span class="small">${only ? "Ver jogos" : "Nada exclusivo aqui"}</span></button>
+        ${inst ? `<button type="button" class="relcard" data-go-missing="${esc(d.id)}" ${inst.games ? "" : "disabled"}>
+          <span class="muted small">Pronto para instalar</span><b class="kpi-value">${fmtN(inst.games)}</b>
+          <span class="muted small">~${fmtB(inst.bytes)}${inst.space ? ` · ${fmtB(inst.space.free)} livres` : ""}</span>
+          <span class="small">${inst.games ? "Ver jogos" : "Nada novo para instalar"}</span></button>` : ""}
+      </div>
+      <div><h3 class="rel-h">Jogos em comum</h3>
+        <ul class="barlist">${others.map(({ o, n }) => `<li ${dev(o.id)}><span class="bl-label"><i class="dot"></i>${esc(shortName(o))}</span>
+          <span class="track"><i style="width:${(n / mine) * 100}%"></i></span><span class="bl-n">${fmtN(n)} <span class="muted small">(${fmtP((n / mine) * 100)})</span></span></li>`).join("")}</ul></div>
+    </div>`;
+  el.hidden = false;
+  el.querySelector("[data-go-where]")?.addEventListener("click", () => goGames({ device: "", system: "", status: "", where: d.id }));
+  el.querySelector("[data-go-missing]")?.addEventListener("click", () => goGames({ device: "", system: "", status: "", missing: d.id }));
+}
 function renderDevice(id) {
   const d = deviceOf(id);
   if (!d.id) { $("#view-device").innerHTML = `<a class="back" href="#overview">${icon("chevron-left", "sm")}Visão geral</a><h1 tabindex="-1">Console não encontrado</h1>`; return; }
@@ -409,6 +437,7 @@ function renderDevice(id) {
   const disks = storageOf(d).filter((x) => x.total);
   const free = disks.reduce((n, x) => n + (x.free || 0), 0), total = disks.reduce((n, x) => n + x.total, 0);
   $("#view-device").setAttribute("data-dev", d.id);
+  queueMicrotask(() => drawDeviceRelation(d));
   $("#view-device").innerHTML = `
     <div>
       <a class="back" href="#overview">${icon("chevron-left", "sm")}Visão geral</a>
@@ -429,6 +458,7 @@ function renderDevice(id) {
          ["Corrompidos", fmtN(bad), "triangle-alert", "", bad > 0]]
         .map(([l, v, ic, sub, isBad]) => `<div class="kpi ${isBad ? "bad" : ""}" role="listitem"><span class="kpi-label">${icon(ic, "sm")}${l}</span><span class="kpi-value">${v}</span>${sub ? `<span class="kpi-sub">${sub}</span>` : ""}</div>`).join("")}
     </div>
+    <section class="tile" id="devRel" aria-labelledby="t-devrel" hidden></section>
     <section class="tile" aria-labelledby="t-devsys">
       <div class="tile-head"><h2 id="t-devsys">Jogos por plataforma neste console</h2></div>
       <div id="devSystems"></div>

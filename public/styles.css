@@ -836,3 +836,16 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
 @media (prefers-reduced-motion: no-preference) { .cont-in:hover .cont-cover { transform: translateY(-2px) scale(1.02); } .cont-cover { transition: transform .3s cubic-bezier(.2, .7, .2, 1); } }
 .gwhere { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; padding: 10px 12px; margin-bottom: 12px; border-radius: 10px; background: var(--hover); }
 .gwhere b { font-weight: 600; }
+
+/* Página do aparelho: cartões de relação (clicáveis) e jogos em comum. */
+.rel-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-content: start; }
+.relcard { display: grid; gap: 4px; text-align: left; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
+.relcard .kpi-value { font-size: 28px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.relcard:hover:not(:disabled) { border-color: var(--control); background: var(--hover); }
+.relcard:disabled { cursor: default; opacity: .75; }
+.relcard.warn { border-color: var(--danger); }
+.relcard.warn .kpi-value { color: var(--danger); }
+.relcard:not(:disabled) .small:last-child { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--control); }
+#devRel .barlist li { grid-template-columns: 120px minmax(0, 1fr) auto; }
+#devRel .bl-label { display: inline-flex; align-items: center; gap: 6px; }
+#devRel .bl-n { font-variant-numeric: tabular-nums; text-align: right; }
