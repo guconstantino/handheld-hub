@@ -38,6 +38,7 @@
       <button type="button" class="icon-btn" id="helpBtn" title="Atalhos de teclado (?)" aria-label="Atalhos de teclado">
         <span aria-hidden="true" class="qmark">?</span>
       </button>
+      <a class="icon-btn" href="#settings" id="settingsBtn" title="Configurações" aria-label="Configurações"><svg class="ic" aria-hidden="true"><use href="icons.svg#i-settings"/></svg></a>
       <button id="themeToggle" class="icon-btn" title="Alternar tema" aria-label="Alternar tema">
         <svg class="ic" aria-hidden="true"><use href="icons.svg#i-sun-moon"/></svg>
       </button>
@@ -223,6 +224,50 @@
           </div>
           <ul class="grid" id="cmpGames"></ul>
           <button class="btn hidden" id="cmpMore" style="margin-top:16px">Carregar mais</button>
+        </div>
+      </section>
+
+      <section class="view hidden" id="view-settings">
+        <div class="page-head"><div>
+          <h1 tabindex="-1">Configurações</h1>
+          <p class="lead">Suas preferências. Ficam salvas na sua conta e valem em todos os aparelhos.</p>
+        </div></div>
+        <div class="settings">
+          <section class="tile" aria-labelledby="t-s-look">
+            <h2 id="t-s-look">Aparência</h2>
+            <div class="srow"><div><b>Modo de cor</b><p class="muted small">Sistema segue o claro/escuro do aparelho.</p></div>
+              <div class="seg" role="group" aria-label="Modo de cor" id="sColor">
+                <button type="button" data-color="">Sistema</button><button type="button" data-color="light">Claro</button><button type="button" data-color="dark">Escuro</button></div></div>
+            <div class="srow"><div><b>Tema das plataformas</b><p class="muted small" id="sThemeName">Arrow</p></div>
+              <button type="button" class="btn" id="sThemeBtn">Escolher tema</button></div>
+          </section>
+          <section class="tile" aria-labelledby="t-s-games">
+            <h2 id="t-s-games">Jogos</h2>
+            <div class="srow"><div><b>Exibição</b><p class="muted small">Como a lista de jogos abre.</p></div>
+              <div class="seg" role="group" aria-label="Exibição padrão" id="sView">
+                <button type="button" data-view-mode="grid">Grade</button><button type="button" data-view-mode="list">Lista</button></div></div>
+            <div class="srow"><div><b>Ordenação</b><p class="muted small">Ordem padrão da lista de jogos.</p></div>
+              <select id="sSort" aria-label="Ordenação padrão dos jogos"><option value="">Por plataforma</option><option value="nome">Nome (A–Z)</option><option value="capa">Com capa primeiro</option><option value="copias">Mais cópias</option></select></div>
+          </section>
+          <section class="tile" aria-labelledby="t-s-home">
+            <h2 id="t-s-home">Visão geral e teclado</h2>
+            <div class="srow"><div><b>Blocos da visão geral</b><p class="muted small">Mostrar, esconder e reordenar.</p></div>
+              <button type="button" class="btn" id="sLayout">Personalizar</button></div>
+            <div class="srow"><div><b>Atalhos de uma tecla</b><p class="muted small"><kbd>?</kbd> <kbd>g</kbd> <kbd>t</kbd>. Desligue se atrapalhar um leitor de tela ou o teclado do celular.</p></div>
+              <label class="switch"><input type="checkbox" id="sKeys"><span class="sr-only">Atalhos de uma tecla</span></label></div>
+          </section>
+          <section class="tile" aria-labelledby="t-s-links">
+            <h2 id="t-s-links">Sites externos</h2>
+            <p class="muted small">Sites que abrem sem perguntar "Sair do Handheld Hub?".</p>
+            <ul class="trusted" id="sTrusted"></ul>
+          </section>
+          <section class="tile" aria-labelledby="t-s-data">
+            <h2 id="t-s-data">Dados</h2>
+            <div class="srow"><div><b>Backup das listas</b><p class="muted small">Favoritos, quero jogar, zerei e jogando agora.</p></div>
+              <a class="btn" href="#lists">Ir para Listas</a></div>
+            <div class="srow"><div><b>Restaurar padrão</b><p class="muted small">Volta todas as preferências acima ao original. Suas listas não mudam.</p></div>
+              <button type="button" class="btn danger" id="sReset">Restaurar</button></div>
+          </section>
         </div>
       </section>
 

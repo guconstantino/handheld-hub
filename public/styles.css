@@ -797,3 +797,23 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
 .toast span { flex: 1; }
 .toast-undo { border: 0; background: none; color: inherit; font: inherit; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px 4px; }
 @media (max-width: 900px) { .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
+
+/* Configurações: linhas "rótulo + controle", uma seção por assunto. */
+.settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 16px; align-items: start; }
+.settings h2 { margin-bottom: 6px; }
+.srow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--line); }
+.srow:first-of-type { border-top: 0; }
+.srow > div:first-child { display: grid; gap: 2px; min-width: 0; }
+.srow select { padding: 8px 12px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
+.trusted { list-style: none; display: grid; gap: 6px; margin-top: 10px; }
+.trusted li { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+/* Interruptor (checkbox nativo, acessível) */
+.switch input { appearance: none; width: 44px; height: 26px; border-radius: 999px; background: var(--line); border: 1px solid var(--control); position: relative; cursor: pointer; transition: background .2s; }
+.switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 3px rgb(0 0 0 / .3); transition: transform .2s cubic-bezier(.3, 1.4, .5, 1); }
+.switch input:checked { background: var(--ok); border-color: var(--ok); }
+.switch input:checked::after { transform: translateX(18px); }
+.switch input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#settingsBtn { display: inline-grid; place-items: center; }
+.srow > * { order: 0 !important; }                      /* a ordem dos filtros de Jogos não vale aqui */
+.srow { flex-wrap: wrap; }

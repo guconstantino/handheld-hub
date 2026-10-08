@@ -186,7 +186,7 @@ document.addEventListener("mousemove", (e) => {
 function route(moveFocus = false) {
   curView = null;                                   // a troca de tela muda a altura: não gravar essa rolagem
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
-  const target = ["overview", "device", "platforms", "platform", "game", "games", "lists", "compare", "health"].includes(view) ? view : "overview";
+  const target = ["overview", "device", "platforms", "platform", "game", "games", "lists", "compare", "health", "settings"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => {
     const on = a.dataset.view === ({ device: "overview", platform: "platforms", game: "games" }[target] || target);
     a.classList.toggle("active", on);
@@ -202,6 +202,7 @@ function route(moveFocus = false) {
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
   if (target === "compare" && !state.loaded.compare) { state.loaded.compare = true; initCompare(); drawMatrix(); }
   if (target === "lists") drawLists();
+  if (target === "settings") drawSettings();
   const h1 = document.querySelector(`#view-${target} h1`);
   document.title = h1 && target !== "overview" ? `${h1.textContent} · Handheld Hub` : "Handheld Hub";
   // Telas de lista voltam para onde estavam (abrir um jogo e voltar não perde a posição); detalhe abre no topo.
@@ -1401,6 +1402,60 @@ function applyRemotePrefs(changed = []) {
   if (changed.includes("hh_view")) { const v = pref("hh_view", "grid"); if (["grid", "list"].includes(v)) viewMode = v; }
   if (changed.includes("hh_gsort")) $("#fSort").value = pref("hh_gsort", "");
 }
+
+// ---------- configurações ----------
+// Tela única com as preferências (as mesmas chaves que cada tela já usa; sincronizadas por /api/prefs).
+function drawSettings() {
+  const color = pref("hh_theme", "");
+  document.querySelectorAll("#sColor button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.color === color)));
+  document.querySelectorAll("#sView button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.viewMode === viewMode)));
+  $("#sSort").value = pref("hh_gsort", "");
+  $("#sThemeName").textContent = THEME.cur ? `${THEME.cur.name} · ${THEME.cur.authors.join(", ")}` : "Arrow (padrão) · Post Mortem";
+  $("#sKeys").checked = pref("hh_keys", "on") !== "off";
+  let hosts = [];
+  try { hosts = JSON.parse(localStorage.getItem("hh-trusted-hosts") || "[]"); } catch {}
+  $("#sTrusted").innerHTML = hosts.length ? hosts.map((h) => `<li><span>${esc(h)}</span><button type="button" class="btn" data-untrust="${esc(h)}" aria-label="Voltar a perguntar antes de abrir ${esc(h)}">Remover</button></li>`).join("")
+    : `<li class="muted small">Nenhum. Todo site externo pergunta antes de abrir.</li>`;
+}
+$("#sColor").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-color]");
+  if (!b) return;
+  const v = b.dataset.color;
+  if (v) { document.documentElement.dataset.theme = v; setPref("hh_theme", v); }
+  else { delete document.documentElement.dataset.theme; try { localStorage.removeItem("hh_theme"); } catch {} }
+  themeLabel(); drawSettings();
+});
+$("#sView").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-view-mode]");
+  if (!b) return;
+  viewMode = b.dataset.viewMode; setPref("hh_view", viewMode);
+  if (state.loaded.games) renderGames();
+  drawSettings();
+});
+$("#sSort").onchange = (e) => { setPref("hh_gsort", e.target.value); $("#fSort").value = e.target.value; if (state.loaded.games) loadGames(); toast("Ordenação salva"); };
+$("#sThemeBtn").onclick = () => $("#themeBtn").click();
+$("#themeDlg").addEventListener("close", () => { if (location.hash === "#settings") drawSettings(); });
+$("#sLayout").onclick = () => $("#customize").click();
+$("#sKeys").onchange = (e) => {
+  setPref("hh_keys", e.target.checked ? "on" : "off");
+  const s = $("#singleKeys"); if (s) s.checked = e.target.checked;   // o atalho de busca lê esta caixa
+  toast(e.target.checked ? "Atalhos de uma tecla ligados" : "Atalhos de uma tecla desligados");
+};
+$("#sTrusted").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-untrust]");
+  if (!b) return;
+  let hosts = [];
+  try { hosts = JSON.parse(localStorage.getItem("hh-trusted-hosts") || "[]"); } catch {}
+  setPref("hh-trusted-hosts", JSON.stringify(hosts.filter((h) => h !== b.dataset.untrust)));
+  drawSettings();
+});
+$("#sReset").onclick = () => {
+  if (!confirm("Restaurar todas as preferências ao padrão? Suas listas não mudam.")) return;
+  for (const k of SYNC_KEYS) { try { localStorage.removeItem(k); } catch {} }
+  schedulePrefSync();
+  setTimeout(() => location.reload(), 1800);          // depois do envio (1,5 s): os outros aparelhos recebem o padrão também
+  toast("Preferências restauradas. Recarregando…");
+};
 
 // ---------- tema das plataformas ----------
 async function loadThemes() {
