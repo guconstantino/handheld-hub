@@ -492,6 +492,18 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
   .cmpbar { grid-column: 1 / -1; order: 3; }
 }
 
+/* ---------- sobre a plataforma ---------- */
+.pabout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; }
+.pabout:empty { display: none; }
+.prose p { line-height: 1.65; max-width: 72ch; }
+.prose p + p { margin-top: 10px; }
+.pabout:not(.open) .more-p { display: none; }
+.linkbtn { margin-top: 8px; background: none; border: 0; padding: 0; font: inherit; font-size: 14px; font-weight: 550; color: var(--text); cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--control); text-underline-offset: 3px; }
+.credit { margin-top: 12px; }
+.pabout .kv dd { text-align: right; }
+@media (max-width: 1100px) { .pabout { grid-template-columns: 1fr; } }
+
 /* ---------- saúde ---------- */
 .view-stack { display: grid; gap: 16px; }
 .small-btn { margin-top: 8px; font-size: 13px; padding: 5px 12px; }

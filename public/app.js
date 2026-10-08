@@ -654,6 +654,7 @@ async function renderPlatform(id) {
          ["Corrompidos", fmtN(p.corrupted), "triangle-alert", "", p.corrupted > 0]]
         .map(([l, v, ic, sub, bad]) => `<div class="kpi ${bad ? "bad" : ""}" role="listitem"><span class="kpi-label">${icon(ic, "sm")}${l}</span><span class="kpi-value">${v}</span>${sub ? `<span class="kpi-sub">${sub}</span>` : ""}</div>`).join("")}
     </div>
+    <div class="pabout" id="pabout"></div>
     <section class="panel" aria-labelledby="t-pwhere">
       <h2 id="t-pwhere">Onde estão os jogos</h2>
       <div class="stack-plot" id="pstack" aria-hidden="true"></div>
@@ -665,6 +666,25 @@ async function renderPlatform(id) {
       <ul class="grid" id="platformGames"></ul>
       <button class="btn hidden" id="platformMore" style="margin-top:16px">Carregar mais</button>
     </div>`;
+  // Sobre a plataforma: resumo e história (Wikipédia, CC BY-SA) + ficha técnica curada.
+  (window.HH_PLATINFO ||= fetch("data/platforms.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({}))).then((all) => {
+    const info = all[p.system] || {}, specs = Object.entries(info.specs || {});
+    if (!info.text?.length && !specs.length) return;
+    $("#pabout").innerHTML = `
+      ${info.text?.length ? `<section class="tile pabout-text" aria-labelledby="t-pabout"><h2 id="t-pabout">Sobre ${esc(sysName(p.system))}</h2>
+        ${info.lang === "en" ? `<p class="muted small">Sem artigo em português; resumo da Wikipédia em inglês.</p>` : ""}
+        <div class="prose">${info.text.map((t, i) => `<p ${i ? `class="more-p"` : ""}>${esc(t)}</p>`).join("")}</div>
+        ${info.text.length > 1 ? `<button type="button" class="linkbtn" id="pmore" aria-expanded="false">Ler mais</button>` : ""}
+        <p class="muted small credit">Texto: <a class="tlink" href="${esc(info.url)}" target="_blank" rel="noopener">Wikipédia</a> (CC BY-SA 4.0).</p></section>` : ""}
+      ${specs.length ? `<section class="tile" aria-labelledby="t-pspecs"><h2 id="t-pspecs">Ficha técnica</h2>
+        <dl class="kv">${specs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></section>` : ""}`;
+    $("#pmore")?.addEventListener("click", (e) => {
+      const open = e.target.getAttribute("aria-expanded") !== "true";
+      e.target.setAttribute("aria-expanded", String(open));
+      e.target.textContent = open ? "Ler menos" : "Ler mais";
+      $("#pabout").classList.toggle("open", open);
+    });
+  });
   if (window.HH_CHARTS) HH_CHARTS.stack($("#pstack"), devs.map((d) => ({ id: d, name: deviceOf(d).name, n: p.byDevice[d] })), { aria: "Jogos por lugar" });
   // Todos os jogos da plataforma de uma vez (ordenados aqui, com o ano da ficha); a grade mostra 60 por vez.
   const [all, info] = await Promise.all([api(`/api/games?system=${encodeURIComponent(p.system)}&limit=5000`), getData("info", p.system)]);
