@@ -125,11 +125,16 @@ async function admin(request, env, url) {
 // RetroAchievements ao vivo, com cache de 10 minutos na borda (poupa a API deles e deixa rápido).
 async function ra(request, env, ctx, url) {
   if (!env.RA_API_KEY) return Response.json({ error: "RetroAchievements não configurado" }, { status: 503 });
+  // Cada usuário informa o próprio nome no RA (Configurações, ?u=). Sem nome: admin usa RA_USER; usuário comum não tem RA.
+  const asked = url.searchParams.get("u");
+  const raUser = asked && /^[A-Za-z0-9_]{2,20}$/.test(asked) ? asked : isAdmin(env, userOf(request)) ? env.RA_USER : null;
+  if (!raUser) return Response.json({ error: "sem usuário do RetroAchievements" }, { status: 404 });
+  url.searchParams.set("u", raUser);                 // a chave do cache separa um usuário do outro
   const cacheKey = new Request(`https://cache.handheld-hub${url.pathname}${url.search}`);
   const hit = await caches.default.match(cacheKey);
   if (hit) return hit;
   try {
-    const data = await raRoute(url, { user: env.RA_USER, key: env.RA_API_KEY });
+    const data = await raRoute(url, { user: raUser, key: env.RA_API_KEY });
     const ttl = 600;
     const res = Response.json(data, { headers: { "cache-control": `private, max-age=${ttl}` } });
     ctx.waitUntil(caches.default.put(cacheKey, new Response(JSON.stringify(data), { headers: { "content-type": "application/json", "cache-control": `public, max-age=${ttl}` } })));

@@ -84,7 +84,7 @@ const pref = (k, d) => { try { return localStorage.getItem(k) || d; } catch { re
 const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 // Preferências sincronizadas entre aparelhos (KV do Worker, por usuário do Access). Toda gravação dessas chaves no
 // localStorage agenda um envio (1,5 s depois, juntando mudanças seguidas). Ao abrir, as do servidor vencem.
-const SYNC_KEYS = ["hh_theme", "hh_ptheme", "hh_layout", "hh_view", "hh_gsort", "hh_tsort", "hh_csort", "hh_psort", "hh_gpsort", "hh_listtab", "hh_keys", "hh-trusted-hosts"];
+const SYNC_KEYS = ["hh_ra_user", "hh_theme", "hh_ptheme", "hh_layout", "hh_view", "hh_gsort", "hh_tsort", "hh_csort", "hh_psort", "hh_gpsort", "hh_listtab", "hh_keys", "hh-trusted-hosts"];
 const PREFS = { on: false, timer: null };
 const prefSnapshot = () => {
   const o = {};
@@ -911,9 +911,11 @@ function keyIndex(index) {
   return { get: (k) => m.get(k) || m.get(loose(k)) };
 }
 const RA = { data: null, keyOf: new Map(), has: new Map() };   // has: jogo do catálogo → nº de conquistas no RA
+// Usuário do RetroAchievements desta pessoa (Configurações). Vazio: o Worker usa o do admin, ou nenhum.
+const raQ = (sep) => { const u = pref("hh_ra_user", "").trim(); return u ? `${sep}u=${encodeURIComponent(u)}` : ""; };
 async function loadRA() {
   try {
-    const r = await fetch("api/ra/summary", { credentials: "same-origin" });
+    const r = await fetch(`api/ra/summary${raQ("?")}`, { credentials: "same-origin" });
     if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) return;
     RA.data = await r.json();
   } catch { return; }
@@ -1024,7 +1026,7 @@ async function drawGameRA(g) {
       <a class="tlink" href="https://retroachievements.org/searchresults.php?s=${encodeURIComponent(g.title.replace(/\s*[([].*$/, ""))}" target="_blank" rel="noopener">Procurar no RetroAchievements</a></p>`;
     return;
   }
-  const r = await fetch(`api/ra/game?id=${id}`, { credentials: "same-origin" }).catch(() => null);
+  const r = await fetch(`api/ra/game?id=${id}${raQ("&")}`, { credentials: "same-origin" }).catch(() => null);
   if (!r?.ok) { sec.innerHTML = `<h2>Conquistas</h2><p class="muted small">Não consegui falar com o RetroAchievements agora.</p>`; return; }
   const x = await r.json();
   const pct = x.total ? (x.earned / x.total) * 100 : 0;
@@ -1482,6 +1484,8 @@ function drawSettings() {
   $("#sSort").value = pref("hh_gsort", "");
   $("#sThemeName").textContent = THEME.cur ? `${THEME.cur.name} · ${THEME.cur.authors.join(", ")}` : "Arrow (padrão) · Post Mortem";
   $("#sKeys").checked = pref("hh_keys", "on") !== "off";
+  $("#sRaUser").value = pref("hh_ra_user", "");
+  $("#sRaUser").placeholder = state.me?.role === "admin" ? "guconstantino (padrão)" : "seu usuário no RA";
   let hosts = [];
   try { hosts = JSON.parse(localStorage.getItem("hh-trusted-hosts") || "[]"); } catch {}
   $("#sTrusted").innerHTML = hosts.length ? hosts.map((h) => `<li><span>${esc(h)}</span><button type="button" class="btn" data-untrust="${esc(h)}" aria-label="Voltar a perguntar antes de abrir ${esc(h)}">Remover</button></li>`).join("")
@@ -1519,6 +1523,17 @@ $("#sTrusted").addEventListener("click", (e) => {
   setPref("hh-trusted-hosts", JSON.stringify(hosts.filter((h) => h !== b.dataset.untrust)));
   drawSettings();
 });
+$("#sRaForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const v = $("#sRaUser").value.trim();
+  if (v && !/^[A-Za-z0-9_]{2,20}$/.test(v)) { toast("Usuário do RA: só letras, números e _ (2 a 20)"); return; }
+  setPref("hh_ra_user", v);
+  RA.data = null; RA.keyOf.clear();
+  RA.ready = loadRA(); await RA.ready;
+  if (!RA.data) { $("#raBlock").classList.add("ra-off"); $("#contBlock").hidden = true; }
+  drawContinue();
+  toast(RA.data ? `RetroAchievements: ${RA.data.user}` : v ? "Não achei esse usuário no RetroAchievements" : "RetroAchievements: padrão");
+};
 $("#sReset").onclick = () => {
   if (!confirm("Restaurar todas as preferências ao padrão? Suas listas não mudam.")) return;
   for (const k of SYNC_KEYS) { try { localStorage.removeItem(k); } catch {} }

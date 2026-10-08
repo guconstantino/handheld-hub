@@ -23,7 +23,8 @@ createServer(async (req, res) => {
   if (u.pathname === "/api/admin/overview") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ me: "local@teste", users: [] }));
   if (u.pathname.startsWith("/api/ra/") && env.RA_API_KEY) {
     try {
-      const data = await raRoute(u, { user: env.RA_USER, key: env.RA_API_KEY });
+      const asked = u.searchParams.get("u");
+      const data = await raRoute(u, { user: asked && /^[A-Za-z0-9_]{2,20}$/.test(asked) ? asked : env.RA_USER, key: env.RA_API_KEY });
       res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(data));
     } catch (e) { res.writeHead(e.status || 502, { "content-type": "application/json" }).end(JSON.stringify({ error: e.message })); }
     return;
