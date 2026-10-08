@@ -106,6 +106,10 @@
       return { game_key: k, system: copies[0].system, title: copies.reduce((t, c) => (c.title < t ? c.title : t), copies[0].title),
                cover: D.covers[k] || null, copies };
     },
+    // Índice da busca global: um item por jogo (título, plataforma, capa). Montado uma vez.
+    "/api/index": (X) => (X.index ||= [...X.byKey].map(([k, c]) => ({
+      k, s: c[0].system, t: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), c: X.D.covers[k] || null,
+    }))),
     "/api/health": ({ F, byKey }) => {
       const all = [...byKey.values()].map((c) => ({ system: c[0].system, drive: c.some((f) => f.device_id === "drive"), console: c.some((f) => f.device_id !== "drive") }));
       return {

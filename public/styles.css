@@ -304,6 +304,48 @@ a.name:hover { text-decoration-color: var(--text); }
 .pgroup { grid-column: 1 / -1; margin-top: 12px; }
 .pgroup h2 { margin: 0; font-size: 15px; color: var(--text); }
 
+/* ---------- busca global e atalhos ---------- */
+.searchbtn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; border: 1px solid var(--control); border-radius: 8px;
+  background: var(--bg); color: var(--muted); font-size: 14px; cursor: pointer; }
+.searchbtn:hover { color: var(--text); border-color: var(--text); }
+.searchbtn span { flex: 1; text-align: left; }
+kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px solid var(--control); border-bottom-width: 2px; border-radius: 5px; color: var(--muted); background: var(--surface); }
+.qmark { font-weight: 700; font-size: 15px; width: 20px; height: 20px; display: grid; place-items: center; border: 1.5px solid currentColor; border-radius: 50%; font-size: 12px; }
+.palette { margin: 10vh auto auto; width: min(680px, calc(100% - 24px)); max-height: 72vh; padding: 0; border: 1px solid var(--line); border-radius: 16px;
+  background: var(--surface); color: var(--text); box-shadow: 0 30px 80px rgb(0 0 0 / .35); overflow: hidden; }
+.palette[open] { display: flex; flex-direction: column; }
+.palette::backdrop { background: rgb(0 0 0 / .45); backdrop-filter: blur(3px); }
+@media (prefers-reduced-motion: no-preference) {
+  .palette[open] { animation: pal-in .18s cubic-bezier(.2, .7, .2, 1); }
+  @keyframes pal-in { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+}
+.pal-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.pal-head .ic { color: var(--muted); }
+.pal-head input { flex: 1; border: 0; background: none; font-size: 17px; outline: none; }
+.pal-head input:focus-visible { outline: none; }
+.pal-list { list-style: none; overflow-y: auto; padding: 6px; flex: 1; }
+.pal-group { padding: 10px 10px 4px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.pal-item { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+.pal-item[aria-selected="true"] { background: var(--hover); box-shadow: inset 2px 0 0 var(--focus); }
+.pal-ico { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 6px; overflow: hidden; background: var(--hover); color: var(--muted); }
+.pal-ico img { width: 100%; height: 100%; object-fit: cover; }
+.pal-txt { display: grid; min-width: 0; flex: 1; }
+.pal-txt b { font-weight: 550; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pal-txt span { font-size: 12px; color: var(--muted); }
+.pal-empty { padding: 24px; text-align: center; color: var(--muted); }
+.pal-foot { display: flex; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.pal-foot span { display: inline-flex; gap: 4px; align-items: center; }
+.shortcuts { padding: 20px 24px; gap: 14px; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 10px 20px; font-size: 14px; align-items: center; }
+.keys dt { white-space: nowrap; }
+.keys-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+@media (max-width: 900px) {
+  .searchbtn { width: auto; flex: none; padding: 6px 8px; }
+  .searchbtn span, .searchbtn kbd { display: none; }
+  #helpBtn { display: none; }
+  .palette { margin-top: 8px; max-height: 85vh; }
+}
+
 /* ---------- página do jogo ---------- */
 /* Cartão inteiro clicável com o mouse (.gfull, fora da ordem do Tab); o título é o link para teclado e leitor de tela. */
 .gfull { position: absolute; inset: 0; z-index: 1; }

@@ -13,6 +13,9 @@
 
   <header class="side">
     <a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true"><svg class="ic sm"><use href="icons.svg#i-gamepad-2"/></svg></span>Handheld Hub</a>
+    <button type="button" class="searchbtn" id="searchBtn" aria-keyshortcuts="Meta+K Control+K /">
+      <svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-search"/></svg><span>Buscar</span><kbd>⌘K</kbd>
+    </button>
     <nav class="nav" aria-label="Seções">
       <a href="#overview" data-view="overview"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layers"/></svg><span>Visão geral</span></a>
       <a href="#platforms" data-view="platforms"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layout-grid"/></svg><span>Plataformas</span></a>
@@ -21,6 +24,9 @@
     </nav>
     <div class="side-foot">
       <p class="scan" id="scan"></p>
+      <button type="button" class="icon-btn" id="helpBtn" title="Atalhos de teclado (?)" aria-label="Atalhos de teclado">
+        <span aria-hidden="true" class="qmark">?</span>
+      </button>
       <button id="themeToggle" class="icon-btn" title="Alternar tema" aria-label="Alternar tema">
         <svg class="ic" aria-hidden="true"><use href="icons.svg#i-sun-moon"/></svg>
       </button>
@@ -132,6 +138,34 @@
     </footer>
   </div>
   <div class="tip hidden" id="tip" aria-hidden="true"></div>
+
+  <dialog class="palette" id="palette" aria-label="Buscar no portal">
+    <div class="pal-head">
+      <svg class="ic" aria-hidden="true"><use href="icons.svg#i-search"/></svg>
+      <input id="palInput" type="text" role="combobox" aria-expanded="true" aria-controls="palList" aria-autocomplete="list"
+        aria-label="Buscar jogos, plataformas, consoles e telas" placeholder="Buscar jogos, plataformas, consoles…" autocomplete="off" spellcheck="false">
+      <kbd>Esc</kbd>
+    </div>
+    <ul class="pal-list" id="palList" role="listbox" aria-label="Resultados"></ul>
+    <p class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span><span><kbd>?</kbd> atalhos</span></p>
+    <p class="sr-only" id="palLive" aria-live="polite"></p>
+  </dialog>
+
+  <dialog class="palette shortcuts" id="shortcuts" aria-labelledby="t-keys">
+    <h2 id="t-keys">Atalhos de teclado</h2>
+    <dl class="keys">
+      <dt><kbd>⌘</kbd> <kbd>K</kbd> ou <kbd>/</kbd></dt><dd>Buscar no portal</dd>
+      <dt><kbd>?</kbd></dt><dd>Mostrar estes atalhos</dd>
+      <dt><kbd>g</kbd> <kbd>v</kbd></dt><dd>Ir para a visão geral</dd>
+      <dt><kbd>g</kbd> <kbd>p</kbd></dt><dd>Ir para plataformas</dd>
+      <dt><kbd>g</kbd> <kbd>j</kbd></dt><dd>Ir para jogos</dd>
+      <dt><kbd>g</kbd> <kbd>s</kbd></dt><dd>Ir para a saúde do acervo</dd>
+      <dt><kbd>t</kbd></dt><dd>Alternar tema claro/escuro</dd>
+      <dt><kbd>Esc</kbd></dt><dd>Fechar</dd>
+    </dl>
+    <label class="keys-toggle"><input type="checkbox" id="singleKeys" checked> Atalhos de uma tecla (<kbd>?</kbd> <kbd>g</kbd> <kbd>t</kbd>)</label>
+    <form method="dialog"><button class="btn">Fechar</button></form>
+  </dialog>
   <script src="vendor/motion.js" defer></script>
   <script src="vendor/d3.min.js" defer></script>
   <script src="vendor/plot.umd.min.js" defer></script>
@@ -139,5 +173,6 @@
   <script src="charts.js" defer></script>
   <script src="hh-api.js" defer></script>
   <script src="app.js" defer></script>
+  <script src="search.js" defer></script>
 </body>
 </html>
