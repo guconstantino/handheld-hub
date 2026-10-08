@@ -27,13 +27,24 @@ async function cover(request, env, ctx, url) {
 }
 
 // Favoritos e listas do usuário (KV). O e-mail vem do Cloudflare Access; sem ele, não há lista.
-const LIST_NAMES = ["fav", "want", "done", "recent"];
+const LIST_NAMES = ["fav", "want", "done", "playing", "recent"];
 async function lists(request, env) {
   const user = request.headers.get("cf-access-authenticated-user-email");
   if (!user) return Response.json({ error: "sem usuário do Access" }, { status: 401 });
   const key = `lists:${user.toLowerCase()}`;
-  const data = { fav: [], want: [], done: [], recent: [], ...((await env.LISTS.get(key, "json")) || {}) };
+  const data = { fav: [], want: [], done: [], playing: [], recent: [], ...((await env.LISTS.get(key, "json")) || {}) };
   if (request.method === "GET") return Response.json(data, { headers: { "cache-control": "no-store" } });
+  // POST = importar um backup inteiro (substitui as listas; só chaves de texto, limites de tamanho).
+  if (request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") return Response.json({ error: "backup inválido" }, { status: 400 });
+    for (const l of LIST_NAMES) {
+      const arr = Array.isArray(body[l]) ? body[l].filter((k) => typeof k === "string" && k.length <= 300) : [];
+      data[l] = l === "recent" ? arr.slice(0, 30) : [...new Set(arr)].slice(-5000);
+    }
+    await env.LISTS.put(key, JSON.stringify(data));
+    return Response.json(data, { headers: { "cache-control": "no-store" } });
+  }
   if (request.method !== "PUT") return Response.json({ error: "método" }, { status: 405 });
   const body = await request.json().catch(() => null);
   if (!body || !LIST_NAMES.includes(body.list) || typeof body.key !== "string" || body.key.length > 300)

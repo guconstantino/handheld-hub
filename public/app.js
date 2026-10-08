@@ -135,7 +135,7 @@ document.addEventListener("mousemove", (e) => {
 // ---------- rotas: #overview, #device/<id>, #games, #health ----------
 function route(moveFocus = false) {
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
-  const target = ["overview", "device", "platforms", "platform", "game", "games", "compare", "health"].includes(view) ? view : "overview";
+  const target = ["overview", "device", "platforms", "platform", "game", "games", "lists", "compare", "health"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => {
     const on = a.dataset.view === ({ device: "overview", platform: "platforms", game: "games" }[target] || target);
     a.classList.toggle("active", on);
@@ -150,6 +150,7 @@ function route(moveFocus = false) {
   if (target === "overview") state.loaded.mine = true;
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
   if (target === "compare" && !state.loaded.compare) { state.loaded.compare = true; initCompare(); }
+  if (target === "lists") drawLists();
   const h1 = document.querySelector(`#view-${target} h1`);
   document.title = h1 && target !== "overview" ? `${h1.textContent} · Handheld Hub` : "Handheld Hub";
   window.scrollTo(0, 0);
@@ -398,6 +399,8 @@ async function loadMine() {
     $(el).innerHTML = games.length ? games.map((x) => `<li><a href="${gameHref(x)}">${x.cover ? `<img src="covers/${esc(x.cover)}" alt="" loading="lazy">` : `<img class="gplat" src="platforms/${esc(x.system)}.webp" alt="">`}<span>${esc(x.title)}</span></a></li>`).join("")
       : `<li class="muted small mine-empty">${empty}</li>`;
   };
+  $("#minePlayingWrap").classList.toggle("hidden", !LISTS.playing.size);
+  if (LISTS.playing.size) await row([...LISTS.playing].reverse(), "#minePlaying", "");
   await Promise.all([row(LISTS.recent, "#mineRecent", "Os jogos que você abrir aparecem aqui."),
     row([...LISTS.fav].reverse(), "#mineFav", "Marque jogos com a estrela na página do jogo.")]);
   const pl = (n, um, varios) => `${fmtN(n)} ${n === 1 ? um : varios}`;
@@ -558,7 +561,7 @@ function renderChips() {
   const dev = $("#fDevice").value, sys = $("#fSystem").value, st = $("#fStatus").value, q = $("#q").value.trim();
   const devChips = [["", "Todos os lugares"], ...state.devices.map((d) => [d.id, shortName(d)])].map(([id, label]) =>
     `<button type="button" class="chip ${id ? "" : "all"}" data-dev="${esc(id)}" data-set-device="${esc(id)}" aria-pressed="${dev === id}">${id ? `<i class="dot"></i>` : ""}${esc(label)}</button>`).join("");
-  const STATUS = { ok: "OK", corrupted: "Corrompido", unknown: "Não verificado", nobackup: "Sem backup no Drive", driveonly: "Só no Drive", fav: "Favoritos", want: "Quero jogar", done: "Zerei" };
+  const STATUS = { ok: "OK", corrupted: "Corrompido", unknown: "Não verificado", nobackup: "Sem backup no Drive", driveonly: "Só no Drive", playing: "Jogando agora", fav: "Favoritos", want: "Quero jogar", done: "Zerei" };
   const active = [
     sys && ["system", sysName(sys)], st && ["status", STATUS[st]], q && ["q", `“${q}”`],
   ].filter(Boolean);
@@ -713,11 +716,11 @@ async function renderPlatform(id) {
 
 // ---------- favoritos, listas e vistos recentemente (KV no Worker, iguais em todos os aparelhos) ----------
 // Sem o Worker (teste local) ou sem rede, fica no navegador e tenta de novo depois.
-const LISTS = (window.HH_LISTS = { fav: new Set(), want: new Set(), done: new Set(), recent: [] });
-const LIST_LABEL = { fav: ["Favorito", "star"], want: ["Quero jogar", "bookmark"], done: ["Zerei", "circle-check"] };
+const LISTS = (window.HH_LISTS = { playing: new Set(), fav: new Set(), want: new Set(), done: new Set(), recent: [] });
+const LIST_LABEL = { playing: ["Jogando agora", "gamepad-2"], fav: ["Favorito", "star"], want: ["Quero jogar", "bookmark"], done: ["Zerei", "circle-check"] };
 let listsRemote = false;
 function setLists(d) {
-  for (const k of ["fav", "want", "done"]) LISTS[k] = new Set(d[k] || []);
+  for (const k of ["playing", "fav", "want", "done"]) LISTS[k] = new Set(d[k] || []);
   LISTS.recent = d.recent || [];
   try { localStorage.setItem("hh_lists", JSON.stringify({ ...d })); } catch {}
 }
@@ -730,7 +733,7 @@ async function loadLists() {
     try { setLists(JSON.parse(localStorage.getItem("hh_lists")) || {}); } catch { setLists({}); }
   }
 }
-const listsSnapshot = () => ({ fav: [...LISTS.fav], want: [...LISTS.want], done: [...LISTS.done], recent: LISTS.recent });
+const listsSnapshot = () => ({ playing: [...LISTS.playing], fav: [...LISTS.fav], want: [...LISTS.want], done: [...LISTS.done], recent: LISTS.recent });
 async function putList(list, key, on) {
   if (!listsRemote) return;
   try {
@@ -855,6 +858,56 @@ document.addEventListener("click", async (e) => {
   try { await navigator.clipboard.writeText(b.dataset.code); b.textContent = "Copiado"; } catch { b.textContent = "Erro"; }
   setTimeout(() => (b.textContent = "Copiar"), 1500);
 });
+
+// ---------- minhas listas ----------
+const LIST_TABS = [["playing", "Jogando agora"], ["fav", "Favoritos"], ["want", "Quero jogar"], ["done", "Zerei"], ["recent", "Vistos recentemente"]];
+let listTab = pref("hh_listtab", "playing"), listShown = [], listOffset = 0;
+async function drawLists() {
+  const keysOf = (l) => (l === "recent" ? LISTS.recent : [...LISTS[l]].reverse());
+  $("#listTabs").innerHTML = LIST_TABS.map(([l, label]) => `<button type="button" data-tab="${l}" aria-pressed="${l === listTab}">${esc(label)} <span class="muted">${fmtN(keysOf(l).length)}</span></button>`).join("");
+  $("#listTabs").querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { listTab = b.dataset.tab; setPref("hh_listtab", listTab); drawLists(); }));
+  $("#listsNote").textContent = listsRemote ? "Salvas na sua conta: iguais em todos os aparelhos." : "Sem conexão com a conta: salvas só neste navegador por enquanto.";
+  const keys = keysOf(listTab);
+  listShown = keys.length ? await api(`/api/pick?keys=${encodeURIComponent(JSON.stringify(keys))}`) : [];
+  listOffset = 0;
+  $("#listGames").innerHTML = "";
+  moreLists();
+}
+function moreLists() {
+  if (!listShown.length) {
+    const hint = { playing: "Na página de um jogo, toque em “Jogando agora”.", fav: "Na página de um jogo, toque na estrela.", want: "Na página de um jogo, toque em “Quero jogar”.",
+      done: "Na página de um jogo, toque em “Zerei”.", recent: "Os jogos que você abrir aparecem aqui." }[listTab];
+    $("#listGames").innerHTML = `<li class="empty-li">${emptyState("Lista vazia", hint, false)}</li>`;
+    $("#listMore").classList.add("hidden");
+    return;
+  }
+  $("#listGames").insertAdjacentHTML("beforeend", gridHtml(listShown.slice(listOffset, listOffset + 60)));
+  listOffset += 60;
+  $("#listMore").classList.toggle("hidden", listOffset >= listShown.length);
+}
+$("#listMore").onclick = () => autoLoad($("#listMore"), async () => moreLists());
+watchMore($("#listMore"));
+// Backup: exporta as listas em JSON e importa de volta (substitui as atuais, depois de confirmar).
+$("#listExport").onclick = () => {
+  const blob = new Blob([JSON.stringify({ app: "handheld-hub", version: 1, exported_at: new Date().toISOString(), ...listsSnapshot() }, null, 1)], { type: "application/json" });
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `handheld-hub-listas-${new Date().toISOString().slice(0, 10)}.json` });
+  a.click(); URL.revokeObjectURL(a.href);
+};
+$("#listImport").onchange = async (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  let data;
+  try { data = JSON.parse(await file.text()); } catch { return alert("Arquivo inválido: não é um JSON."); }
+  if (data.app !== "handheld-hub") return alert("Este arquivo não é um backup do Handheld Hub.");
+  const n = ["playing", "fav", "want", "done"].reduce((a, l) => a + (data[l]?.length || 0), 0);
+  if (!confirm(`Importar ${n} jogos nas listas? Isso substitui as listas atuais.`)) return;
+  if (listsRemote) {
+    const r = await fetch("api/lists", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(data) }).catch(() => null);
+    if (r?.ok) setLists(await r.json()); else return alert("Não consegui salvar na conta. Tente de novo.");
+  } else setLists(data);
+  drawLists();
+};
 
 // ---------- comparar dois lugares ----------
 const cmp = { side: "A", system: "", list: [], offset: 0 };

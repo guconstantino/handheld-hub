@@ -66,10 +66,10 @@
       for (const f of F) {
         if ((!q || f.title.toLowerCase().includes(q) || f.game_key.includes(q))
           && (!p.get("system") || f.system === p.get("system")) && (!p.get("device") || f.device_id === p.get("device"))
-          && (!p.get("status") || ["nobackup", "driveonly", "fav", "want", "done"].includes(p.get("status")) || f.status === p.get("status"))) hit.add(f.game_key);
+          && (!p.get("status") || ["nobackup", "driveonly", "playing", "fav", "want", "done"].includes(p.get("status")) || f.status === p.get("status"))) hit.add(f.game_key);
       }
       // Listas do usuário (favoritos, quero jogar, zerei): vêm de window.HH_LISTS (app.js).
-      if (["fav", "want", "done"].includes(p.get("status"))) {
+      if (["playing", "fav", "want", "done"].includes(p.get("status"))) {
         const set = window.HH_LISTS?.[p.get("status")] || new Set();
         for (const k of [...hit]) if (!set.has(k)) hit.delete(k);
       }

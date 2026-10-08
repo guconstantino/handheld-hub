@@ -28,6 +28,7 @@
       <a href="#overview" data-view="overview"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layers"/></svg><span>Visão geral</span></a>
       <a href="#platforms" data-view="platforms"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layout-grid"/></svg><span>Plataformas</span></a>
       <a href="#games" data-view="games"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-gamepad-2"/></svg><span>Jogos</span></a>
+      <a href="#lists" data-view="lists"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-bookmark"/></svg><span>Listas</span></a>
       <a href="#compare" data-view="compare"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-columns"/></svg><span>Comparar</span></a>
       <a href="#health" data-view="health"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-shield-check"/></svg><span>Saúde</span></a>
     </nav>
@@ -55,6 +56,7 @@
         <div class="bento">
           <section class="tile b-12 mine" aria-labelledby="t-mine" data-block="meus">
             <div class="tile-head"><h2 id="t-mine">Seus jogos</h2><span class="muted small" id="mineCounts"></span></div>
+            <div id="minePlayingWrap" class="hidden"><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-gamepad-2"/></svg>Jogando agora</h3><ul class="morerow playing" id="minePlaying"></ul></div>
             <div class="mine-grid">
               <div><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-clock"/></svg>Vistos recentemente</h3><ul class="morerow" id="mineRecent"></ul></div>
               <div><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-star"/></svg>Favoritos</h3><ul class="morerow" id="mineFav"></ul></div>
@@ -123,6 +125,7 @@
             <option value="unknown">Não verificado</option>
             <option value="nobackup">Sem backup no Drive</option>
             <option value="driveonly">Só no Drive</option>
+            <option value="playing">Jogando agora</option>
             <option value="fav">Favoritos</option>
             <option value="want">Quero jogar</option>
             <option value="done">Zerei</option>
@@ -154,6 +157,23 @@
           </table>
         </div>
         <button class="btn hidden" id="more">Carregar mais</button>
+      </section>
+
+      <section class="view hidden" id="view-lists">
+        <div class="page-head">
+          <div>
+            <h1 tabindex="-1">Minhas listas</h1>
+            <p class="lead" id="listsNote"></p>
+          </div>
+          <div class="list-actions">
+            <button type="button" class="btn" id="listExport">Exportar backup</button>
+            <label class="btn" for="listImport">Importar backup</label>
+            <input type="file" id="listImport" accept="application/json,.json" class="sr-only">
+          </div>
+        </div>
+        <div class="seg tabs" role="group" aria-label="Listas" id="listTabs"></div>
+        <ul class="grid" id="listGames"></ul>
+        <button class="btn hidden" id="listMore">Carregar mais</button>
       </section>
 
       <section class="view hidden" id="view-compare">
@@ -229,6 +249,7 @@
       <dt><kbd>g</kbd> <kbd>v</kbd></dt><dd>Ir para a visão geral</dd>
       <dt><kbd>g</kbd> <kbd>p</kbd></dt><dd>Ir para plataformas</dd>
       <dt><kbd>g</kbd> <kbd>j</kbd></dt><dd>Ir para jogos</dd>
+      <dt><kbd>g</kbd> <kbd>l</kbd></dt><dd>Ir para minhas listas</dd>
       <dt><kbd>g</kbd> <kbd>c</kbd></dt><dd>Ir para comparar</dd>
       <dt><kbd>g</kbd> <kbd>s</kbd></dt><dd>Ir para a saúde do acervo</dd>
       <dt><kbd>t</kbd></dt><dd>Alternar tema claro/escuro</dd>

@@ -462,6 +462,15 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .mine-empty { padding: 20px 0; }
 @media (max-width: 900px) { .mine-grid { grid-template-columns: 1fr; } .stepbtn span { display: none; } }
 
+/* ---------- minhas listas ---------- */
+.seg.tabs { flex-wrap: wrap; }
+.seg.tabs button .muted { font-variant-numeric: tabular-nums; }
+.list-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.list-actions label.btn { cursor: pointer; }
+#listImport:focus-visible + * , .list-actions label.btn:focus-within { outline: 2px solid var(--focus); }
+#minePlayingWrap { margin-bottom: 20px; }
+.mine .morerow.playing { grid-auto-columns: minmax(130px, 150px); }
+
 /* ---------- personalizar ---------- */
 .layout-list { list-style: none; display: grid; gap: 4px; }
 .layout-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 8px; border-radius: 8px; }
@@ -593,6 +602,7 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
   .nav a { flex-direction: column; justify-content: center; gap: 3px; padding: 6px 2px; font-size: 11px; border-radius: 10px; }
   .nav a .ic { display: block; width: 20px; height: 20px; }
   .nav a.active { background: var(--hover); }
+  .nav a[data-view="compare"] { display: none; }
   body { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
   .side-foot { margin: 0; padding: 0; }
   .scan { display: none; }
