@@ -69,6 +69,8 @@ button, input, select { font: inherit; color: inherit; }
 .bar i, .barlist .track i { transform-origin: left center; }
 .ptile, .gcard, .device { will-change: transform; }
 .phero img { view-transition-name: platform-art; }
+.ghero-cover img:not(.gplat) { view-transition-name: game-cover; }
+::view-transition-group(game-cover) { animation-duration: .42s; animation-timing-function: cubic-bezier(.2, .7, .2, 1); }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .25s; }
 ::view-transition-group(platform-art) { animation-duration: .45s; animation-timing-function: cubic-bezier(.2, .7, .2, 1); }
 /* Capa carregando: brilho passando (skeleton); a imagem entra com fade quando chega. */

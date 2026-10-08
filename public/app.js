@@ -188,7 +188,7 @@ $("#toTop").onclick = () => {
 window.addEventListener("hashchange", () => {
   if (!window.HH_TRANSITION) return route(true);
   window.HH_TRANSITION(() => route(true)).finally(() =>
-    document.querySelectorAll(".ptile img").forEach((i) => (i.style.viewTransitionName = "")));
+    document.querySelectorAll(".ptile img, a[href^='#game-'] img, .ghero-cover img").forEach((i) => (i.style.viewTransitionName = "")));
 });
 
 // ---------- armazenamento (varrido ou declarado no devices.json) ----------

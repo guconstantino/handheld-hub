@@ -75,6 +75,14 @@
   document.addEventListener("click", (e) => {
     const tile = e.target.closest(".ptile");
     if (tile) tile.querySelector("img").style.viewTransitionName = "platform-art";
+    // A capa clicada (grade, lista, "Mais de", busca) "voa" até a capa grande da página do jogo.
+    const link = e.target.closest('a[href^="#game-"]');
+    // Nos cartões da grade o link que cobre o cartão (.gfull) não contém a imagem: ela é irmã.
+    const img = link && (link.querySelector("img:not(.gplat)") || link.closest(".gcard")?.querySelector("img:not(.gplat)"));
+    if (img) {
+      document.querySelectorAll(".ghero-cover img").forEach((i) => (i.style.viewTransitionName = "none"));   // nome único na tela antiga
+      img.style.viewTransitionName = "game-cover";
+    }
   }, true);
   window.HH_TRANSITION = (fn) => (document.startViewTransition ? document.startViewTransition(fn).finished : Promise.resolve(fn()));
 })();
