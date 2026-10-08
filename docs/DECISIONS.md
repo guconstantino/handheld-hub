@@ -17,6 +17,12 @@ Formato ADR curto. Mais recente no topo. Data AAAA-MM-DD.
 - **Decisão:** SQL + wrangler. O Worker só tem GETs.
 - **Motivo:** nenhum segredo de escrita no Worker e menos código; o wrangler já autentica na conta Cloudflare.
 
+## 2026-10-08 — Acessibilidade: WCAG 2.2 AA + APCA como piso
+
+- **Contexto:** auditoria do portal. Passava no WCAG 2 com o cinza secundário do tema escuro (6,7:1), mas o APCA dava Lc 48 — fraco para texto de 13–14px. Textos em `--faint` e bordas de campos ficavam abaixo de 3:1.
+- **Decisão:** texto secundário com APCA Lc ≥ 75 e WCAG ≥ 4,5:1 nos dois temas (`--muted` #5b5b63 / #cfcfd5); `--faint` só para ícones decorativos; tokens novos `--control` (borda de input/select/botão, ≥ 3:1) e `--focus` (anel de foco 2px). Card do console vira `<article>` com o link só no nome; foco vai para o `h1` ao trocar de tela; `aria-current`, `aria-live` no contador de jogos, `role="status"` no rodapé, atalho "Pular para o conteúdo".
+- **Como conferir:** script de contraste (WCAG 2 + APCA 0.0.98G) e navegação só com teclado no `npm run dev`.
+
 ## 2026-10-07 — Cloudflare (Worker + D1 + Access) em gamehub.gustavoconstantino.com
 
 - **Contexto:** portal privado no domínio do Gustavo, acessível do celular e do Mac.

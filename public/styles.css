@@ -4,11 +4,13 @@
   --bg: #fafafa;
   --surface: #ffffff;
   --text: #111113;
-  --muted: #6b6b73;
-  --faint: #a1a1aa;
-  --line: #e7e7ea;
+  --muted: #5b5b63;   /* texto secundário: APCA Lc ≥ 75 em 13–14px, WCAG ≥ 6:1 */
+  --faint: #a1a1aa;   /* só ícones decorativos, nunca texto */
+  --line: #e7e7ea;    /* divisórias (não identificam controle) */
+  --control: #8a8a93; /* borda de input/select/botão: WCAG 1.4.11 ≥ 3:1 */
+  --focus: #2563eb;   /* anel de foco */
   --hover: #f4f4f5;
-  --danger: #dc2626;
+  --danger: #b91c1c;
   --ok: #16a34a;
   --radius: 10px;
   --mono: ui-monospace, "SF Mono", Menlo, monospace;
@@ -16,16 +18,17 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0c0c0d; --surface: #141416; --text: #ededef; --muted: #9b9ba3; --faint: #5f5f66;
-    --line: #26262a; --hover: #1b1b1e; --danger: #f87171; --ok: #4ade80; color-scheme: dark;
+    --bg: #0c0c0d; --surface: #141416; --text: #ededef; --muted: #cfcfd5; --faint: #5f5f66;
+    --line: #26262a; --control: #7a7a83; --focus: #60a5fa; --hover: #1b1b1e; --danger: #ffc4c4; --ok: #4ade80; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0c0c0d; --surface: #141416; --text: #ededef; --muted: #9b9ba3; --faint: #5f5f66;
-  --line: #26262a; --hover: #1b1b1e; --danger: #f87171; --ok: #4ade80; color-scheme: dark;
+  --bg: #0c0c0d; --surface: #141416; --text: #ededef; --muted: #cfcfd5; --faint: #5f5f66;
+  --line: #26262a; --control: #7a7a83; --focus: #60a5fa; --hover: #1b1b1e; --danger: #ffc4c4; --ok: #4ade80; color-scheme: dark;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-padding-top: 72px; } /* WCAG 2.4.11: foco não fica embaixo do topo fixo */
 body {
   background: var(--bg); color: var(--text);
   font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -34,6 +37,13 @@ body {
 a { color: inherit; text-decoration: none; }
 button, input, select { font: inherit; color: inherit; }
 .hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- foco e atalho ---------- */
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.skip { position: absolute; left: 12px; top: -48px; z-index: 10; background: var(--surface); color: var(--text);
+  border: 2px solid var(--focus); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.skip:focus { top: 8px; }
 
 .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
 
@@ -52,7 +62,7 @@ button, input, select { font: inherit; color: inherit; }
 main { padding: 40px 0 72px; }
 .view { display: flex; flex-direction: column; gap: 40px; }
 h1 { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; }
-h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+h2 { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 14px; }
 .lead { color: var(--muted); margin-top: 6px; max-width: 60ch; }
 .muted { color: var(--muted); }
 .small { font-size: 13px; }
@@ -68,11 +78,15 @@ h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: upp
 /* ---------- consoles ---------- */
 .devices { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 16px; }
 .device {
-  display: flex; flex-direction: column; gap: 14px; padding: 20px; background: var(--surface);
+  position: relative; display: flex; flex-direction: column; gap: 14px; padding: 20px; background: var(--surface);
   border: 1px solid var(--line); border-radius: var(--radius); transition: border-color .15s;
 }
-.device:hover { border-color: var(--faint); }
-.device-name { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.device:hover { border-color: var(--control); }
+.device h2.device-name { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: var(--text); margin: 0; }
+/* Card inteiro clicável, mas o nome do link é só o nome do console. */
+.device-link::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius); }
+.device-link:focus-visible { outline: none; }
+.device-link:focus-visible::after { outline: 2px solid var(--focus); outline-offset: 2px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--faint)); flex: none; }
 .device p { color: var(--muted); font-size: 14px; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 14px; }
@@ -86,7 +100,7 @@ h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: upp
 .store-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
 .store-row span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; }
 
-.badge { font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.badge { font-size: 13px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
 .badge.bad { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
 
 /* ---------- detalhe ---------- */
@@ -101,32 +115,32 @@ h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: upp
 .sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 28px 40px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tags span { font-size: 13px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
-.source { font-size: 13px; color: var(--faint); }
+.source { font-size: 13px; color: var(--muted); }
 
 /* ---------- jogos ---------- */
 .filters { display: flex; flex-wrap: wrap; gap: 8px; }
 .filters input, .filters select {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none;
+  background: var(--surface); border: 1px solid var(--control); border-radius: 8px; padding: 8px 12px; font-size: 14px;
 }
 .filters input { flex: 1 1 280px; }
-.filters input:focus, .filters select:focus { border-color: var(--faint); }
+.filters input:focus-visible, .filters select:focus-visible { border-color: var(--focus); outline-offset: 0; border-radius: 8px; }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th { text-align: left; font-weight: 500; color: var(--muted); font-size: 13px; padding: 0 12px 10px; border-bottom: 1px solid var(--line); }
 .table td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .table td:first-child { padding-left: 0; } .table th:first-child { padding-left: 0; }
-.table .sys { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+.table .sys { color: var(--muted); font-family: var(--mono); font-size: 13px; }
 .copies { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13px; color: var(--muted); }
 .copies span { display: inline-flex; align-items: center; gap: 6px; }
 .copies .bad { color: var(--danger); }
-.btn { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
-.btn:hover { border-color: var(--faint); }
+.btn { align-self: flex-start; background: var(--surface); border: 1px solid var(--control); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+.btn:hover { border-color: var(--text); }
 
 /* ---------- saúde ---------- */
 .list { list-style: none; font-size: 14px; max-height: 480px; overflow-y: auto; }
 .list li { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--line); }
 .list li span:last-child { color: var(--muted); white-space: nowrap; font-size: 13px; }
 
-footer { border-top: 1px solid var(--line); padding: 20px 0; font-size: 13px; color: var(--faint); }
+footer { border-top: 1px solid var(--line); padding: 20px 0; font-size: 13px; color: var(--muted); }
 
 @media (max-width: 720px) {
   main { padding-top: 28px; }

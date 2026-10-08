@@ -19,7 +19,7 @@ const logo = (d) => {
   const id = (d.specs || {}).logo;
   if (!id) return "";
   if (id.startsWith("i-")) return icon(id.slice(2));
-  return `<svg class="logo ${id === "b-samsung" ? "wide" : ""}" role="img" aria-label="${esc(d.name)}"><use href="icons.svg#${id}"/></svg>`;
+  return `<svg class="logo ${id === "b-samsung" ? "wide" : ""}" aria-hidden="true"><use href="icons.svg#${id}"/></svg>`;
 };
 // Ícone de cada título de seção das fichas (devices.json).
 const SECTION_ICON = {
@@ -42,27 +42,43 @@ const copyLabel = (d, locId) => {
 
 // ---------- tema ----------
 try { const t = localStorage.getItem("hh_theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+const isDark = () => document.documentElement.dataset.theme
+  ? document.documentElement.dataset.theme === "dark"
+  : matchMedia("(prefers-color-scheme: dark)").matches;
+// O rótulo diz o que o botão faz agora ("Usar tema claro"), não um "alternar" genérico.
+const themeLabel = () => { const l = isDark() ? "Usar tema claro" : "Usar tema escuro"; $("#themeToggle").setAttribute("aria-label", l); $("#themeToggle").title = l; };
 $("#themeToggle").onclick = () => {
-  const dark = document.documentElement.dataset.theme
-    ? document.documentElement.dataset.theme === "dark"
-    : matchMedia("(prefers-color-scheme: dark)").matches;
-  const t = dark ? "light" : "dark";
+  const t = isDark() ? "light" : "dark";
   document.documentElement.dataset.theme = t;
   try { localStorage.setItem("hh_theme", t); } catch {}
+  themeLabel();
 };
+themeLabel();
+
+// Atalho "Pular para o conteúdo": foca o título da tela atual (o hash é usado pelas rotas).
+const focusHeading = () => { const h = document.querySelector(".view:not(.hidden) h1"); if (h) h.focus(); };
+$("#skip").onclick = focusHeading;
 
 // ---------- rotas: #overview, #device/<id>, #games, #health ----------
-function route() {
+function route(moveFocus = false) {
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
   const target = ["overview", "device", "games", "health"].includes(view) ? view : "overview";
-  document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.view === (target === "device" ? "overview" : target)));
+  document.querySelectorAll(".nav a").forEach((a) => {
+    const on = a.dataset.view === (target === "device" ? "overview" : target);
+    a.classList.toggle("active", on);
+    if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== `view-${target}`));
   if (target === "device") renderDevice(arg);
   if (target === "games" && !state.loaded.games) { state.loaded.games = true; loadGames(); }
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
+  const h1 = document.querySelector(`#view-${target} h1`);
+  document.title = h1 && target !== "overview" ? `${h1.textContent} · Handheld Hub` : "Handheld Hub";
   window.scrollTo(0, 0);
+  // Troca de tela sem recarregar: leva o foco ao título para o leitor de tela anunciar a tela nova.
+  if (moveFocus) focusHeading();
 }
-window.addEventListener("hashchange", route);
+window.addEventListener("hashchange", () => route(true));
 
 // ---------- armazenamento (varrido ou declarado no devices.json) ----------
 function storageOf(d) {
@@ -89,19 +105,19 @@ async function loadSummary() {
   $("#stats").innerHTML = [
     ["Jogos", t.games, "gamepad-2"], ["Arquivos", t.files, "folder-open"], ["Sistemas", t.systems, "layers"],
     ["Corrompidos", t.corrupted, "triangle-alert", t.corrupted > 0],
-  ].map(([l, v, ic, bad]) => `<div class="stat ${bad ? "bad" : ""}"><b>${fmtN(v)}</b><span>${icon(ic, "sm")}${l}</span></div>`).join("");
+  ].map(([l, v, ic, bad]) => `<div class="stat ${bad ? "bad" : ""}" role="listitem"><b>${fmtN(v)}</b><span>${icon(ic, "sm")}${l}</span></div>`).join("");
 
   $("#devices").innerHTML = s.devices.map((d) => {
     const facts = Object.entries(d.specs.facts || {}).slice(0, 3);
     const bad = s.locations.filter((l) => l.device_id === d.id).reduce((n, l) => n + (l.corrupted || 0), 0);
-    return `<a class="device" href="#device-${esc(d.id)}" style="--accent:${esc(d.accent)}">
-      <div class="device-name"><span class="dot"></span>${esc(d.name)}<span style="margin-left:auto;display:flex">${logo(d)}</span></div>
+    return `<article class="device" style="--accent:${esc(d.accent)}">
+      <h2 class="device-name"><span class="dot"></span><a class="device-link" href="#device-${esc(d.id)}">${esc(d.name)}</a><span style="margin-left:auto;display:flex">${logo(d)}</span></h2>
       ${bad ? `<span class="badge bad" style="align-self:flex-start">${fmtN(bad)} corrompidos</span>` : ""}
       <p>${esc(d.notes || "")}</p>
       ${facts.length ? `<dl class="kv">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` : ""}
       <div>${storageOf(d).map(storageHtml).join("")}</div>
-      <span class="more">Ver detalhes ${icon("chevron-right", "sm")}</span>
-    </a>`;
+      <span class="more" aria-hidden="true">Ver detalhes ${icon("chevron-right", "sm")}</span>
+    </article>`;
   }).join("");
 
   $("#fDevice").innerHTML = `<option value="">Todos os lugares</option>` +
@@ -113,7 +129,7 @@ async function loadSummary() {
 // ---------- detalhe do console ----------
 function renderDevice(id) {
   const d = deviceOf(id);
-  if (!d.id) { $("#view-device").innerHTML = `<a class="back" href="#overview">${icon("chevron-left", "sm")}Consoles</a><p class="muted">Console não encontrado.</p>`; return; }
+  if (!d.id) { $("#view-device").innerHTML = `<a class="back" href="#overview">${icon("chevron-left", "sm")}Consoles</a><h1 tabindex="-1">Console não encontrado</h1>`; return; }
   const sp = d.specs || {};
   const facts = Object.entries(sp.facts || {});
   const locs = state.locations.filter((l) => l.device_id === d.id);
@@ -121,7 +137,7 @@ function renderDevice(id) {
   $("#view-device").innerHTML = `
     <div>
       <a class="back" href="#overview">${icon("chevron-left", "sm")}Consoles</a>
-      <div class="detail-head"><span class="dot"></span><h1>${esc(d.name)}</h1><span style="margin-left:auto;display:flex">${logo(d)}</span></div>
+      <div class="detail-head"><span class="dot"></span><h1 tabindex="-1">${esc(d.name)}</h1><span style="margin-left:auto;display:flex">${logo(d)}</span></div>
       <p class="lead">${esc(d.notes || "")}</p>
     </div>
     <div class="detail-grid">
@@ -174,17 +190,18 @@ $("#more").onclick = () => loadGames(true);
 // ---------- saúde ----------
 async function loadHealth() {
   const h = await api("/api/health");
-  const list = (rows, fmt) => rows.length ? `<ul class="list">${rows.map(fmt).join("")}</ul>` : `<p class="muted small">Nada aqui.</p>`;
+  // Listas com rolagem própria: focáveis para rolar pelo teclado (Safari não foca sozinho).
+  const list = (rows, fmt, label) => rows.length ? `<ul class="list" tabindex="0" aria-label="${esc(label)}">${rows.map(fmt).join("")}</ul>` : `<p class="muted small">Nada aqui.</p>`;
   $("#health").innerHTML = `
     <div><h2>${icon("triangle-alert", "sm")}Corrompidos · ${fmtN(h.corrupted.length)}</h2>
       <p class="muted small" style="margin-bottom:10px">Começo do arquivo zerado. Precisam de cópia nova da fonte.</p>
-      ${list(h.corrupted, (c) => `<li><span>${esc(c.title)}</span><span>${esc(c.system)}</span></li>`)}</div>
+      ${list(h.corrupted, (c) => `<li><span>${esc(c.title)}</span><span>${esc(c.system)}</span></li>`, "Corrompidos")}</div>
     <div><h2>${icon("archive", "sm")}Sem backup no Drive</h2>
       <p class="muted small" style="margin-bottom:10px">Estão em algum console, mas não no Drive.</p>
-      ${list(h.noBackup, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`)}</div>
+      ${list(h.noBackup, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`, "Sem backup no Drive")}</div>
     <div><h2>${icon("cloud", "sm")}Só no Drive</h2>
       <p class="muted small" style="margin-bottom:10px">Estão no acervo, mas em nenhum console.</p>
-      ${list(h.driveOnly, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`)}</div>`;
+      ${list(h.driveOnly, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`, "Só no Drive")}</div>`;
 }
 
 // ---------- início ----------

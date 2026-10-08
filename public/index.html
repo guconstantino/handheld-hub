@@ -8,27 +8,28 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <button class="skip" id="skip">Pular para o conteúdo</button>
   <header class="top">
     <div class="wrap">
       <a class="brand" href="#overview">Handheld Hub</a>
-      <nav class="nav">
+      <nav class="nav" aria-label="Seções">
         <a href="#overview" data-view="overview">Visão geral</a>
         <a href="#games" data-view="games">Jogos</a>
         <a href="#health" data-view="health">Saúde</a>
       </nav>
       <button id="themeToggle" class="icon-btn" title="Alternar tema" aria-label="Alternar tema">
-        <svg class="ic"><use href="icons.svg#i-sun-moon"/></svg>
+        <svg class="ic" aria-hidden="true"><use href="icons.svg#i-sun-moon"/></svg>
       </button>
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap" id="main">
     <section class="view" id="view-overview">
       <div>
-        <h1>Consoles</h1>
+        <h1 tabindex="-1">Consoles</h1>
         <p class="lead">Onde estão os jogos, quanto espaço sobra e o que precisa de atenção.</p>
       </div>
-      <div class="stats" id="stats"></div>
+      <div class="stats" id="stats" role="list" aria-label="Totais"></div>
       <div class="devices" id="devices"></div>
     </section>
 
@@ -36,8 +37,8 @@
 
     <section class="view hidden" id="view-games">
       <div>
-        <h1>Jogos</h1>
-        <p class="lead" id="gamesCount">&nbsp;</p>
+        <h1 tabindex="-1">Jogos</h1>
+        <p class="lead" id="gamesCount" aria-live="polite">&nbsp;</p>
       </div>
       <div class="filters">
         <label class="search"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-search"/></svg><input type="search" id="q" placeholder="Buscar jogo" autocomplete="off" aria-label="Buscar jogo"></label>
@@ -51,7 +52,8 @@
         </select>
       </div>
       <table class="table" id="gamesTable">
-        <thead><tr><th>Jogo</th><th>Sistema</th><th>Onde está</th></tr></thead>
+        <caption class="sr-only">Jogos e onde está cada cópia</caption>
+        <thead><tr><th scope="col">Jogo</th><th scope="col">Sistema</th><th scope="col">Onde está</th></tr></thead>
         <tbody></tbody>
       </table>
       <button class="btn hidden" id="more">Carregar mais</button>
@@ -59,14 +61,14 @@
 
     <section class="view hidden" id="view-health">
       <div>
-        <h1>Saúde do acervo</h1>
+        <h1 tabindex="-1">Saúde do acervo</h1>
         <p class="lead">Arquivos com problema e jogos sem cópia de segurança.</p>
       </div>
       <div id="health" class="sections"></div>
     </section>
   </main>
 
-  <footer><div class="wrap" id="footer">Carregando…</div></footer>
+  <footer><div class="wrap" id="footer" role="status">Carregando…</div></footer>
   <script src="app.js"></script>
 </body>
 </html>
