@@ -964,7 +964,7 @@ async function renderGame(key) {
           const where = good ? copyLabel(deviceOf(good.device_id), good.location_id) : null;
           return `<p class="gwarn">${icon("triangle-alert", "sm")}<span>Há cópia corrompida${where ? `. Cópia boa em <b>${esc(where)}</b>: copie de lá.` : g.copies.some((c) => c.device_id === "drive") ? ". A cópia do Drive não foi verificada." : ". Baixe de novo da fonte."}</span></p>`;
         })() : ""}
-        <table class="table copies-table"><caption class="sr-only">Cópias deste jogo</caption>
+        <div class="xscroll" tabindex="0" role="region" aria-label="Cópias deste jogo"><table class="table copies-table"><caption class="sr-only">Cópias deste jogo</caption>
           <thead><tr><th scope="col">Lugar</th><th scope="col">Região</th><th scope="col">Formato</th><th scope="col">Tamanho</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Abrir</span></th></tr></thead>
           <tbody>${g.copies.map((c) => `<tr ${dev(c.device_id)}>
             <td><span class="cell-dev"><i class="dot"></i>${esc(copyLabel(deviceOf(c.device_id), c.location_id))}</span></td>
@@ -973,7 +973,7 @@ async function renderGame(key) {
             <td class="num-cell">${c.size ? fmtB(c.size) : "—"}</td>
             <td>${c.status === "corrupted" ? `<span class="badge bad">corrompido</span>` : c.status === "ok" ? `<span class="badge ok">${icon("shield-check", "sm")}ok</span>` : `<span class="muted small">não verificado</span>`}</td>
             <td>${c.device_id === "drive" && c.drive_id ? `<a class="small tlink" href="${esc(c.ext === "pasta" ? `https://drive.google.com/drive/folders/${c.drive_id}` : `https://drive.google.com/file/d/${c.drive_id}/view`)}" target="_blank" rel="noopener">Abrir no Drive</a>` : ""}</td>
-          </tr>`).join("")}</tbody></table>
+          </tr>`).join("")}</tbody></table></div>
       </section>
     </div>
     <section class="tile" id="graSec"><h2>Conquistas</h2><p class="muted small">Carregando…</p></section>

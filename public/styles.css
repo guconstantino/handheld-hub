@@ -245,7 +245,7 @@ a.name:hover { text-decoration-color: var(--text); }
 .tip { position: fixed; z-index: 30; pointer-events: none; background: var(--text); color: var(--bg); font-size: 13px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
 
 /* ---------- jogos: alternância, capas, grade ---------- */
-.seg { display: inline-flex; border: 1px solid var(--control); border-radius: 8px; padding: 2px; background: var(--surface); }
+.seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; border: 1px solid var(--control); border-radius: 8px; padding: 2px; background: var(--surface); }
 .seg button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--muted); padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--hover); color: var(--text); font-weight: 550; }
 .seg button:hover { color: var(--text); }
@@ -438,6 +438,7 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .copies-table th:first-child, .copies-table td:first-child { padding-left: 0; }
 .cell-dev { display: inline-flex; align-items: center; gap: 8px; }
 .ggrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+.ggrid > * { min-width: 0; }                                  /* conteúdo largo não estica a coluna */
 .ggrid > :only-child { grid-column: 1 / -1; }                 /* jogo sem ficha nem texto: a tabela usa a largura toda */
 @media (max-width: 1100px) { .ggrid { grid-template-columns: 1fr; } }
 
@@ -476,7 +477,7 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .mine h3 { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 10px; }
 .mine .morerow { grid-auto-columns: minmax(96px, 110px); }
 .mine-empty { padding: 20px 0; }
-@media (max-width: 900px) { .mine-grid { grid-template-columns: 1fr; } .stepbtn span { display: none; } }
+@media (max-width: 900px) { .mine-grid { grid-template-columns: minmax(0, 1fr); } .stepbtn span { display: none; } }
 
 /* ---------- minhas listas ---------- */
 .seg.tabs { flex-wrap: wrap; }
@@ -610,6 +611,8 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .search .ic { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--faint); pointer-events: none; }
 .filters .search input { flex: 1; padding-left: 36px; }
 .table-wrap { padding: 0; overflow: clip; }
+.xscroll { overflow-x: auto; max-width: 100%; }               /* tabela larga rola dentro do bloco no celular */
+.xscroll:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th { position: sticky; top: 0; z-index: 1; text-align: left; font-weight: 550; color: var(--muted); font-size: 13px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
 .table td { padding: 10px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
