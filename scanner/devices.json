@@ -109,28 +109,28 @@
       "name": "Switch OLED",
       "kind": "console",
       "accent": "#ef4444",
-      "notes": "Mariko com modchip, Atmosphère no emuMMC. Configurado para não falar com a Nintendo.",
+      "notes": "Mariko com modchip, Atmosphère no emuMMC. Configurado para não falar com a Nintendo. Jogos listados pelos saves do JKSV.",
       "specs": {
         "source": "switch-cfw",
-        "snapshot": "2026-09-19",
+        "snapshot": "2026-10-07",
         "facts": {
           "Firmware": "22.5.0",
           "Atmosphère": "1.11.2 (via hekate 6.5.3)",
           "Pacote": "CNX 22.5.0-5 (CostelaBR)",
           "Desbloqueio": "Modchip, payload.bin (sem RCM)",
           "NAND": "emuMMC file-based (SD00)",
-          "Instalador": "DBI 912"
+          "Instalador": "DBI 905-ru (FTP :5000)"
         },
         "storage": [
           {
             "label": "Cartão microSD",
-            "total": 255550210048,
-            "free": 35755376640
+            "total": 255550554112,
+            "free": 34950296371
           },
           {
             "label": "NAND interna",
             "total": 59055800320,
-            "free": 57552715776
+            "free": 57123065036
           }
         ],
         "sections": [

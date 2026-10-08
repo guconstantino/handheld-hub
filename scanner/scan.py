@@ -162,11 +162,13 @@ def scan_local(loc, root, detect=None, read_head=False):
 
 
 def scan_ftp(loc, root):
-    """Switch (ftpd): cada pasta em /JKSV/ é um jogo com save. O ftpd engasga com listagens grandes; curl é estável."""
+    """Switch (ftpd ou FTP do DBI): cada pasta em /JKSV/ é um jogo com save. curl é mais estável que ftplib."""
     r = subprocess.run(["curl", "-s", "--max-time", "60", "--list-only", root], capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit(f"{loc}: FTP não respondeu ({root}). O ftpd está aberto no Switch?")
-    names = [n.strip() for n in r.stdout.splitlines() if n.strip() and not n.startswith(".")]
+    # ftpd devolve só o nome; o FTP do DBI devolve o caminho inteiro (/JKSV/<jogo>).
+    names = [n.strip().rstrip("/").rsplit("/", 1)[-1] for n in r.stdout.splitlines() if n.strip()]
+    names = [n for n in names if n and not n.startswith(".")]
     return [("switch/" + n, None, None, None) for n in names], (None, None)
 
 

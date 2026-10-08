@@ -1,13 +1,13 @@
 # Roadmap
 
 ## Estado atual
-Fase 1 pronta localmente: S20 FE (SD + interno) e Drive indexados; portal com visão geral, busca de jogos e saúde do acervo em `wrangler dev`. Próximo: Miyoo e Switch.
+Fase 1 pronta localmente: S20 FE (SD + interno) e Drive indexados; portal com visão geral, busca de jogos e saúde do acervo em `wrangler dev`. Fase 2 concluída: os 3 consoles e o Drive no catálogo. Próximo: produção (com ok) ou lista completa do Switch.
 
 ## Fases
 - [x] **Fase 0 — Fundação:** schema D1, Worker só leitura, scanner Python, portal herdado do Handheld Hub.
 - [x] **Fase 1 — S20 FE + Drive:** varredura, detecção de corrompidos, agrupamento por jogo.
 - [x] **Fase 1.5 — Visual minimalista + fichas:** S20, Miyoo e Switch com ficha, armazenamento e seções.
-- [ ] **Fase 2 — Miyoo + Switch:** Miyoo varrido ✅ (6.689 jogos). Switch: scanner pronto (`npm run scan:switch` com o ftpd aberto), falta rodar.
+- [x] **Fase 2 — Miyoo + Switch:** Miyoo varrido (6.689 jogos); Switch pelos saves do JKSV via FTP do DBI (8 jogos). Melhorar: lista completa de instalados do Switch.
 - [ ] **Fase 3 — Produção (só com ok):** `wrangler d1 create gamehub`, deploy, domínio `gamehub.gustavoconstantino.com`, Cloudflare Access (só o e-mail do Gustavo), `scan.py --remote`.
 - [ ] **Depois:** capas (Daijishō/OnionOS), pendências de cada repo no painel, varredura agendada.
 

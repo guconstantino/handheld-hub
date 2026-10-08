@@ -4,6 +4,8 @@ Pegadinhas, comandos que funcionaram ou falharam, quirks de plataforma. Mais rec
 
 ---
 
+- **2026-10-07 — Switch pelo FTP do DBI:** o DBI (905-ru) tem servidor FTP próprio em `ftp://192.168.0.253:5000/` (raiz do SD) e devolve caminhos completos na listagem (`/JKSV/<jogo>`), diferente do ftpd. Só 8 jogos têm save no JKSV; os instalados não aparecem por nome (NCAs criptografadas no emuMMC). A tela do DBI mostra `SD: livre/total` e `NAND: livre/total`. O backup guardado é o DBI 912, mas o console roda o 905-ru.
+
 - **2026-10-07 — Miyoo:** cartão `ONION-V4_3_` (64 GB, FAT32), 6.689 jogos em ~7 min lendo 8 bytes de cada; 0 corrompidos. OnionOS usa pastas por extenso para alguns sistemas: `THIRTYTWOX` (32X), `FIFTYTWOHUNDRED` (5200), `SEVENTYEIGHTHUNDRED` (7800), `COMMODORE`, `NEOCD`. O cartão pode ser ejetado durante o pós-processamento: o espaço livre agora é lido na própria varredura.
 - **2026-10-07 — Cartão errado:** um cartão com o instalador do Zorin OS foi plugado achando que era o do Miyoo. O `detect` (`.tmp_update`) impediu a leitura. Conferir sempre o volume antes de varrer.
 

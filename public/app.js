@@ -69,7 +69,8 @@ function storageOf(d) {
   const scanned = state.locations.filter((l) => l.device_id === d.id).map((l) => ({
     label: l.label, cloud: d.kind === "backup", total: l.total_bytes, free: l.free_bytes, files: l.files, corrupted: l.corrupted, last: l.last_scan,
   }));
-  return scanned.length ? scanned : (d.specs.storage || []);
+  // Local varrido sem espaço (ex.: FTP do Switch) usa o espaço declarado na ficha.
+  return scanned.some((s) => s.total) ? scanned : (d.specs.storage || scanned);
 }
 function storageHtml(s) {
   const used = s.total ? Math.round(((s.total - s.free) / s.total) * 100) : null;
@@ -126,7 +127,7 @@ function renderDevice(id) {
     <div class="detail-grid">
       ${facts.length ? `<div>${sectionTitle("Ficha")}<div class="panel"><dl class="kv">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div></div>` : ""}
       <div>${sectionTitle("Armazenamento")}<div class="panel">${storageOf(d).map(storageHtml).join("") || `<p class="muted small">Sem dados.</p>`}
-        ${locs.map((l) => `<p class="muted small" style="margin-top:10px">${esc(l.label)}: ${fmtN(l.files)} itens, ${fmtB(l.bytes)} · varrido ${fmtDate(l.last_scan)}${l.corrupted ? ` · <span style="color:var(--danger)">${fmtN(l.corrupted)} corrompidos</span>` : ""}</p>`).join("")}
+        ${locs.map((l) => `<p class="muted small" style="margin-top:10px">${esc(l.label)}: ${fmtN(l.files)} itens${l.bytes ? `, ${fmtB(l.bytes)}` : ""} · varrido ${fmtDate(l.last_scan)}${l.corrupted ? ` · <span style="color:var(--danger)">${fmtN(l.corrupted)} corrompidos</span>` : ""}</p>`).join("")}
         ${locs.length ? `<p style="margin-top:14px"><a class="small" href="#games" onclick="setTimeout(()=>{$('#fDevice').value='${esc(d.id)}';loadGames()},0)">Ver jogos deste console</a></p>` : ""}
       </div></div>
     </div>
