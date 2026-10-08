@@ -471,6 +471,32 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 #minePlayingWrap { margin-bottom: 20px; }
 .mine .morerow.playing { grid-auto-columns: minmax(130px, 150px); }
 
+/* ---------- RetroAchievements ---------- */
+.ra-off { display: none !important; }  /* sem dados do RA (ex.: teste sem Worker) */
+.ra-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.ra-head > div { display: grid; }
+.ra-avatar { width: 44px; height: 44px; border-radius: 10px; }
+.ra-now { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 13px;
+  background: color-mix(in srgb, var(--ok) 14%, transparent); border: 1px solid color-mix(in srgb, var(--ok) 50%, transparent); }
+.ra-head .tlink { margin-left: auto; }
+.ra-recent { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
+.ra-recent a { display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 10px; padding: 8px; border-radius: 10px; border: 1px solid var(--line); }
+.ra-recent a:hover { border-color: var(--control); background: var(--hover); }
+.ra-recent img { grid-row: 1 / span 3; width: 44px; height: 44px; border-radius: 6px; background: var(--hover); }
+.ra-t { font-size: 14px; font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ra-s { font-size: 12px; color: var(--muted); }
+.ra-p { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ra-p .bar, .ra-progress .bar { flex: 1; margin: 0; height: 5px; }
+.ra-p .bar i, .ra-progress .bar i { background: var(--ok); }
+.ra-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.ach { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px; max-height: 520px; overflow-y: auto; }
+.ach li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px; border-radius: 8px; }
+.ach li:hover { background: var(--hover); }
+.ach img { width: 40px; height: 40px; border-radius: 6px; filter: grayscale(1) opacity(.55); }
+.ach li.on img { filter: none; box-shadow: 0 0 0 2px var(--ok); }
+.ach li > span:nth-child(2) { display: grid; font-size: 13px; }
+.ach-pts { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
 /* ---------- personalizar ---------- */
 .layout-list { list-style: none; display: grid; gap: 4px; }
 .layout-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 8px; border-radius: 8px; }

@@ -7,6 +7,7 @@
   // Mídia pesada (capas) fica no R2, fora do limite de 20 mil arquivos dos assets (public/.assetsignore).
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "gamehub-media" }],
   // Favoritos e listas ("Quero jogar", "Zerei") por usuário do Access, iguais em todos os aparelhos.
+  "vars": { "RA_USER": "guconstantino" },
   "kv_namespaces": [{ "binding": "LISTS", "id": "b2706d894aab4865ad838f3f1b460d2f" }],
   "d1_databases": [
     {

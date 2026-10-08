@@ -271,7 +271,7 @@ async function loadSummary() {
 }
 
 // ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
-const BLOCKS = [["meus", "Seus jogos"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
+const BLOCKS = [["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
   ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
 const loadLayout = () => {
   let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
@@ -755,6 +755,85 @@ function markSeen(key) {
   putList("recent", key, true);
 }
 
+// ---------- RetroAchievements (ao vivo pelo Worker; a chave fica no Cloudflare) ----------
+const RA_CONSOLE = {
+  "Game Boy": "gb", "Game Boy Color": "gbc", "Game Boy Advance": "gba", "NES/Famicom": "nes", "SNES/Super Famicom": "snes",
+  "Nintendo 64": "n64", "Nintendo DS": "nds", "GameCube": "gamecube", "Wii": "wii", "Virtual Boy": "virtualboy", "Pokemon Mini": null,
+  "Genesis/Mega Drive": "megadrive", "Master System": "mastersystem", "Game Gear": "gamegear", "Sega CD": "segacd", "32X": "sega32x",
+  "SG-1000": "sg1000", "Dreamcast": "dreamcast", "Saturn": null, "PlayStation": "psx", "PlayStation 2": "ps2", "PlayStation Portable": "psp",
+  "PC Engine/TurboGrafx-16": "pcengine", "PC Engine CD/TurboGrafx-CD": "pcenginecd", "Atari 2600": "atari2600", "Atari 7800": "atari7800",
+  "Atari Lynx": "lynx", "Atari Jaguar": "jaguar", "Neo Geo Pocket": "ngpc", "Neo Geo CD": "neogeocd", "WonderSwan": "wswanc",
+  "MSX": "msx", "ColecoVision": "colecovision", "Intellivision": "intellivision", "Vectrex": "vectrex", "3DO Interactive Multiplayer": "3do",
+  "Arcade": "arcade",
+};
+// Mesma normalização do game_key do scanner: sem (região)/[tags], artigo no começo, só letras e números.
+const normTitle = (t) => t.replace(/[([][^)\]]*[)\]]/g, " ").trim().replace(/^(.*), (the|a|an)\b/i, "$2 $1").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const RA = { data: null, keyOf: new Map() };
+async function loadRA() {
+  try {
+    const r = await fetch("api/ra/summary", { credentials: "same-origin" });
+    if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) return;
+    RA.data = await r.json();
+  } catch { return; }
+  // Liga cada jogo do RA a um jogo do catálogo (plataforma + título normalizado).
+  const idx = new Set((await api("/api/index")).map((g) => g.k));
+  for (const g of [...RA.data.recent, ...RA.data.progress]) {
+    const sys = RA_CONSOLE[g.console];
+    const k = sys && `${sys}|${normTitle(g.title.replace(/^~[^~]+~\s*/, ""))}`;
+    if (k && idx.has(k)) { g.key = k; RA.keyOf.set(k, g.id); }
+  }
+  drawRA();
+}
+const raHref = (g) => (g.key ? gameHref({ game_key: g.key }) : `https://retroachievements.org/game/${g.id}`);
+const raExt = (g) => (g.key ? "" : `target="_blank" rel="noopener"`);
+function drawRA() {
+  const d = RA.data, el = $("#raBlock");
+  if (!d || !el) return;
+  el.classList.remove("ra-off");
+  const fmtD = (s) => (s ? new Date(s.replace(" ", "T") + "Z").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "");
+  $("#raHead").innerHTML = `
+    ${d.avatar ? `<img class="ra-avatar" src="${esc(d.avatar)}" alt="">` : ""}
+    <div><b>${esc(d.user)}</b><span class="muted small">${fmtN(d.points)} pontos hardcore${d.softcorePoints ? ` · ${fmtN(d.softcorePoints)} softcore` : ""}${d.rank ? ` · ${fmtN(d.rank)}º de ${fmtN(d.totalRanked)}` : ""} · desde ${esc((d.memberSince || "").slice(0, 4))}</span></div>
+    ${d.richPresence ? `<span class="ra-now">${icon("gamepad-2", "sm")}${esc(d.richPresence.replace(/^Playing /, "Jogando: "))}</span>` : ""}
+    <a class="tlink small" href="https://retroachievements.org/user/${encodeURIComponent(d.user)}" target="_blank" rel="noopener">Perfil no RA</a>`;
+  $("#raRecent").innerHTML = d.recent.slice(0, 12).map((g) => {
+    const pct = g.total ? (g.earned / g.total) * 100 : 0;
+    return `<li><a href="${raHref(g)}" ${raExt(g)}>
+      <img src="${esc(g.icon || "")}" alt="" loading="lazy">
+      <span class="ra-t">${esc(g.title)}</span>
+      <span class="ra-s">${esc(g.console)} · ${fmtD(g.last)}</span>
+      <span class="ra-p"><span class="bar"><i style="width:${pct}%"></i></span>${g.total ? `${fmtN(g.earned)}/${fmtN(g.total)}` : "sem conquistas"}</span></a></li>`;
+  }).join("");
+  const started = d.progress.filter((g) => g.earned > 0).sort((a, b) => b.earned / b.total - a.earned / a.total);
+  $("#raNote").textContent = started.length
+    ? `${fmtN(started.length)} jogos com conquistas desbloqueadas.`
+    : "Ainda sem conquistas desbloqueadas. Elas aparecem aqui assim que você ganhar a primeira (RetroArch → Conquistas ligado).";
+}
+async function drawGameRA(g) {
+  const sec = $("#graSec");
+  if (!sec) return;
+  await RA.ready;                                   // acesso direto ao jogo: espera os dados do RA chegarem
+  if (!RA.data) { sec.remove(); return; }
+  const id = RA.keyOf.get(g.game_key);
+  if (!id) {
+    sec.innerHTML = `<h2>Conquistas</h2><p class="muted small">Você ainda não jogou este jogo com o RetroAchievements ligado.
+      <a class="tlink" href="https://retroachievements.org/searchresults.php?s=${encodeURIComponent(g.title.replace(/\s*[([].*$/, ""))}" target="_blank" rel="noopener">Procurar no RetroAchievements</a></p>`;
+    return;
+  }
+  const r = await fetch(`api/ra/game?id=${id}`, { credentials: "same-origin" }).catch(() => null);
+  if (!r?.ok) { sec.innerHTML = `<h2>Conquistas</h2><p class="muted small">Não consegui falar com o RetroAchievements agora.</p>`; return; }
+  const x = await r.json();
+  const pct = x.total ? (x.earned / x.total) * 100 : 0;
+  sec.innerHTML = `<div class="tile-head"><h2>Conquistas · ${fmtN(x.earned)} de ${fmtN(x.total)}</h2>
+      <a class="tlink small" href="https://retroachievements.org/game/${x.id}" target="_blank" rel="noopener">Ver no RetroAchievements</a></div>
+    <div class="ra-progress"><span class="bar"><i style="width:${pct}%"></i></span><span class="muted small">${fmtN(x.userPoints)} de ${fmtN(x.points)} pontos · ${fmtN(x.players)} jogadores</span></div>
+    <ul class="ach">${x.achievements.map((a) => `<li class="${a.earned ? "on" : ""}">
+      <img src="${esc(a.badge || "")}" alt="" loading="lazy">
+      <span><b>${esc(a.title)}</b><span class="muted small">${esc(a.description)}</span></span>
+      <span class="ach-pts">${fmtN(a.points)}</span>
+      <span class="sr-only">${a.earned ? "desbloqueada" : "bloqueada"}</span></li>`).join("")}</ul>`;
+}
+
 // ---------- página do jogo (dados: libretro-database, um arquivo por plataforma) ----------
 const dataCache = {};
 const getData = (kind, system) => (dataCache[kind + system] ||= fetch(`data/${kind}/${encodeURIComponent(system)}.json`)
@@ -823,6 +902,7 @@ async function renderGame(key) {
           </tr>`).join("")}</tbody></table>
       </section>
     </div>
+    <section class="tile" id="graSec"><h2>Conquistas</h2><p class="muted small">Carregando…</p></section>
     <section class="tile" id="gcodes" aria-labelledby="t-codes"><h2 id="t-codes">Códigos</h2><p class="muted small">Carregando…</p></section>
     <section aria-labelledby="t-more"><div class="tile-head"><h2 id="t-more">Mais de ${esc(sysName(g.system))}</h2>
       <a class="small tlink" href="#platform-${esc(g.system)}">Ver todos</a></div><ul class="morerow" id="gmore"></ul></section>
@@ -843,6 +923,7 @@ async function renderGame(key) {
     $("#gmore").innerHTML = pool.slice(0, 14).map((x) => `<li><a href="${gameHref(x)}"><img src="covers/${esc(x.cover)}" alt="" loading="lazy" decoding="async"><span>${esc(x.title)}</span></a></li>`).join("")
       || `<li class="muted small">Sem outros jogos com capa nesta plataforma.</li>`;
   });
+  drawGameRA(g);
   const cheats = (await getData("cheats", g.system))[short] || [];
   const total = cheats.reduce((n, [, list]) => n + list.length, 0);
   $("#gcodes").innerHTML = `<h2 id="t-codes">Códigos · ${fmtN(total)}</h2>` + (cheats.length
@@ -1037,6 +1118,7 @@ document.addEventListener("click", (e) => {
     loadTopPlatforms();
     loadMosaic();
     loadMine();
+    RA.ready = loadRA();
     loadHealthTiles();
     route();
   } catch (e) {

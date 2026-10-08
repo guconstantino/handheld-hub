@@ -1,3 +1,5 @@
+import { raRoute } from "./ra.js";
+
 // Handheld Hub: serve os arquivos de public/ (binding ASSETS) e as capas do R2 (binding MEDIA),
 // tudo atrás do Cloudflare Access. O catálogo vai como public/data/catalog.json e é filtrado no
 // navegador (public/hh-api.js): o site não lê o D1 em produção.
@@ -6,6 +8,7 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/covers/")) return cover(request, env, ctx, url);
     if (url.pathname === "/api/lists") return lists(request, env);
+    if (url.pathname.startsWith("/api/ra/")) return ra(request, env, ctx, url);
     return env.ASSETS.fetch(request);
   },
 };
@@ -60,4 +63,20 @@ async function lists(request, env) {
   }
   await env.LISTS.put(key, JSON.stringify(data));
   return Response.json(data, { headers: { "cache-control": "no-store" } });
+}
+
+// RetroAchievements ao vivo, com cache de 10 minutos na borda (poupa a API deles e deixa rápido).
+async function ra(request, env, ctx, url) {
+  if (!env.RA_API_KEY) return Response.json({ error: "RetroAchievements não configurado" }, { status: 503 });
+  const cacheKey = new Request(`https://cache.handheld-hub${url.pathname}${url.search}`);
+  const hit = await caches.default.match(cacheKey);
+  if (hit) return hit;
+  try {
+    const data = await raRoute(url, { user: env.RA_USER, key: env.RA_API_KEY });
+    const res = Response.json(data, { headers: { "cache-control": "private, max-age=600" } });
+    ctx.waitUntil(caches.default.put(cacheKey, new Response(JSON.stringify(data), { headers: { "content-type": "application/json", "cache-control": "public, max-age=600" } })));
+    return res;
+  } catch (e) {
+    return Response.json({ error: e.message }, { status: e.status || 502 });
+  }
 }
