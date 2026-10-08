@@ -8,6 +8,7 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/covers/") || url.pathname.startsWith("/themes/")) return cover(request, env, ctx, url);
     if (url.pathname === "/api/lists") return lists(request, env);
+    if (url.pathname === "/api/prefs") return prefs(request, env);
     if (url.pathname.startsWith("/api/ra/")) return ra(request, env, ctx, url);
     return env.ASSETS.fetch(request);
   },
@@ -63,6 +64,25 @@ async function lists(request, env) {
   }
   await env.LISTS.put(key, JSON.stringify(data));
   return Response.json(data, { headers: { "cache-control": "no-store" } });
+}
+
+// Preferências do usuário (tema, ordenações, layout…): as mesmas em todos os aparelhos. KV por e-mail do Access.
+// Só chaves "hh_…"/"hh-…" com texto curto; o objeto inteiro é substituído a cada gravação (o último aparelho vence).
+async function prefs(request, env) {
+  const user = request.headers.get("cf-access-authenticated-user-email");
+  if (!user) return Response.json({ error: "sem usuário do Access" }, { status: 401 });
+  const key = `prefs:${user.toLowerCase()}`;
+  const headers = { "cache-control": "no-store" };
+  if (request.method === "GET") return Response.json((await env.LISTS.get(key, "json")) || {}, { headers });
+  if (request.method !== "PUT") return Response.json({ error: "método" }, { status: 405 });
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object" || Array.isArray(body)) return Response.json({ error: "pedido inválido" }, { status: 400 });
+  const clean = Object.fromEntries(Object.entries(body)
+    .filter(([k, v]) => /^hh[_-][\w-]{1,40}$/.test(k) && typeof v === "string" && v.length <= 4000).slice(0, 40));
+  const before = await env.LISTS.get(key);
+  if (before === JSON.stringify(clean)) return Response.json(clean, { headers });     // nada mudou: poupa escrita no KV
+  await env.LISTS.put(key, JSON.stringify(clean));
+  return Response.json(clean, { headers });
 }
 
 // RetroAchievements ao vivo, com cache de 10 minutos na borda (poupa a API deles e deixa rápido).

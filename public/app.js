@@ -82,6 +82,40 @@ const SORTS = {
 };
 const pref = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
 const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+// Preferências sincronizadas entre aparelhos (KV do Worker, por usuário do Access). Toda gravação dessas chaves no
+// localStorage agenda um envio (1,5 s depois, juntando mudanças seguidas). Ao abrir, as do servidor vencem.
+const SYNC_KEYS = ["hh_theme", "hh_ptheme", "hh_layout", "hh_view", "hh_gsort", "hh_tsort", "hh_csort", "hh_psort", "hh_gpsort", "hh_listtab", "hh_keys", "hh-trusted-hosts"];
+const PREFS = { on: false, timer: null };
+const prefSnapshot = () => {
+  const o = {};
+  for (const k of SYNC_KEYS) { try { const v = localStorage.getItem(k); if (v != null) o[k] = v; } catch {} }
+  return o;
+};
+function schedulePrefSync() {
+  if (!PREFS.on) return;
+  clearTimeout(PREFS.timer);
+  PREFS.timer = setTimeout(() => fetch("api/prefs", { method: "PUT", credentials: "same-origin", headers: { "content-type": "application/json" },
+    body: JSON.stringify(prefSnapshot()) }).catch(() => {}), 1500);
+}
+try {
+  const { setItem, removeItem } = Storage.prototype;
+  Storage.prototype.setItem = function (k, v) { setItem.call(this, k, v); if (this === localStorage && SYNC_KEYS.includes(k)) schedulePrefSync(); };
+  Storage.prototype.removeItem = function (k) { removeItem.call(this, k); if (this === localStorage && SYNC_KEYS.includes(k)) schedulePrefSync(); };
+} catch {}
+// Busca as do servidor; devolve as chaves que mudaram neste aparelho (para aplicar sem recarregar).
+async function loadPrefs() {
+  let remote;
+  try { const r = await fetch("api/prefs", { credentials: "same-origin" }); if (!r.ok) return []; remote = await r.json(); } catch { return []; }
+  const changed = [];
+  for (const [k, v] of Object.entries(remote || {})) {
+    if (!SYNC_KEYS.includes(k) || (k === "hh_theme" && !["light", "dark"].includes(v))) continue;
+    try { if (localStorage.getItem(k) !== v) { Storage.prototype.setItem.call(localStorage, k, v); changed.push(k); } } catch {}
+  }
+  PREFS.on = true;
+  // Este aparelho tem preferência que o servidor ainda não tem (primeira vez): envia.
+  if (Object.entries(prefSnapshot()).some(([k]) => !(k in (remote || {})))) schedulePrefSync();
+  return changed;
+}
 // Tema das plataformas: "Arrow" (padrão, em public/platforms/) ou um pacote do Daijishō (R2, /themes/<id>/).
 // Plataforma que o tema não cobre usa a imagem padrão do próprio tema; sem ela, volta para o Arrow.
 const THEME = { list: [], cur: null };
@@ -537,11 +571,11 @@ const gridHtml = (games) => games.length ? games.map((g) => {
 
 // Exibição em grade ou lista (fica salva neste navegador).
 let viewMode = "grid";
-try { viewMode = localStorage.getItem("hh_view") || "grid"; } catch {}
+try { viewMode = ["grid", "list"].includes(localStorage.getItem("hh_view")) ? localStorage.getItem("hh_view") : "grid"; } catch {}
 function renderGames() {
   const games = state.games || [];
   const grid = viewMode === "grid";
-  document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === viewMode)));
+  document.querySelectorAll(".seg button[data-mode]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === viewMode)));
   $("#gamesGrid").classList.toggle("hidden", !grid);
   $("#gamesList").classList.toggle("hidden", grid);
   if (grid) {
@@ -585,7 +619,7 @@ document.addEventListener("click", (e) => {
   loadGames();
 });
 
-document.querySelectorAll(".seg button").forEach((b) => (b.onclick = () => {
+document.querySelectorAll(".seg button[data-mode]").forEach((b) => (b.onclick = () => {
   viewMode = b.dataset.mode;
   try { localStorage.setItem("hh_view", viewMode); } catch {}
   renderGames();
@@ -1360,6 +1394,14 @@ function toast(msg, { undo } = {}) {
   run();
 }
 
+// Preferências que vieram de outro aparelho e mudam o que já está na tela.
+function applyRemotePrefs(changed = []) {
+  if (changed.includes("hh_theme")) { document.documentElement.dataset.theme = pref("hh_theme", ""); themeLabel(); }
+  if (changed.includes("hh_layout")) { layout = loadLayout(); applyLayout(); }
+  if (changed.includes("hh_view")) { const v = pref("hh_view", "grid"); if (["grid", "list"].includes(v)) viewMode = v; }
+  if (changed.includes("hh_gsort")) $("#fSort").value = pref("hh_gsort", "");
+}
+
 // ---------- tema das plataformas ----------
 async function loadThemes() {
   THEME.list = await fetch("data/themes.json").then((r) => (r.ok ? r.json() : [])).catch(() => []);
@@ -1440,7 +1482,9 @@ $("#themeList").onclick = (e) => {
 
 (async () => {
   try {
-    await Promise.all([loadLists(), loadThemes()]);
+    const [, changed] = await Promise.all([loadLists(), loadPrefs()]);
+    applyRemotePrefs(changed);
+    await loadThemes();
     await loadSummary();
     await loadSystems();
     loadTopPlatforms();
