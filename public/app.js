@@ -146,16 +146,27 @@ async function loadSummary() {
   const free = disks.reduce((n, x) => n + (x.free || 0), 0);
   const total = disks.reduce((n, x) => n + x.total, 0);
   const covPct = t.games ? (t.covers / t.games) * 100 : 0;
+  // Bloco destaque: total de jogos + anel com a % de capas (o número fica escrito ao lado).
+  const R = 52, C = 2 * Math.PI * R;
+  $("#hero").innerHTML = `
+    <div class="hero-main">
+      <span class="kpi-label">${icon("gamepad-2", "sm")}Jogos no acervo</span>
+      <span class="hero-num">${fmtN(t.games)}</span>
+      <span class="kpi-sub">títulos únicos em ${fmtN(t.systems)} plataformas, ${fmtN(t.files)} arquivos em ${s.locations.length} lugares</span>
+      <a class="hero-link" href="#platforms">Ver plataformas ${icon("chevron-right", "sm")}</a>
+    </div>
+    <figure class="ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="${R}"/>
+        <circle class="ring-fg" cx="60" cy="60" r="${R}" stroke-dasharray="${(covPct / 100) * C} ${C}"/></svg>
+      <figcaption><b>${fmtP(covPct)}</b><span>com capa</span><span class="ring-sub">${fmtN(t.covers)} de ${fmtN(t.games)}</span></figcaption>
+    </figure>`;
   $("#stats").innerHTML = [
-    ["Jogos", fmtN(t.games), "gamepad-2", "títulos únicos"],
-    ["Capas", fmtP(covPct), "image", `${fmtN(t.covers)} de ${fmtN(t.games)} jogos`, false, covPct],
-    ["Arquivos", fmtN(t.files), "folder-open", `em ${s.locations.length} lugares`],
-    ["Sistemas", fmtN(t.systems), "layers", "plataformas"],
+    ["Arquivos", fmtN(t.files), "folder-open", `cópias em ${s.locations.length} lugares`],
+    ["Plataformas", fmtN(t.systems), "layers", "sistemas no acervo"],
     ["Espaço livre", fmtB(free), "hard-drive", `de ${fmtB(total)} nos consoles`],
     ["Corrompidos", fmtN(t.corrupted), "triangle-alert", t.corrupted ? "precisam de cópia nova" : "nenhum problema", t.corrupted > 0],
-  ].map(([l, v, ic, sub, bad, pct]) => `<div class="kpi ${bad ? "bad" : ""}" role="listitem">
-      <span class="kpi-label">${icon(ic, "sm")}${l}</span><span class="kpi-value">${v}</span><span class="kpi-sub">${sub}</span>
-      ${pct != null ? `<div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>` : ""}</div>`).join("");
+  ].map(([l, v, ic, sub, bad]) => `<div class="tile kpi b-kpi ${bad ? "bad" : ""}">
+      <span class="kpi-label">${icon(ic, "sm")}${l}</span><span class="kpi-value">${v}</span><span class="kpi-sub">${sub}</span></div>`).join("");
 
   $("#devices").innerHTML = s.devices.map((d) => {
     const st = (s.stats || {})[d.id] || { games: 0, systems: 0, covered: 0, noBackup: 0, driveOnly: 0 };
@@ -165,7 +176,7 @@ async function loadSummary() {
       ["Com capa", st.games ? fmtP((st.covered / st.games) * 100) : "—"],
       d.id === "drive" ? ["Só no Drive", fmtN(st.driveOnly)] : ["Sem backup", fmtN(st.noBackup)],
     ];
-    return `<article class="device" ${dev(d.id)}>
+    return `<article class="device b-dev" ${dev(d.id)}>
       ${cover(d)}
       <div class="device-body">
         <h3 class="device-name"><span class="dot"></span><a class="device-link" href="#device-${esc(d.id)}">${esc(d.name)}</a><span style="margin-left:auto;display:flex">${logo(d)}</span></h3>
@@ -237,13 +248,19 @@ async function loadSystems() {
     systems.sort((a, b) => sysName(a).localeCompare(sysName(b))).map((s) => `<option value="${esc(s)}">${esc(sysName(s))}</option>`).join("");
 }
 
+// Mosaico: capas aleatórias do acervo, cada uma leva à página da plataforma.
+async function loadMosaic() {
+  const list = await api("/api/mosaic?n=12");
+  $("#mosaic").innerHTML = list.map((g) => `<li><a href="#platform-${esc(g.system)}" title="${esc(g.title)}" aria-label="${esc(g.title)} (${esc(sysName(g.system))})"><img src="covers/${esc(g.cover)}" alt="" loading="lazy" decoding="async"></a></li>`).join("");
+}
+
 // Jogos por plataforma: cada jogo conta uma vez, mesmo que esteja em vários lugares.
 async function loadTopPlatforms() {
   const top = (await getPlatforms()).slice(0, 10);
   const max = top.length ? top[0].games : 1;
   $("#topSystems").innerHTML = `<ul class="barlist">${top.map((p) => `
     <li data-tip="${esc(sysName(p.system))}: ${fmtN(p.games)} jogos"><a class="name" href="#platform-${esc(p.system)}">${esc(sysName(p.system))}</a><span class="track" aria-hidden="true"><i style="width:${(p.games / max) * 100}%"></i></span><span class="num">${fmtN(p.games)}</span></li>`).join("")}</ul>
-    <p class="chart-note"><a href="#platforms">Ver todas as plataformas</a></p>`;
+    `;
 }
 
 // Link do Drive do jogo: a cópia no Drive (arquivo ou pasta de jogo), se houver.
@@ -438,6 +455,7 @@ async function loadHealth() {
     await loadSummary();
     loadSystems();
     loadTopPlatforms();
+    loadMosaic();
     loadHealthTiles();
     route();
   } catch (e) {

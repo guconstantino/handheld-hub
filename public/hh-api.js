@@ -89,6 +89,16 @@
       }
       return Object.values(m).sort((a, b) => b.games - a.games);
     },
+    // Jogos aleatórios com capa (mosaico da visão geral); muda a cada visita.
+    "/api/mosaic": ({ D, byKey }, p) => {
+      const keys = Object.keys(D.covers), n = Math.min(Number(p.get("n")) || 18, keys.length), out = [];
+      for (let i = 0; i < n; i++) {
+        const k = keys.splice(Math.floor(Math.random() * keys.length), 1)[0];
+        const c = byKey.get(k);
+        if (c) out.push({ game_key: k, title: c[0].title, system: c[0].system, cover: D.covers[k] });
+      }
+      return out;
+    },
     "/api/health": ({ F, byKey }) => {
       const all = [...byKey.values()].map((c) => ({ system: c[0].system, drive: c.some((f) => f.device_id === "drive"), console: c.some((f) => f.device_id !== "drive") }));
       return {

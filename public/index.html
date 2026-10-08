@@ -35,29 +35,32 @@
             <p class="lead">Onde estão os jogos, quanto espaço sobra e o que precisa de atenção.</p>
           </div>
         </div>
-        <div class="kpis" id="stats" role="list" aria-label="Totais"></div>
-        <div>
-          <h2>Consoles</h2>
-          <div class="devices" id="devices"></div>
-        </div>
-        <div class="grid-2">
-          <section class="panel" aria-labelledby="t-where">
-            <h2 id="t-where">Onde estão os arquivos</h2>
-            <div id="where"></div>
-          </section>
-          <section class="panel" aria-labelledby="t-sys">
+        <div class="bento">
+          <section class="tile b-hero" id="hero" aria-label="Acervo"></section>
+          <div class="contents" id="stats"></div>
+          <h2 class="b-full">Consoles</h2>
+          <div class="contents" id="devices"></div>
+          <section class="tile b-4" aria-labelledby="t-sys">
             <h2 id="t-sys">Jogos por plataforma</h2>
             <div id="topSystems"></div>
           </section>
-        </div>
-        <section class="panel" aria-labelledby="t-cov">
-          <h2 id="t-cov">Capas por sistema</h2>
-          <div id="coverage"></div>
-          <p class="chart-note">Sistemas com mais jogos. Capas do libretro e do cartão do Miyoo; arcade sem capa vem depois (Daijishō).</p>
-        </section>
-        <div>
-          <h2>Saúde do acervo</h2>
-          <div class="health-tiles" id="healthTiles"></div>
+          <section class="tile b-4" aria-labelledby="t-mosaic">
+            <h2 id="t-mosaic">Do acervo</h2>
+            <ul class="mosaic" id="mosaic"></ul>
+          </section>
+          <section class="tile b-4" aria-labelledby="t-where">
+            <h2 id="t-where">Onde estão os arquivos</h2>
+            <div id="where"></div>
+          </section>
+          <section class="tile b-8" aria-labelledby="t-cov">
+            <h2 id="t-cov">Capas por sistema</h2>
+            <div id="coverage"></div>
+            <p class="chart-note">Sistemas com mais jogos. Capas do libretro, do cartão do Miyoo e do Daijishō no S20.</p>
+          </section>
+          <section class="b-4 health-col" aria-labelledby="t-health">
+            <h2 id="t-health">Saúde do acervo</h2>
+            <div class="health-tiles" id="healthTiles"></div>
+          </section>
         </div>
       </section>
 
