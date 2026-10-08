@@ -958,7 +958,7 @@ async function renderGame(key) {
           <tbody>${g.copies.map((c) => `<tr ${dev(c.device_id)}>
             <td><span class="cell-dev"><i class="dot"></i>${esc(copyLabel(deviceOf(c.device_id), c.location_id))}</span></td>
             <td>${flagsHtml(regionsOf(c.title)) || `<span class="muted small">—</span>`}</td>
-            <td>${esc(c.ext === "pasta" ? "pasta" : (c.ext || "—").toUpperCase())}</td>
+            <td>${esc(c.ext === "pasta" ? "pasta" : (c.ext || "—").toUpperCase())}${c.rom && c.rom !== c.title ? ` <span class="muted small">${esc(c.rom)}${c.ext && c.ext !== "pasta" ? "." + esc(c.ext) : ""}</span>` : ""}</td>
             <td class="num-cell">${c.size ? fmtB(c.size) : "—"}</td>
             <td>${c.status === "corrupted" ? `<span class="badge bad">corrompido</span>` : c.status === "ok" ? `<span class="badge ok">${icon("shield-check", "sm")}ok</span>` : `<span class="muted small">não verificado</span>`}</td>
             <td>${c.device_id === "drive" && c.drive_id ? `<a class="small tlink" href="${esc(c.ext === "pasta" ? `https://drive.google.com/drive/folders/${c.drive_id}` : `https://drive.google.com/file/d/${c.drive_id}/view`)}" target="_blank" rel="noopener">Abrir no Drive</a>` : ""}</td>

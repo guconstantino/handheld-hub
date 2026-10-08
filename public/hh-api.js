@@ -9,8 +9,11 @@
 
   // Descompacta uma vez e monta os agrupamentos que todas as rotas usam.
   function index(D) {
+    // Arcade: o arquivo tem o nome curto da ROM ("kof98"); D.names traz o título completo do DAT. A busca
+    // continua achando pelo nome curto (game_key).
     const F = D.files.map(([li, si, title, key, st, size, ext, drive_id]) => ({
-      location_id: D.locations[li].id, device_id: D.locations[li].device_id, system: D.systems[si], title,
+      location_id: D.locations[li].id, device_id: D.locations[li].device_id, system: D.systems[si],
+      title: D.names?.[D.systems[si] + "|" + key] || title, rom: title,
       game_key: D.systems[si] + "|" + key, status: D.status[st], size, ext, drive_id: drive_id || null,
     }));
     const byKey = new Map();

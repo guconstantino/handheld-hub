@@ -438,6 +438,7 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .copies-table th:first-child, .copies-table td:first-child { padding-left: 0; }
 .cell-dev { display: inline-flex; align-items: center; gap: 8px; }
 .ggrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+.ggrid > :only-child { grid-column: 1 / -1; }                 /* jogo sem ficha nem texto: a tabela usa a largura toda */
 @media (max-width: 1100px) { .ggrid { grid-template-columns: 1fr; } }
 
 /* ---------- faixa "Mais de" na página do jogo ---------- */

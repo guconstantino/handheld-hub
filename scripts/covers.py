@@ -10,6 +10,7 @@ faltam, converte para WebP de 384 px em public/covers/ e gera data/covers.sql.
   python3 scripts/covers.py --onion /Volumes/ONION  # completa com as capas do cartão do Miyoo (só leitura)
   python3 scripts/covers.py --daijisho              # completa com as capas do Daijishō no S20 via adb (só leitura)
   python3 scripts/covers.py --eshop                 # Switch: arte oficial da eShop via titledb (o libretro não tem Switch)
+  python3 scripts/covers.py --arcade                # arcade: nome curto da ROM → título pelo DAT do libretro → capa
   python3 scripts/covers.py --sql [--remote]        # grava data/covers.sql no D1
 
 Precisa de Pillow (ex.: ~/.cache/s20fe-outpaint/bin/python). Só a lista de capas de cada
@@ -92,13 +93,13 @@ def fetch(url, tries=3):
     return None
 
 
-def listing(system):
+def listing(system, folder=None):
     """Nomes das capas disponíveis (sem .png) no Named_Boxarts do sistema, com cache de 7 dias."""
     os.makedirs(CACHE, exist_ok=True)
     cp = os.path.join(CACHE, f"_list_{system}.json")
     if os.path.exists(cp) and time.time() - os.path.getmtime(cp) < 7 * 86400:
         return json.load(open(cp))
-    page = fetch(f"{BASE}/{urllib.parse.quote(LIBRETRO[system])}/Named_Boxarts/")
+    page = fetch(f"{BASE}/{urllib.parse.quote(folder or LIBRETRO[system])}/Named_Boxarts/")
     names = []
     if page:
         for href in re.findall(r'href="([^"]+\.png)"', page.decode("utf-8", "replace")):
@@ -287,6 +288,84 @@ def eshop():
     print(f"{len(done)} capas da eShop")
 
 
+ARCADE_MAP = os.path.join(ROOT, "data", "covers-arcade.json")
+LRDB = os.path.expanduser("~/.cache/handheld-hub/libretro-database")   # clone esparso (metadat/mame, metadat/fbneo-split, dat)
+ARCADE_DATS = ["metadat/mame/MAME.dat", "metadat/fbneo-split/FBNeo - Arcade Games.dat", "metadat/mame-split/MAME 2003.dat",
+               "metadat/mame-split/MAME 2010.dat", "dat/Atomiswave.dat"]
+ARCADE_THUMBS = ["MAME", "FBNeo - Arcade Games", "Atomiswave", "Sega - Naomi", "Sega - Naomi 2"]
+
+
+def rom_titles():
+    """Nome curto da ROM ("commando") → título completo ("Commando (World)"), lendo os DATs do libretro.
+    O primeiro DAT que conhece o nome vence (MAME atual primeiro)."""
+    out = {}
+    for rel in ARCADE_DATS:
+        path = os.path.join(LRDB, rel)
+        if not os.path.exists(path):
+            continue
+        for block in open(path, encoding="utf-8", errors="replace").read().split("\ngame (")[1:]:
+            name = re.search(r'^\s*name "([^"]+)"', block, re.M)
+            short = re.search(r'^\s*id "([^"]+)"', block, re.M) or re.search(r'rom \( name "?([^\s"]+?)\.zip', block)
+            if name and short:
+                out.setdefault(short.group(1).lower(), name.group(1).replace(" _ ", " & "))   # o DAT grava "&" como "_"
+    return out
+
+
+def arcade():
+    """Arcade (MAME, FBNeo, light gun, Model 2, Atomiswave, Naomi): os arquivos usam o nome curto da ROM.
+    Traduz pelo DAT e casa com as capas de arcade do libretro. Grava a-<hash>.webp e data/covers-arcade.json."""
+    from PIL import Image
+    titles = rom_titles()
+    thumbs = {f: listing("_arcade_" + re.sub(r"\W+", "_", f), f) for f in ARCADE_THUMBS}
+    exact, byn = {}, {}
+    for f, names in thumbs.items():
+        for n in sorted(names, key=region_rank):
+            exact.setdefault(n, (f, n))
+            byn.setdefault(norm(n), (f, n))
+    plan, _ = match(sorted(LIBRETRO))
+    have = set(plan)
+    for m in (ONION_MAP, DAIJI_MAP, ESHOP_MAP):
+        have |= set(json.load(open(m))) if os.path.exists(m) else set()
+    done = json.load(open(ARCADE_MAP)) if os.path.exists(ARCADE_MAP) else {}
+    rows = d1("SELECT DISTINCT game_key, title FROM files WHERE system IN ('mame','fbneo','lightgun','model2','model3','atomiswave','naomi','arcade','neogeo','cps1','cps2','cps3')")
+    want, unknown = {}, 0
+    for r in rows:
+        k = r["game_key"]
+        if k in have or k in done or k in want:
+            continue
+        full = titles.get(r["title"].lower())
+        if not full:
+            unknown += 1
+            continue
+        hit = exact.get(safe(full)) or byn.get(norm(full))
+        if hit:
+            want[k] = hit
+    print(f"{len(rows)} jogos de arcade, {len(want)} capas novas para baixar ({unknown} nomes fora dos DATs)")
+    os.makedirs(OUT, exist_ok=True)
+
+    def one(item):
+        k, (f, n) = item
+        data = fetch(f"{BASE}/{urllib.parse.quote(f)}/Named_Boxarts/{urllib.parse.quote(n)}.png")
+        time.sleep(0.2)
+        if not data:
+            return None
+        try:
+            im = Image.open(io.BytesIO(data)).convert("RGB")
+            im.thumbnail((SIZE, SIZE * 2))
+            name = "a-" + cover_file(k)
+            im.save(os.path.join(OUT, name), "WEBP", quality=80, method=6)
+            return k, name
+        except Exception:
+            return None
+
+    with ThreadPoolExecutor(4) as ex:
+        for res in ex.map(one, want.items()):
+            if res:
+                done[res[0]] = res[1]
+    json.dump(done, open(ARCADE_MAP, "w"), ensure_ascii=False)
+    print(f"{len(done)} capas de arcade no total")
+
+
 def write_sql(remote=False):
     """Registra no D1 só as capas que existem em public/covers/ (libretro primeiro, OnionOS completa)."""
     plan, _ = match(sorted(LIBRETRO))
@@ -301,6 +380,9 @@ def write_sql(remote=False):
     have = {k for k, _, _ in rows}
     esh = json.load(open(ESHOP_MAP)) if os.path.exists(ESHOP_MAP) else {}
     rows += [(k, f, "eshop") for k, f in esh.items() if k not in have and os.path.exists(os.path.join(OUT, f))]
+    have = {k for k, _, _ in rows}
+    arc = json.load(open(ARCADE_MAP)) if os.path.exists(ARCADE_MAP) else {}
+    rows += [(k, f, "arcade") for k, f in arc.items() if k not in have and os.path.exists(os.path.join(OUT, f))]
     q = lambda v: "'" + v.replace("'", "''") + "'"
     out = ["DELETE FROM covers;"]
     for i in range(0, len(rows), 200):
@@ -317,6 +399,9 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if "--sql" in args:
         write_sql("--remote" in args)
+        sys.exit()
+    if "--arcade" in args:
+        arcade()
         sys.exit()
     if "--eshop" in args:
         eshop()

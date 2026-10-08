@@ -37,7 +37,20 @@ def build():
     rows = [[loc_ids.index(f["location_id"]), systems.index(f["system"]), f["title"], f["game_key"].split("|", 1)[1],
              status.index(f["status"]), f["size"] or 0, f["ext"] or "", f["drive_id"] or ""] for f in files]
     return {"devices": devices, "locations": locations, "systems": systems, "status": status,
-            "files": rows, "covers": covers}
+            "files": rows, "covers": covers, "names": arcade_names(files)}
+
+
+ARCADE = {"mame", "fbneo", "lightgun", "model2", "model3", "atomiswave", "naomi", "arcade", "neogeo", "cps1", "cps2", "cps3"}
+
+
+def arcade_names(files):
+    """game_key → título completo para arcade, quando o arquivo usa o nome curto da ROM (DATs do libretro)."""
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from covers import rom_titles
+    titles = rom_titles()
+    return {f["game_key"]: titles[f["title"].lower()] for f in files
+            if f["system"] in ARCADE and f["title"].lower() in titles}
 
 
 HISTORY = os.path.join(ROOT, "scanner", "history.json")   # no git: é o que permite gráficos de linha
