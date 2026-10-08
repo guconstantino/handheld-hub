@@ -258,16 +258,6 @@ async function loadSummary() {
 
   if (window.HH_CHARTS) HH_CHARTS.stack($("#where .stack-plot"), byDev.map((x) => ({ id: x.d.id, name: x.d.name, n: x.n })), { aria: "Arquivos por lugar" });
 
-  // Evolução do acervo (um retrato por dia de varredura).
-  const hist = s.history || [];
-  if (window.HH_CHARTS && hist.length) HH_CHARTS.timeline($("#timeline"), hist, {
-    series: [{ name: "Jogos", value: (h) => h.games, color: "--series" }, { name: "Capas", value: (h) => h.covers, color: "--acc-drive" }],
-    aria: `Evolução do acervo: ${hist.length} retrato(s); hoje ${fmtN(t.games)} jogos e ${fmtN(t.covers)} capas`,
-  });
-  $("#timelineNote").textContent = hist.length < 2
-    ? "Primeiro retrato do acervo. As linhas aparecem a partir da próxima varredura."
-    : `${hist.length} retratos, de ${fmtDate(hist[0].date)} a ${fmtDate(hist.at(-1).date)}.`;
-
   $("#fDevice").innerHTML = `<option value="">Todos os lugares</option>` +
     s.devices.map((d) => `<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("");
   const last = s.locations.map((l) => l.last_scan).filter(Boolean).sort().pop();

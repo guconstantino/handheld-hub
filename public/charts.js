@@ -66,27 +66,5 @@
     })));
   }
 
-  // Evolução no tempo: linhas finas com área suave e rótulo direto no último ponto.
-  function timeline(el, hist, { series, aria }) {
-    mount(el, () => {
-      const pts = series.flatMap((s) => hist.map((h) => ({ s: s.name, date: new Date(h.date + "T12:00"), v: s.value(h), color: css(s.color) })));
-      const last = series.map((s) => pts.filter((p) => p.s === s.name).at(-1));
-      const one = hist.length < 2;
-      return P.plot(base(el, {
-        ariaLabel: aria, height: 220, marginLeft: 8, marginRight: 110, marginTop: 16, marginBottom: 28,
-        x: { type: "time", label: null, ticks: one ? 1 : 5, tickFormat: (d) => d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) },
-        y: { axis: null, domain: [0, Math.max(...pts.map((p) => p.v), 1) * 1.1] },
-        marks: [
-          P.ruleY([0], { stroke: css("--line") }),
-          ...series.map((s) => P.areaY(pts.filter((p) => p.s === s.name), { x: "date", y: "v", fill: css(s.color), fillOpacity: 0.08, curve: "monotone-x" })),
-          ...series.map((s) => P.lineY(pts.filter((p) => p.s === s.name), { x: "date", y: "v", stroke: css(s.color), strokeWidth: 2, curve: "monotone-x" })),
-          P.dot(last, { x: "date", y: "v", fill: (d) => d.color, r: 4, stroke: css("--surface"), strokeWidth: 2 }),
-          P.text(last, { x: "date", y: "v", text: (d) => `${d.s} ${nf(d.v)}`, dx: 10, textAnchor: "start", fill: css("--text"), fontWeight: 600 }),
-          P.tip(pts, P.pointerX({ x: "date", y: "v", title: (d) => `${d.s}: ${nf(d.v)}\n${d.date.toLocaleDateString("pt-BR")}` })),
-        ],
-      }));
-    });
-  }
-
-  window.HH_CHARTS = { bars, percent, stack, timeline, redraw };
+  window.HH_CHARTS = { bars, percent, stack, redraw };
 })();
