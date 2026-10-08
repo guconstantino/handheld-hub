@@ -35,6 +35,7 @@
     { label: "Jogos", sub: "Tela", icon: "gamepad-2", run: go("#games"), keys: "g j" },
     { label: "Saúde do acervo", sub: "Tela", icon: "shield-check", run: go("#health"), keys: "g s" },
     { label: "Configurações", sub: "Tela", icon: "settings", run: go("#settings") },
+    { label: "Admin", sub: "Tela", icon: "wrench", run: go("#admin"), admin: true },   // só aparece para admin
     { label: "Comparar consoles", sub: "Tela", icon: "columns", run: go("#compare"), keys: "g c" },
     { label: "Minhas listas", sub: "Tela", icon: "bookmark", run: go("#lists"), keys: "g l" },
     { label: "Alternar tema claro/escuro", sub: "Ação", icon: "sun-moon", run: () => document.getElementById("themeToggle").click(), keys: "t" },
@@ -46,7 +47,8 @@
     gameIndex ||= await api("/api/index");
     const out = [];
     const take = (arr, n) => arr.filter((x) => x.sc > 0).sort((a, b) => b.sc - a.sc).slice(0, n);
-    const acts = q ? take(ACTIONS.map((a) => ({ ...a, sc: score(a.label, q) })), 4) : ACTIONS.slice(0, 4).map((a) => ({ ...a, sc: 1 }));
+    const list = ACTIONS.filter((a) => !a.admin || window.HH_ADMIN);
+    const acts = q ? take(list.map((a) => ({ ...a, sc: score(a.label, q) })), 4) : list.slice(0, 4).map((a) => ({ ...a, sc: 1 }));
     if (acts.length) out.push(["Telas e ações", acts]);
     const plats = (state.platforms || []).map((p) => ({ label: sysName(p.system), sub: `${fmtN(p.games)} jogos`, img: (window.HH_PLATIMG || ((x) => `platforms/${x}.webp`))(p.system),
       run: go(`#platform-${p.system}`), sc: q ? Math.max(score(sysName(p.system), q), score(p.system, q)) : 0 }));

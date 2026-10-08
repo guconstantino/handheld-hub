@@ -10,6 +10,8 @@ export default {
     if (url.pathname === "/api/lists") return lists(request, env);
     if (url.pathname === "/api/prefs") return prefs(request, env);
     if (url.pathname.startsWith("/api/ra/")) return ra(request, env, ctx, url);
+    if (url.pathname === "/api/me") return me(request, env);
+    if (url.pathname.startsWith("/api/admin/")) return admin(request, env, url);
     return env.ASSETS.fetch(request);
   },
 };
@@ -46,7 +48,7 @@ async function lists(request, env) {
       const arr = Array.isArray(body[l]) ? body[l].filter((k) => typeof k === "string" && k.length <= 300) : [];
       data[l] = l === "recent" ? arr.slice(0, 30) : [...new Set(arr)].slice(-5000);
     }
-    await env.LISTS.put(key, JSON.stringify(data));
+    await env.LISTS.put(key, JSON.stringify(data), { metadata: { at: Date.now() } });
     return Response.json(data, { headers: { "cache-control": "no-store" } });
   }
   if (request.method !== "PUT") return Response.json({ error: "método" }, { status: 405 });
@@ -62,7 +64,7 @@ async function lists(request, env) {
     if (body.on) set.add(body.key); else set.delete(body.key);
     data[body.list] = [...set].slice(-5000);
   }
-  await env.LISTS.put(key, JSON.stringify(data));
+  await env.LISTS.put(key, JSON.stringify(data), { metadata: { at: Date.now() } });
   return Response.json(data, { headers: { "cache-control": "no-store" } });
 }
 
@@ -81,8 +83,43 @@ async function prefs(request, env) {
     .filter(([k, v]) => /^hh[_-][\w-]{1,40}$/.test(k) && typeof v === "string" && v.length <= 4000).slice(0, 40));
   const before = await env.LISTS.get(key);
   if (before === JSON.stringify(clean)) return Response.json(clean, { headers });     // nada mudou: poupa escrita no KV
-  await env.LISTS.put(key, JSON.stringify(clean));
+  await env.LISTS.put(key, JSON.stringify(clean), { metadata: { at: Date.now() } });
   return Response.json(clean, { headers });
+}
+
+// Quem está usando e com que papel. Admins: segredo ADMINS (e-mails separados por vírgula; fora do git).
+// Quem entra é decidido pelo Cloudflare Access (policy "Só Gustavo"); aqui só se distingue admin de usuário.
+const userOf = (request) => (request.headers.get("cf-access-authenticated-user-email") || "").toLowerCase();
+const isAdmin = (env, email) => !!email && (env.ADMINS || "").toLowerCase().split(",").map((x) => x.trim()).includes(email);
+function me(request, env) {
+  const email = userOf(request);
+  if (!email) return Response.json({ error: "sem usuário do Access" }, { status: 401 });
+  return Response.json({ email, role: isAdmin(env, email) ? "admin" : "user" }, { headers: { "cache-control": "no-store" } });
+}
+
+// Painel de admin: usuários que já usaram o portal (listas e preferências no KV) e quando foi a última atividade.
+async function admin(request, env, url) {
+  const email = userOf(request);
+  if (!isAdmin(env, email)) return Response.json({ error: "só para admin" }, { status: 403 });
+  if (url.pathname !== "/api/admin/overview") return Response.json({ error: "não encontrado" }, { status: 404 });
+  const users = {};
+  for (const prefix of ["lists:", "prefs:"]) {
+    let cursor;
+    do {
+      const page = await env.LISTS.list({ prefix, cursor });
+      for (const k of page.keys) {
+        const who = k.name.slice(prefix.length);
+        const u = (users[who] ||= { email: who, role: isAdmin(env, who) ? "admin" : "user", at: 0 });
+        u.at = Math.max(u.at, k.metadata?.at || 0);
+        if (prefix === "lists:") {
+          const d = (await env.LISTS.get(k.name, "json")) || {};
+          u.lists = Object.fromEntries(["playing", "fav", "want", "done", "recent"].map((l) => [l, (d[l] || []).length]));
+        } else u.prefs = true;
+      }
+      cursor = page.list_complete ? null : page.cursor;
+    } while (cursor);
+  }
+  return Response.json({ me: email, users: Object.values(users).sort((a, b) => b.at - a.at) }, { headers: { "cache-control": "no-store" } });
 }
 
 // RetroAchievements ao vivo, com cache de 10 minutos na borda (poupa a API deles e deixa rápido).

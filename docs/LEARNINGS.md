@@ -33,3 +33,5 @@ Pegadinhas, comandos que funcionaram ou falharam, quirks de plataforma. Mais rec
 - **2026-10-08 — `display` vence `hidden`:** botão com `display: inline-flex` no CSS aparece mesmo com o atributo `hidden`; precisa de `[hidden] { display: none }` explícito.
 - **2026-10-08 — `focus()` rola a página:** ao restaurar a rolagem e depois focar o título (acessibilidade), o foco jogava para o topo. Usar `focus({ preventScroll: true })`.
 - **2026-10-08 — ROM corrompida "consertável":** só aceitar cópia de outro lugar do acervo se o zip passar no `testzip()` (CRC); 26 das cópias candidatas também estavam ruins. Ver `scripts/fix_corrupted.py`.
+- **2026-10-08 — `api()` não fala com o Worker:** no portal, `api("/api/...")` é atendido pelo `hh-api.js` (catálogo no navegador). Rotas que só existem no Worker (`/api/me`, `/api/admin/*`, `/api/prefs`, `/api/lists`, `/api/ra/*`) precisam de `fetch` direto.
+- **2026-10-08 — Lista da busca é montada no carregamento:** o `search.js` monta `ACTIONS` uma vez; item que depende de dado assíncrono (papel de admin) tem de ser filtrado na hora da busca.

@@ -262,6 +262,11 @@
             <p class="muted small">Sites que abrem sem perguntar "Sair do Handheld Hub?".</p>
             <ul class="trusted" id="sTrusted"></ul>
           </section>
+          <section class="tile" aria-labelledby="t-s-admin" id="sAdmin" hidden>
+            <h2 id="t-s-admin">Administração</h2>
+            <div class="srow"><div><b>Painel de admin</b><p class="muted small">Usuários, estado do acervo e rotinas de atualização.</p></div>
+              <a class="btn" href="#admin">Abrir</a></div>
+          </section>
           <section class="tile" aria-labelledby="t-s-data">
             <h2 id="t-s-data">Dados</h2>
             <div class="srow"><div><b>Backup das listas</b><p class="muted small">Favoritos, quero jogar, zerei e jogando agora.</p></div>
@@ -270,6 +275,14 @@
               <button type="button" class="btn danger" id="sReset">Restaurar</button></div>
           </section>
         </div>
+      </section>
+
+      <section class="view hidden" id="view-admin">
+        <div class="page-head"><div>
+          <h1 tabindex="-1">Admin</h1>
+          <p class="lead">Quem usa o portal, o estado do acervo e como manter tudo atualizado.</p>
+        </div></div>
+        <div id="adminBody"><p class="muted">Carregando…</p></div>
       </section>
 
       <section class="view hidden" id="view-health">

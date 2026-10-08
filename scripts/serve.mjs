@@ -18,6 +18,9 @@ const env = existsSync(ENV_FILE) ? Object.fromEntries(readFileSync(ENV_FILE, "ut
 
 createServer(async (req, res) => {
   const u = new URL(req.url, "http://x");
+  // Teste local: sem Access, quem abre é tratado como admin; o painel mostra usuários vazios (o KV só existe no Worker).
+  if (u.pathname === "/api/me") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ email: "local@teste", role: "admin" }));
+  if (u.pathname === "/api/admin/overview") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ me: "local@teste", users: [] }));
   if (u.pathname.startsWith("/api/ra/") && env.RA_API_KEY) {
     try {
       const data = await raRoute(u, { user: env.RA_USER, key: env.RA_API_KEY });

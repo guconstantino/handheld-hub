@@ -186,7 +186,7 @@ document.addEventListener("mousemove", (e) => {
 function route(moveFocus = false) {
   curView = null;                                   // a troca de tela muda a altura: não gravar essa rolagem
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
-  const target = ["overview", "device", "platforms", "platform", "game", "games", "lists", "compare", "health", "settings"].includes(view) ? view : "overview";
+  const target = ["overview", "device", "platforms", "platform", "game", "games", "lists", "compare", "health", "settings", "admin"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => {
     const on = a.dataset.view === ({ device: "overview", platform: "platforms", game: "games" }[target] || target);
     a.classList.toggle("active", on);
@@ -203,6 +203,7 @@ function route(moveFocus = false) {
   if (target === "compare" && !state.loaded.compare) { state.loaded.compare = true; initCompare(); drawMatrix(); }
   if (target === "lists") drawLists();
   if (target === "settings") drawSettings();
+  if (target === "admin") renderAdmin();
   const h1 = document.querySelector(`#view-${target} h1`);
   document.title = h1 && target !== "overview" ? `${h1.textContent} · Handheld Hub` : "Handheld Hub";
   // Telas de lista voltam para onde estavam (abrir um jogo e voltar não perde a posição); detalhe abre no topo.
@@ -1526,6 +1527,69 @@ $("#sReset").onclick = () => {
   toast("Preferências restauradas. Recarregando…");
 };
 
+// ---------- admin ----------
+// Quem está logado (Cloudflare Access) e o papel. Admin vê o painel; usuário comum, não.
+async function loadMe() {
+  try { const r = await fetch("api/me", { credentials: "same-origin" }); state.me = r.ok ? await r.json() : null; } catch { state.me = null; }
+  const admin = state.me?.role === "admin";
+  $("#sAdmin").hidden = !admin;
+  window.HH_ADMIN = admin;                            // a busca global mostra "Admin" só para admin
+}
+const ROUTINES = [
+  ["Varrer o S20 FE (adb, ~20–40 min)", "npm run scan:s20"],
+  ["Varrer o cartão do Miyoo (montado no Mac)", "npm run scan:miyoo"],
+  ["Varrer a pasta do Drive no Mac", "npm run scan:drive"],
+  ["Capas novas (libretro, arcade) e envio ao R2", "~/.cache/s20fe-outpaint/bin/python scripts/covers.py --all && ~/.cache/s20fe-outpaint/bin/python scripts/covers.py --arcade && ~/.cache/s20fe-outpaint/bin/python scripts/covers.py --sql && npm run r2"],
+  ["Gerar o catálogo e publicar", "python3 scripts/catalog.py && npx wrangler deploy"],
+  ["Textos “Sobre o jogo” (Wikipédia; horas, por causa do limite)", "python3 scripts/game_about.py"],
+  ["Consertar ROMs corrompidas do S20 (relatório; --apply troca)", "python3 scripts/fix_corrupted.py"],
+];
+async function renderAdmin() {
+  const body = $("#adminBody");
+  if (state.me && state.me.role !== "admin") { body.innerHTML = emptyState("Só para admin", "Esta tela é do administrador do portal."); return; }
+  // Vai direto ao Worker (o api() do portal responde pelo catálogo local, que não tem usuários).
+  const x = await fetch("api/admin/overview", { credentials: "same-origin" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const rel = (t) => (t ? new Date(t).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—");
+  const users = x?.users || [];
+  const locs = [...state.locations].sort((a, b) => (a.last_scan || "").localeCompare(b.last_scan || ""));
+  const old = (s) => !s || (Date.now() - new Date(s)) / 864e5 > 30;
+  body.innerHTML = `
+    <section class="tile" aria-labelledby="t-a-users">
+      <div class="tile-head"><h2 id="t-a-users">Usuários</h2><span class="muted small">Quem já usou o portal (listas ou preferências salvas)</span></div>
+      ${users.length ? `<div class="xscroll" tabindex="0" role="region" aria-labelledby="t-a-users"><table class="table">
+        <thead><tr><th scope="col">E-mail</th><th scope="col">Papel</th><th scope="col" class="num-cell">Jogando</th><th scope="col" class="num-cell">Favoritos</th><th scope="col" class="num-cell">Quero jogar</th><th scope="col" class="num-cell">Zerei</th><th scope="col">Última atividade</th></tr></thead>
+        <tbody>${users.map((u) => `<tr><td>${esc(u.email)}${u.email === x.me ? ` <span class="muted small">(você)</span>` : ""}</td>
+          <td><span class="badge ${u.role === "admin" ? "ok" : ""}">${u.role === "admin" ? "admin" : "usuário"}</span></td>
+          ${["playing", "fav", "want", "done"].map((l) => `<td class="num-cell">${fmtN(u.lists?.[l] || 0)}</td>`).join("")}
+          <td>${rel(u.at)}</td></tr>`).join("")}</tbody></table></div>`
+        : `<p class="muted small">${x ? "Ninguém salvou listas ou preferências ainda." : "Os usuários só aparecem no portal publicado (o KV fica no Cloudflare)."}</p>`}
+      <details class="howto"><summary>Dar acesso a alguém novo</summary>
+        <ol>
+          <li>No Cloudflare: Zero Trust → Access → Policies → <b>Só Gustavo</b> → incluir o e-mail da pessoa (Emails).</li>
+          <li>Ela entra em gamehub.gustavoconstantino.com com esse e-mail (código de uso único). Já chega como <b>usuário</b>, com listas e preferências próprias.</li>
+          <li>Para virar admin: <code>npx wrangler secret put ADMINS</code> com todos os e-mails de admin separados por vírgula.</li>
+        </ol></details>
+    </section>
+    <section class="tile" aria-labelledby="t-a-scan">
+      <div class="tile-head"><h2 id="t-a-scan">Varreduras</h2><span class="muted small">Mais de 30 dias sem varrer aparece em destaque</span></div>
+      <div class="xscroll" tabindex="0" role="region" aria-labelledby="t-a-scan"><table class="table">
+        <thead><tr><th scope="col">Local</th><th scope="col">Última varredura</th><th scope="col" class="num-cell">Arquivos</th><th scope="col" class="num-cell">Corrompidos</th><th scope="col" class="num-cell">Tamanho</th></tr></thead>
+        <tbody>${locs.map((l) => `<tr ${dev(l.device_id)}><td><span class="cell-dev"><i class="dot"></i>${esc(copyLabel(deviceOf(l.device_id), l.id))}</span></td>
+          <td>${old(l.last_scan) ? `<span class="badge bad">${fmtDate(l.last_scan)}</span>` : fmtDate(l.last_scan)}</td>
+          <td class="num-cell">${fmtN(l.files || 0)}</td><td class="num-cell">${l.corrupted ? `<a class="tlink" href="#health">${fmtN(l.corrupted)}</a>` : "0"}</td>
+          <td class="num-cell">${l.bytes ? fmtB(l.bytes) : "—"}</td></tr>`).join("")}</tbody></table></div>
+    </section>
+    <section class="tile" aria-labelledby="t-a-run">
+      <div class="tile-head"><h2 id="t-a-run">Rotinas de atualização</h2><span class="muted small">Rodar no Mac, na pasta handheld-hub</span></div>
+      <ul class="routines">${ROUTINES.map(([label, cmd]) => `<li><span>${esc(label)}</span><code>${esc(cmd)}</code><button type="button" class="copy" data-copy="${esc(cmd)}">Copiar</button></li>`).join("")}</ul>
+    </section>`;
+}
+$("#adminBody").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-copy]");
+  if (!b) return;
+  navigator.clipboard?.writeText(b.dataset.copy).then(() => toast("Comando copiado"), () => toast("Não consegui copiar"));
+});
+
 // ---------- tema das plataformas ----------
 async function loadThemes() {
   THEME.list = await fetch("data/themes.json").then((r) => (r.ok ? r.json() : [])).catch(() => []);
@@ -1606,7 +1670,7 @@ $("#themeList").onclick = (e) => {
 
 (async () => {
   try {
-    const [, changed] = await Promise.all([loadLists(), loadPrefs()]);
+    const [, changed] = await Promise.all([loadLists(), loadPrefs(), loadMe()]);
     applyRemotePrefs(changed);
     await loadThemes();
     await loadSummary();
