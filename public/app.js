@@ -116,6 +116,11 @@ const copyLabel = (d, locId) => {
 };
 
 // ---------- tema ----------
+// Migração: o tema das plataformas chegou a ser gravado em "hh_theme" (a chave do claro/escuro). Move para "hh_ptheme".
+try {
+  const t = localStorage.getItem("hh_theme");
+  if (t && t !== "light" && t !== "dark") { localStorage.setItem("hh_ptheme", t); localStorage.removeItem("hh_theme"); }
+} catch {}
 try { const t = localStorage.getItem("hh_theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
 const isDark = () => document.documentElement.dataset.theme
   ? document.documentElement.dataset.theme === "dark"
@@ -1358,7 +1363,7 @@ function toast(msg, { undo } = {}) {
 // ---------- tema das plataformas ----------
 async function loadThemes() {
   THEME.list = await fetch("data/themes.json").then((r) => (r.ok ? r.json() : [])).catch(() => []);
-  THEME.cur = THEME.list.find((t) => t.id === pref("hh_theme", "")) || null;
+  THEME.cur = THEME.list.find((t) => t.id === pref("hh_ptheme", "")) || null;
   $("#themeName").textContent = THEME.cur?.name || "Arrow";
   if (!THEME.list.length) $("#themeBtn").hidden = true;
 }
@@ -1384,7 +1389,7 @@ $("#themeList").onclick = (e) => {
   const b = e.target.closest("[data-theme]");
   if (!b) return;
   THEME.cur = THEME.list.find((t) => t.id === b.dataset.theme) || null;
-  setPref("hh_theme", THEME.cur?.id || "");
+  setPref("hh_ptheme", THEME.cur?.id || "");
   $("#themeName").textContent = THEME.cur?.name || "Arrow";
   drawThemes();
   // As telas ficam montadas em cache: troca as imagens de plataforma que já estão na página
