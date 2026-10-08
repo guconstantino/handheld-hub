@@ -161,7 +161,7 @@ function route(moveFocus = false) {
   if (target === "overview" && state.loaded.mine) loadMine();
   if (target === "overview") state.loaded.mine = true;
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
-  if (target === "compare" && !state.loaded.compare) { state.loaded.compare = true; initCompare(); }
+  if (target === "compare" && !state.loaded.compare) { state.loaded.compare = true; initCompare(); drawMatrix(); }
   if (target === "lists") drawLists();
   const h1 = document.querySelector(`#view-${target} h1`);
   document.title = h1 && target !== "overview" ? `${h1.textContent} · Handheld Hub` : "Handheld Hub";
@@ -297,7 +297,7 @@ async function loadSummary() {
 
 // ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
 // Ordem padrão: primeiro o que o acervo tem (resposta da tela), depois o pessoal (listas, conquistas).
-const BLOCKS = [["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
+const BLOCKS = [["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
   ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
 const loadLayout = () => {
   let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
@@ -347,6 +347,8 @@ $("#layoutList").addEventListener("click", (e) => {
 // ---------- detalhe do console ----------
 // Abre a tela Jogos já filtrada (usado pela página do console e pelos chips).
 function goGames(filters = {}) {
+  // Filtros que não têm seletor (vindos dos cruzamentos da visão geral): viram etiqueta removível.
+  state.gx = { missing: filters.missing, where: filters.where };
   location.hash = "#games";
   setTimeout(() => {
     for (const [id, v] of Object.entries({ "#fDevice": filters.device, "#fSystem": filters.system, "#fStatus": filters.status }))
@@ -617,6 +619,8 @@ function renderChips() {
   const STATUS = { ok: "OK", corrupted: "Corrompido", unknown: "Não verificado", nobackup: "Sem backup no Drive", driveonly: "Só no Drive", playing: "Jogando agora", fav: "Favoritos", want: "Quero jogar", done: "Zerei" };
   const active = [
     sys && ["system", sysName(sys)], st && ["status", STATUS[st]], q && ["q", `“${q}”`],
+    state.gx?.missing && ["missing", `Pronto para instalar no ${shortName(deviceOf(state.gx.missing))}`],
+    state.gx?.where && ["where", `Só em: ${whereLabel(state.gx.where)}`],
   ].filter(Boolean);
   $("#gChips").innerHTML = `<div class="chiprow" role="group" aria-label="Lugar">${devChips}</div>` + (active.length
     ? `<div class="chiprow" aria-label="Filtros ativos">${active.map(([k, label]) =>
@@ -632,6 +636,8 @@ $("#gChips")?.addEventListener("click", (e) => {
   if (c === "status" || c === "all") $("#fStatus").value = "";
   if (c === "q" || c === "all") $("#q").value = "";
   if (c === "all") $("#fDevice").value = "";
+  if (c === "missing" || c === "all") state.gx = { ...state.gx, missing: undefined };
+  if (c === "where" || c === "all") state.gx = { ...state.gx, where: undefined };
   loadGames();
 });
 
@@ -644,6 +650,7 @@ async function loadGames(append = false) {
   if ($("#fSort").value) p.set("sort", $("#fSort").value);
   for (const [k, el] of [["q", "#q"], ["device", "#fDevice"], ["system", "#fSystem"], ["status", "#fStatus"]])
     if ($(el).value.trim()) p.set(k, $(el).value.trim());
+  for (const [k, v] of Object.entries(state.gx || {})) if (v) p.set(k, v);
   const r = await api(`/api/games?${p}`);
   if (req !== gamesReq) return;
   state.games = append ? [...(state.games || []), ...r.games] : r.games;
@@ -1265,6 +1272,62 @@ function clampList(ul, n, what) {
   count();
 })();
 
+// ---------- entre os aparelhos (visão geral) ----------
+// Mapa plataforma × aparelho (tela Comparar). Sombra proporcional à fatia da plataforma em cada lugar;
+// o número está sempre escrito (a cor só reforça).
+async function drawMatrix(all = false) {
+  const x = await api("/api/insights");
+  const devs = state.devices.map((d) => d.id);
+  const rows = all ? x.matrix : x.matrix.slice(0, 15);
+  $("#matrix").innerHTML = `<caption class="sr-only">Jogos únicos por plataforma e aparelho</caption>
+    <thead><tr><th scope="col">Plataforma</th>${devs.map((d) => `<th scope="col" ${dev(d)}><i class="dot"></i>${esc(shortName(deviceOf(d)))}</th>`).join("")}<th scope="col" class="num-cell">Total</th></tr></thead>
+    <tbody>${rows.map((r) => `<tr><th scope="row"><a class="tlink" href="#platform-${esc(r.system)}">${esc(sysName(r.system))}</a></th>${devs.map((d) => {
+      const n = r.by[d] || 0, share = n / r.total;
+      return `<td class="mcell" style="--share:${Math.round(share * 100)}%">${n ? `<button type="button" data-dev-sys="${esc(d)}|${esc(r.system)}" aria-label="${fmtN(n)} jogos de ${esc(sysName(r.system))} em ${esc(shortName(deviceOf(d)))}">${fmtN(n)}</button>` : `<span class="muted" aria-label="nenhum">—</span>`}</td>`;
+    }).join("")}<td class="num-cell"><b>${fmtN(r.total)}</b></td></tr>`).join("")}</tbody>`;
+  $("#matrixMore").hidden = all || x.matrix.length <= 15;
+}
+$("#matrix").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-dev-sys]");
+  if (!b) return;
+  const [d, sys] = b.dataset.devSys.split("|");
+  goGames({ device: d, system: sys, status: "" });
+});
+$("#matrixMore").onclick = () => drawMatrix(true);
+
+const whereLabel = (sig) => sig.split("+").map((d) => shortName(deviceOf(d))).join(" + ");
+async function loadRelation() {
+  const x = await api("/api/insights");
+  const max = Math.max(...x.combos.map((c) => c.n), 1);
+  // Risco: com backup (Drive + console), sem backup (só em console), só no Drive (não está em nenhum console).
+  const risk = (ds) => {
+    const drive = ds.includes("drive"), cons = ds.some((d) => d !== "drive");
+    return drive && cons ? ["ok", "shield-check", "com backup"] : cons ? ["warn", "triangle-alert", "sem backup"] : ["muted", "cloud", "só no Drive"];
+  };
+  $("#relCombos").innerHTML = x.combos.map((c) => {
+    const [cls, ic, label] = risk(c.devices), sig = c.devices.join("+");
+    return `<li><button type="button" class="combo" data-where="${esc(sig)}" aria-label="${esc(whereLabel(sig))}: ${fmtN(c.n)} jogos, ${label}. Ver jogos">
+      <span class="combo-devs">${c.devices.map((d) => `<i class="dot" ${dev(d)} title="${esc(shortName(deviceOf(d)))}"></i>`).join("")}<span>${esc(whereLabel(sig))}</span></span>
+      <span class="combo-tag ${cls}">${icon(ic, "sm")}${label}</span>
+      <span class="bar"><i style="width:${(c.n / max) * 100}%"></i></span>
+      <b class="combo-n">${fmtN(c.n)}</b></button></li>`;
+  }).join("");
+  $("#relInstall").innerHTML = x.install.filter((i) => i.games).map((i) => {
+    const d = deviceOf(i.device), fits = i.space ? i.bytes <= i.space.free : null;
+    const pctFree = i.space ? Math.min(100, (i.bytes / Math.max(i.space.free, 1)) * 100) : null;
+    return `<article class="install" ${dev(i.device)}>
+      <header><i class="dot"></i><b>${esc(d.name)}</b><span class="muted small">${fmtN(i.have)} jogos hoje</span></header>
+      <p class="install-n"><span class="kpi-value">${fmtN(i.games)}</span> <span class="muted">jogos de plataformas que ele já roda</span></p>
+      <p class="small">~${fmtB(i.bytes)}${i.space ? ` · ${fits ? "cabe" : "não cabe tudo"} nos ${fmtB(i.space.free)} livres` : ""}</p>
+      ${pctFree !== null ? `<span class="bar ${fits ? "" : "over"}" role="img" aria-label="Ocuparia ${Math.round(pctFree)}% do espaço livre"><i style="width:${pctFree}%"></i></span>` : ""}
+      <p class="install-top muted small">Mais em ${i.top.map(([s, n]) => `${esc(sysName(s))} (${fmtN(n)})`).join(", ")}</p>
+      <button type="button" class="btn" data-missing="${esc(i.device)}">Ver jogos para instalar</button>
+    </article>`;
+  }).join("") || `<p class="muted small">Todos os consoles já têm tudo das plataformas que rodam.</p>`;
+}
+$("#relCombos").addEventListener("click", (e) => { const b = e.target.closest("[data-where]"); if (b) goGames({ device: "", system: "", status: "", where: b.dataset.where }); });
+$("#relInstall").addEventListener("click", (e) => { const b = e.target.closest("[data-missing]"); if (b) goGames({ device: "", system: "", status: "", missing: b.dataset.missing }); });
+
 // ---------- tema das plataformas ----------
 async function loadThemes() {
   THEME.list = await fetch("data/themes.json").then((r) => (r.ok ? r.json() : [])).catch(() => []);
@@ -1348,6 +1411,7 @@ $("#themeList").onclick = (e) => {
     loadTopPlatforms();
     loadMosaic();
     loadMine();
+    loadRelation();
     RA.ready = loadRA();
     loadHealthTiles();
     route();

@@ -55,6 +55,13 @@
           <button type="button" class="btn" id="customize"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-wrench"/></svg>Personalizar</button>
         </div>
         <div class="bento">
+          <section class="tile b-12 rel" id="relBlock" aria-labelledby="t-rel" data-block="relacao">
+            <div class="tile-head"><h2 id="t-rel">Entre os aparelhos</h2><span class="muted small">Onde cada jogo está e o que dá para levar para cada console</span></div>
+            <div class="rel-grid">
+              <div><h3 class="rel-h">Onde está cada jogo</h3><ul class="combos" id="relCombos"></ul></div>
+              <div><h3 class="rel-h">Pronto para instalar</h3><div class="installs" id="relInstall"></div></div>
+            </div>
+          </section>
           <section class="tile b-12 mine" aria-labelledby="t-mine" data-block="meus">
             <div class="tile-head"><h2 id="t-mine">Seus jogos</h2><span class="muted small" id="mineCounts"></span></div>
             <div id="minePlayingWrap" class="hidden"><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-gamepad-2"/></svg>Jogando agora</h3><ul class="morerow playing" id="minePlaying"></ul></div>
@@ -203,6 +210,11 @@
         <section class="tile" aria-labelledby="t-cmpsys">
           <div class="tile-head"><h2 id="t-cmpsys">Por plataforma</h2><span class="muted small">Clique numa plataforma para ver só os jogos dela</span></div>
           <div id="cmpSystems"></div>
+        </section>
+        <section class="tile" aria-labelledby="t-matrix">
+          <div class="tile-head"><h2 id="t-matrix">Mapa: plataforma × aparelho</h2><span class="muted small">Jogos únicos de cada plataforma em cada lugar. Clique num número para ver os jogos.</span></div>
+          <div class="xscroll" tabindex="0" role="region" aria-labelledby="t-matrix"><table class="table matrix" id="matrix"></table></div>
+          <button type="button" class="btn" id="matrixMore" hidden>Mostrar todas as plataformas</button>
         </section>
         <div>
           <div class="tile-head">

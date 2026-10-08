@@ -733,3 +733,42 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
   .ghero-text > .gactions > * { justify-content: center; width: 100%; }
   .ghero h1 { font-size: 24px; }
 }
+
+/* Entre os aparelhos: combinações de lugares (barras) e "pronto para instalar" por console. */
+.rel-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 1100px) { .rel-grid { grid-template-columns: minmax(0, 1fr); } }
+.rel-h { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 10px; }
+.combos { list-style: none; display: grid; gap: 4px; }
+.combo { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "devs tag n" "bar bar bar"; gap: 6px 12px; align-items: center;
+  padding: 10px 12px; border: 1px solid transparent; border-radius: 10px; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer;
+  transition: background .15s, border-color .15s, transform .15s; }
+.combo:hover { background: var(--hover); border-color: var(--line); }
+.combo:active { transform: scale(.99); }
+.combo-devs { grid-area: devs; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 550; min-width: 0; }
+.combo-devs span { margin-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.combo-devs .dot { margin: 0; }
+.combo-devs .dot + .dot { margin-left: -6px; box-shadow: 0 0 0 2px var(--surface); }
+.combo-tag { grid-area: tag; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
+.combo-tag.ok { color: var(--ok); }
+.combo-tag.warn { color: var(--danger); font-weight: 550; }
+.combo-n { grid-area: n; font-variant-numeric: tabular-nums; min-width: 4ch; text-align: right; }
+.combo .bar { grid-area: bar; margin: 0; }
+.installs { display: grid; gap: 12px; }
+.install { display: grid; gap: 6px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; border-left: 3px solid var(--accent, var(--series));
+  transition: border-color .15s, box-shadow .2s, transform .2s; }
+.install:hover { border-color: var(--control); border-left-color: var(--accent, var(--series)); box-shadow: 0 6px 20px rgb(0 0 0 / .12); transform: translateY(-1px); }
+.install header { display: flex; align-items: center; gap: 8px; }
+.install header .muted { margin-left: auto; }
+.install-n .kpi-value { font-size: 28px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.install .bar.over i { background: var(--danger); }
+.install .btn { justify-self: start; margin-top: 4px; }
+.combo:has(.combo-tag.warn) .bar i { background: var(--danger); }   /* sem backup: o risco salta aos olhos */
+
+/* Mapa plataforma × aparelho: sombra na cor da série, proporcional à fatia (o número sempre escrito). */
+.matrix th[data-dev] { white-space: nowrap; }
+.matrix th[data-dev] .dot { margin-right: 6px; }
+.matrix td.mcell { padding: 2px; text-align: center; background: color-mix(in srgb, var(--series) calc(var(--share) * .55), transparent); font-variant-numeric: tabular-nums; }
+.matrix td.mcell button { width: 100%; min-height: 36px; border: 0; background: none; color: var(--text); font: inherit; cursor: pointer; border-radius: 6px; }
+.matrix td.mcell button:hover { outline: 2px solid var(--control); }
+#matrixMore { margin-top: 12px; }
+.matrix tbody th { position: static; font-weight: 550; text-align: left; white-space: nowrap; }   /* só o cabeçalho de colunas fica fixo */

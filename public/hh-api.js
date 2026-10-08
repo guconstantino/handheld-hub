@@ -110,6 +110,24 @@
           if ((pres === "nobackup" && (drive || !cons)) || (pres === "driveonly" && cons)) hit.delete(k);
         }
       }
+      // Combinação exata de lugares ("s20fe+drive"): os jogos que estão nesses e só nesses.
+      const where = p.get("where");
+      if (where) {
+        const want = where.split("+").sort().join("+");
+        for (const k of [...hit]) {
+          const sig = [...new Set(byKey.get(k).map((x) => x.device_id))].sort().join("+");
+          if (sig !== want) hit.delete(k);
+        }
+      }
+      // "Pronto para instalar": não está no aparelho, mas é de uma plataforma que ele já roda.
+      const miss = p.get("missing");
+      if (miss) {
+        const runs = new Set(F.filter((f) => f.device_id === miss).map((f) => f.system));
+        for (const k of [...hit]) {
+          const c = byKey.get(k);
+          if (c.some((x) => x.device_id === miss) || !runs.has(c[0].system)) hit.delete(k);
+        }
+      }
       const list = [...hit].map((k) => {
         const copies = byKey.get(k);
         return { game_key: k, system: copies[0].system, title: copies.reduce((t, c) => (c.title < t ? c.title : t), copies[0].title), copies };
@@ -185,6 +203,48 @@
       const c = byKey.get(k);
       return c && { game_key: k, system: c[0].system, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), cover: D.covers[k] || null, copies: c };
     }).filter(Boolean),
+    // Relação entre os aparelhos: onde cada jogo está (combinações), o que dá para instalar em cada console
+    // (jogos de plataformas que ele já roda e que estão em outro lugar) e o mapa plataforma × aparelho.
+    "/api/insights": (X) => X.insights ||= (({ D, F, byKey }) => {
+      const devs = D.devices.map((d) => d.id);
+      const combos = new Map(), matrix = {}, runs = {}, onDev = {};
+      for (const d of devs) { runs[d] = new Set(); onDev[d] = new Set(); }
+      for (const f of F) { runs[f.device_id].add(f.system); onDev[f.device_id].add(f.game_key); }
+      for (const [k, c] of byKey) {
+        const where = devs.filter((d) => c.some((x) => x.device_id === d));
+        const sig = where.join("+");
+        combos.set(sig, (combos.get(sig) || 0) + 1);
+        const sys = c[0].system;
+        matrix[sys] ||= { system: sys, total: 0, by: {} };
+        matrix[sys].total++;
+        for (const d of where) matrix[sys].by[d] = (matrix[sys].by[d] || 0) + 1;
+      }
+      // Espaço: varrido (locais) ou declarado na ficha do aparelho.
+      const space = (d) => {
+        const ls = D.locations.filter((l) => l.device_id === d && l.total_bytes);
+        if (ls.length) return { total: ls.reduce((n, l) => n + l.total_bytes, 0), free: ls.reduce((n, l) => n + (l.free_bytes || 0), 0) };
+        const st = (D.devices.find((x) => x.id === d)?.specs?.storage || []).filter((x) => x.total);
+        return st.length ? { total: st.reduce((n, x) => n + x.total, 0), free: st.reduce((n, x) => n + (x.free || 0), 0) } : null;
+      };
+      const install = D.devices.filter((d) => d.kind === "console").map((d) => {
+        let n = 0, bytes = 0;
+        const bySys = {};
+        for (const [k, c] of byKey) {
+          if (onDev[d.id].has(k) || !runs[d.id].has(c[0].system)) continue;
+          n++;
+          bytes += Math.min(...c.map((x) => x.size || 0));        // a menor cópia: estimativa do que ocuparia
+          bySys[c[0].system] = (bySys[c[0].system] || 0) + 1;
+        }
+        const top = Object.entries(bySys).sort((a, b) => b[1] - a[1]).slice(0, 3);
+        return { device: d.id, games: n, bytes, space: space(d.id), platforms: runs[d.id].size, top, have: onDev[d.id].size };
+      });
+      return {
+        total: byKey.size,
+        combos: [...combos].map(([sig, n]) => ({ devices: sig ? sig.split("+") : [], n })).sort((a, b) => b.n - a.n),
+        install,
+        matrix: Object.values(matrix).sort((a, b) => b.total - a.total),
+      };
+    })(X),
     "/api/health": ({ F, byKey }) => {
       const all = [...byKey.values()].map((c) => ({ system: c[0].system, drive: c.some((f) => f.device_id === "drive"), console: c.some((f) => f.device_id !== "drive") }));
       return {
