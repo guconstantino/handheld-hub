@@ -67,10 +67,13 @@ def extracts(lang, titles):
         if not d:
             continue
         d = d["query"]
-        alias = {r["from"]: r["to"] for r in d.get("redirects", []) + d.get("normalized", [])}
+        norm_ = {r["from"]: r["to"] for r in d.get("normalized", [])}
+        redir = {r["from"]: r["to"] for r in d.get("redirects", [])}
         pages = {p["title"]: p.get("extract", "") for p in d["pages"].values()}
         for t in titles[i:i + 20]:
-            res[t] = pages.get(alias.get(alias.get(t, t), alias.get(t, t)), "")
+            t2 = norm_.get(t, t)
+            # Redirecionamento = o artigo é de outra coisa (ex.: o jogo vira a série). Fica vazio e cai no EN.
+            res[t] = "" if t2 in redir else pages.get(t2, "")
         time.sleep(0.3)
     return res
 
@@ -121,7 +124,8 @@ def main():
         # Artigo em PT quando existe; senão EN.
         url_title = lambda u: urllib.parse.unquote(u.rsplit("/wiki/", 1)[-1]).replace("_", " ")
         pt = extracts("pt", sorted({url_title(r["ptw"]) for r in found.values() if r.get("ptw")}))
-        en = extracts("en", sorted({url_title(r["enw"]) for r in found.values() if r.get("enw") and not r.get("ptw")}))
+        need_en = lambda r: r.get("enw") and not (r.get("ptw") and pt.get(url_title(r["ptw"])))
+        en = extracts("en", sorted({url_title(r["enw"]) for r in found.values() if need_en(r)}))
         out = {}
         for k, r in found.items():
             if r.get("ptw") and pt.get(url_title(r["ptw"])):
