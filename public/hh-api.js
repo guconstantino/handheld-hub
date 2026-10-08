@@ -71,8 +71,16 @@
       const list = [...hit].map((k) => {
         const copies = byKey.get(k);
         return { game_key: k, system: copies[0].system, title: copies.reduce((t, c) => (c.title < t ? c.title : t), copies[0].title), copies };
-      }).sort(byTitle);
-      const limit = Math.min(Number(p.get("limit")) || 100, 500), offset = Number(p.get("offset")) || 0;
+      });
+      // Ordenação: plataforma (padrão), nome, com capa primeiro, mais cópias.
+      const name = (a, b) => a.title.localeCompare(b.title, "pt-BR");
+      const SORT = {
+        nome: name,
+        capa: (a, b) => (!!D.covers[b.game_key] - !!D.covers[a.game_key]) || name(a, b),
+        copias: (a, b) => b.copies.length - a.copies.length || name(a, b),
+      };
+      list.sort(SORT[p.get("sort")] || byTitle);
+      const limit = Math.min(Number(p.get("limit")) || 100, 5000), offset = Number(p.get("offset")) || 0;
       return { total: list.length, games: list.slice(offset, offset + limit).map((g) => ({ ...g, cover: D.covers[g.game_key] || null })) };
     },
     // Uma linha por plataforma: jogos, capas, cópias por console, corrompidos e sem backup no Drive.

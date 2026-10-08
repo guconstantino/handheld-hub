@@ -36,6 +36,12 @@
   --series: #3987e5; --shadow: none; color-scheme: dark;
   --acc-switch: #e66767; --acc-s20fe: #3987e5; --acc-drive: #199e70; --acc-miyoo: #c98500;
 }
+/* Tema escuro: fundo com um brilho bem leve nas cores da marca (menos "chapado"). Só decoração. */
+:root { --glow: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --glow: radial-gradient(1100px 600px at 0% -10%, rgb(57 135 229 / .10), transparent 60%), radial-gradient(900px 500px at 100% 0%, rgb(25 158 112 / .06), transparent 60%); }
+}
+:root[data-theme="dark"] { --glow: radial-gradient(1100px 600px at 0% -10%, rgb(57 135 229 / .10), transparent 60%), radial-gradient(900px 500px at 100% 0%, rgb(25 158 112 / .06), transparent 60%); }
 [data-dev="switch"] { --accent: var(--acc-switch); }
 [data-dev="s20fe"]  { --accent: var(--acc-s20fe); }
 [data-dev="drive"]  { --accent: var(--acc-drive); }
@@ -47,7 +53,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-padding-top: 72px; } /* WCAG 2.4.11: foco não fica embaixo do topo fixo (celular) */
 body {
-  background: var(--bg); color: var(--text);
+  background: var(--glow), var(--bg); background-attachment: fixed; color: var(--text);
   font: 15px/1.55 "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-feature-settings: "ss01";
   -webkit-font-smoothing: antialiased;
@@ -340,8 +346,8 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .keys dt { white-space: nowrap; }
 .keys-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
 @media (max-width: 900px) {
-  .searchbtn { width: auto; flex: none; padding: 6px 8px; }
-  .searchbtn span, .searchbtn kbd { display: none; }
+  .searchbtn { width: auto; flex: 1; padding: 7px 10px; margin-left: 4px; }
+  .searchbtn kbd { display: none; }
   #helpBtn { display: none; }
   .palette { margin-top: 8px; max-height: 85vh; }
 }
@@ -388,6 +394,16 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
   .codes li { grid-template-columns: minmax(0, 1fr) auto; }
   .codes code { grid-column: 1 / -1; order: 3; }
 }
+
+/* ---------- faixa "Mais de" na página do jogo ---------- */
+.morerow { list-style: none; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(130px, 150px); gap: 12px;
+  overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+.morerow li { scroll-snap-align: start; }
+.morerow a { display: grid; gap: 6px; font-size: 13px; }
+.morerow img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; background: var(--hover); box-shadow: var(--shadow); transition: transform .2s; }
+.morerow span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { .morerow a:hover img { transform: translateY(-3px); } }
+.morerow a:hover span { color: var(--text); }
 
 /* ---------- saúde ---------- */
 .health-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
@@ -453,11 +469,15 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
 @media (max-width: 900px) {
   body { display: block; }
   .side { position: sticky; top: env(safe-area-inset-top, 0px); height: 56px; flex-direction: row; align-items: center; gap: 8px; padding: 0 12px; border-right: 0; border-bottom: 1px solid var(--line); }
-  .brand { display: none; }
-  .nav { flex-direction: row; flex: 1; overflow-x: auto; scrollbar-width: none; }
-  .nav::-webkit-scrollbar { display: none; }
-  .nav a { padding: 6px 10px; }
-  .nav a .ic { display: none; }
+  .brand { padding: 0; gap: 8px; font-size: 15px; }
+  /* Navegação na base da tela, ao alcance do polegar (com a área segura do iPhone). */
+  .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .nav a { flex-direction: column; justify-content: center; gap: 3px; padding: 6px 2px; font-size: 11px; border-radius: 10px; }
+  .nav a .ic { display: block; width: 20px; height: 20px; }
+  .nav a.active { background: var(--hover); }
+  body { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
   .side-foot { margin: 0; padding: 0; }
   .scan { display: none; }
   main { padding: 24px 16px 48px; }

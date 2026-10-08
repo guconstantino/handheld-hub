@@ -2,7 +2,15 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="manifest" href="manifest.webmanifest" crossorigin="use-credentials">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Handheld">
+  <meta name="theme-color" content="#f6f6f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0c0c0d" media="(prefers-color-scheme: dark)">
   <title>Handheld Hub</title>
   <meta name="description" content="Consoles portáteis do Gustavo (S20 FE, Miyoo Mini Plus, Switch OLED) e o acervo de jogos.">
   <link rel="preload" href="fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
@@ -104,6 +112,12 @@
             <option value="ok">OK</option>
             <option value="corrupted">Corrompido</option>
             <option value="unknown">Não verificado</option>
+          </select>
+          <select id="fSort" aria-label="Ordenar">
+            <option value="">Por plataforma</option>
+            <option value="nome">Nome (A–Z)</option>
+            <option value="capa">Com capa primeiro</option>
+            <option value="copias">Mais cópias</option>
           </select>
           <div class="seg" role="group" aria-label="Exibição">
             <button type="button" data-mode="grid" aria-pressed="false"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layout-grid"/></svg>Grade</button>

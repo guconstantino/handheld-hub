@@ -1,0 +1,16 @@
+{
+  "name": "Handheld Hub",
+  "short_name": "Handheld",
+  "description": "Consoles portáteis do Gustavo e o acervo de jogos.",
+  "lang": "pt-BR",
+  "start_url": "/#overview",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0c0c0d",
+  "theme_color": "#0c0c0d",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

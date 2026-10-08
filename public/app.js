@@ -423,6 +423,7 @@ async function loadGames(append = false) {
   const req = ++gamesReq;                 // descarta respostas antigas (busca digitada durante a carga)
   if (!append) state.offset = 0;
   const p = new URLSearchParams({ limit: 100, offset: state.offset });
+  if ($("#fSort").value) p.set("sort", $("#fSort").value);
   for (const [k, el] of [["q", "#q"], ["device", "#fDevice"], ["system", "#fSystem"], ["status", "#fStatus"]])
     if ($(el).value.trim()) p.set(k, $(el).value.trim());
   const r = await api(`/api/games?${p}`);
@@ -436,6 +437,8 @@ async function loadGames(append = false) {
 let t;
 $("#q").oninput = () => { clearTimeout(t); t = setTimeout(() => loadGames(), 250); };
 ["#fDevice", "#fSystem", "#fStatus"].forEach((s) => ($(s).onchange = () => loadGames()));
+$("#fSort").value = pref("hh_gsort", "");
+$("#fSort").onchange = () => { setPref("hh_gsort", $("#fSort").value); loadGames(); };
 $("#more").onclick = () => autoLoad($("#more"), () => loadGames(true));
 watchMore($("#more"));
 
@@ -496,21 +499,34 @@ async function renderPlatform(id) {
       <p class="chart-note">Um jogo pode estar em mais de um lugar.</p>
     </section>
     <div>
-      <h2>Jogos</h2>
+      <div class="tile-head"><h2>Jogos</h2><div id="gsortWrap"></div></div>
       <ul class="grid" id="platformGames"></ul>
       <button class="btn hidden" id="platformMore" style="margin-top:16px">Carregar mais</button>
     </div>`;
   if (window.HH_CHARTS) HH_CHARTS.stack($("#pstack"), devs.map((d) => ({ id: d, name: deviceOf(d).name, n: p.byDevice[d] })), { aria: "Jogos por lugar" });
-  let offset = 0;
-  const more = async () => {
-    const r = await api(`/api/games?system=${encodeURIComponent(p.system)}&limit=60&offset=${offset}`);
-    $("#platformGames").insertAdjacentHTML("beforeend", gridHtml(r.games));
-    offset += r.games.length;
-    $("#platformMore").classList.toggle("hidden", offset >= r.total);
+  // Todos os jogos da plataforma de uma vez (ordenados aqui, com o ano da ficha); a grade mostra 60 por vez.
+  const [all, info] = await Promise.all([api(`/api/games?system=${encodeURIComponent(p.system)}&limit=5000`), getData("info", p.system)]);
+  const keyOf = (g) => g.game_key.split("|").slice(1).join("|");
+  const name = (a, b) => a.title.localeCompare(b.title, "pt-BR");
+  const PSORT = {
+    nome: name,
+    ano: (a, b) => (info[keyOf(a)]?.ano ?? 9999) - (info[keyOf(b)]?.ano ?? 9999) || name(a, b),
+    capa: (a, b) => (!!b.cover - !!a.cover) || name(a, b),
   };
+  $("#gsortWrap").innerHTML = `<label class="sort"><span>Ordenar</span><select id="gpSort">
+    <option value="nome">Nome (A–Z)</option><option value="ano">Lançamento (mais antigo)</option><option value="capa">Com capa primeiro</option></select></label>`;
+  $("#gpSort").value = pref("hh_gpsort", "nome");
+  let shown = [], offset = 0;
+  const more = async () => {
+    $("#platformGames").insertAdjacentHTML("beforeend", gridHtml(shown.slice(offset, offset + 60)));
+    offset += 60;
+    $("#platformMore").classList.toggle("hidden", offset >= shown.length);
+  };
+  const resort = () => { shown = [...all.games].sort(PSORT[$("#gpSort").value] || name); offset = 0; $("#platformGames").innerHTML = ""; more(); };
+  $("#gpSort").onchange = () => { setPref("hh_gpsort", $("#gpSort").value); resort(); };
   $("#platformMore").onclick = () => autoLoad($("#platformMore"), more);
   watchMore($("#platformMore"));
-  await more();
+  resort();
 }
 
 // ---------- página do jogo (dados: libretro-database, um arquivo por plataforma) ----------
@@ -562,7 +578,16 @@ async function renderGame(key) {
       </section>
     </div>
     <section class="tile" id="gcodes" aria-labelledby="t-codes"><h2 id="t-codes">Códigos</h2><p class="muted small">Carregando…</p></section>
+    <section aria-labelledby="t-more"><div class="tile-head"><h2 id="t-more">Mais de ${esc(sysName(g.system))}</h2>
+      <a class="small tlink" href="#platform-${esc(g.system)}">Ver todos</a></div><ul class="morerow" id="gmore"></ul></section>
     <p class="chart-note">Descrição, história e curiosidades chegam na próxima fase (ROADMAP).</p>`;
+  // Mais da plataforma: 14 outros jogos com capa, sorteados.
+  api(`/api/games?system=${encodeURIComponent(g.system)}&sort=capa&limit=400`).then((r) => {
+    const pool = r.games.filter((x) => x.cover && x.game_key !== g.game_key);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    $("#gmore").innerHTML = pool.slice(0, 14).map((x) => `<li><a href="${gameHref(x)}"><img src="covers/${esc(x.cover)}" alt="" loading="lazy" decoding="async"><span>${esc(x.title)}</span></a></li>`).join("")
+      || `<li class="muted small">Sem outros jogos com capa nesta plataforma.</li>`;
+  });
   const cheats = (await getData("cheats", g.system))[short] || [];
   const total = cheats.reduce((n, [, list]) => n + list.length, 0);
   $("#gcodes").innerHTML = `<h2 id="t-codes">Códigos · ${fmtN(total)}</h2>` + (cheats.length
