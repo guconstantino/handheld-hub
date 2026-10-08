@@ -24,6 +24,10 @@ QID = {
     "sg1000": "Q1136956", "snes": "Q183259", "sufami": "Q7200192", "supergrafx": "Q202375", "switch": "Q19610114",
     "vectrex": "Q767631", "virtualboy": "Q164651", "wii": "Q8079", "wswanc": "Q1048035",
 }
+# Arcade: plataforma "arcade video game" (Q192851). O arquivo tem o nome curto da ROM; o casamento usa
+# o título do DAT do libretro (covers.rom_titles), e a consulta é uma só para todos estes sistemas.
+ARCADE = ["arcade", "mame", "fbneo", "neogeo", "cps1", "cps2", "cps3", "lightgun", "model2", "model3", "naomi", "atomiswave"]
+QID.update({s: "Q192851" for s in ARCADE})
 
 
 def get(url, tries=5):
@@ -82,6 +86,9 @@ def main():
     keys = {}
     for g in games:
         keys.setdefault(g["system"], set()).add(g["game_key"].split("|", 1)[1])
+    from covers import rom_titles
+    titles = rom_titles()
+    rows_cache = {}
     os.makedirs(os.path.join(ROOT, "public", "data", "about"), exist_ok=True)
     total = 0
     for s in systems:
@@ -92,18 +99,25 @@ def main():
         if "--force" not in sys.argv and os.path.exists(path) and json.load(open(path)):
             print(f"{s:14s} já existe, pulando", flush=True)
             continue
-        rows = wikidata_games(QID[s])
+        cached = QID[s] in rows_cache
+        rows = rows_cache[QID[s]] if cached else wikidata_games(QID[s])
         if rows is None:
             print(f"{s:14s} Wikidata não respondeu; arquivo mantido", flush=True)
             continue
+        rows_cache[QID[s]] = rows
+        # Nome casável → chaves do sistema. Arcade: pelo título do DAT ("kof98" → "the king of fighters 98").
+        by_name = {}
+        for k in want:
+            name = norm(titles[k]) if s in ARCADE and k in titles else k
+            by_name.setdefault(name, []).append(k)
         found = {}
-        art = lambda u: u and re.sub(r"\s*\((?:video ?game|jogo eletrônico|videojogo|jogo)[^)]*\)$", "", urllib.parse.unquote(u.rsplit("/wiki/", 1)[-1]).replace("_", " "), flags=re.I)
+        art = lambda u: u and re.sub(r"\s*\((?:video ?game|arcade game|jogo eletrônico|videojogo|jogo)[^)]*\)$", "", urllib.parse.unquote(u.rsplit("/wiki/", 1)[-1]).replace("_", " "), flags=re.I)
         for r in rows:
             for label in (art(r.get("enw")), art(r.get("ptw"))):
-                k = label and norm(label)
-                if k in want and k not in found:
-                    found[k] = r
-        time.sleep(60)                                   # um minuto entre plataformas: gentil com o Wikidata
+                for k in by_name.get(label and norm(label), []):
+                    found.setdefault(k, r)
+        if not cached:
+            time.sleep(60)                               # um minuto entre plataformas: gentil com o Wikidata
         # Artigo em PT quando existe; senão EN.
         url_title = lambda u: urllib.parse.unquote(u.rsplit("/wiki/", 1)[-1]).replace("_", " ")
         pt = extracts("pt", sorted({url_title(r["ptw"]) for r in found.values() if r.get("ptw")}))
