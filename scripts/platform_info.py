@@ -50,8 +50,9 @@ def intro(lang, titles):
         # introdução de outra coisa; esses ficam sem texto. Redirecionamento de grafia ("Neo-Geo" → "Neo Geo") vale.
         bad = {r["from"] for r in d.get("redirects", []) if r.get("tofragment") or re.match(r"(List of|Lista de) ", r["to"])}
         pages = {p["title"]: p for p in d["pages"].values() if "missing" not in p}
+        norm_ = {r["from"]: r["to"] for r in d.get("normalized", [])}
         for t in titles[i:i + 20]:
-            if alias.get(t, t) in bad:
+            if norm_.get(t, t) in bad:                   # o "from" do redirecionamento é o título já normalizado
                 continue
             p = pages.get(alias.get(alias.get(t, t), alias.get(t, t)))
             if p and p.get("extract"):
