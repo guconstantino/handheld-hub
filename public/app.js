@@ -337,7 +337,7 @@ async function loadSummary() {
 
 // ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
 // Ordem padrão: primeiro o que o acervo tem (resposta da tela), depois o pessoal (listas, conquistas).
-const BLOCKS = [["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
+const BLOCKS = [["continuar", "Continuar jogando"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
   ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
 const loadLayout = () => {
   let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
@@ -895,6 +895,35 @@ async function loadRA() {
   }
   drawRA();
   loadRACatalog();
+}
+// "Continuar jogando" (como a tela inicial dos consoles): o último jogo do RA ligado ao acervo; sem RA,
+// o primeiro da lista "Jogando agora".
+async function drawContinue() {
+  const el = $("#contBlock");
+  const ra = RA.data?.recent?.find((g) => g.key);
+  const key = ra?.key || [...LISTS.playing][0];
+  if (!key) return;
+  const g = await api(`/api/game?key=${encodeURIComponent(key)}`).catch(() => null);
+  if (!g?.game_key) return;
+  const rel = (s) => {
+    const d = (Date.now() - new Date(s.replace(" ", "T") + "Z")) / 864e5;
+    const f = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
+    return d < 1 ? "hoje" : d < 30 ? f.format(-Math.round(d), "day") : f.format(-Math.round(d / 30), "month");
+  };
+  const img = g.cover ? `covers/${esc(g.cover)}` : platImg(g.system);
+  const pct = ra?.total ? (ra.earned / ra.total) * 100 : null;
+  el.innerHTML = `<img class="cont-bg" src="${img}" alt="">
+    <a class="cont-in" href="${gameHref(g)}">
+      <span class="cont-cover">${g.cover ? `<img src="covers/${esc(g.cover)}" alt="">` : `<img class="gplat" src="${platImg(g.system)}" alt="">`}</span>
+      <span class="cont-text">
+        <span class="cont-eyebrow">${icon("gamepad-2", "sm")}${ra ? `Jogado por último · ${rel(ra.last)}` : "Jogando agora"}</span>
+        <b class="cont-title">${esc(g.title.replace(/\s*\([^)]*\)/g, ""))}</b>
+        <span class="cont-sub">${esc(sysName(g.system))}${ra?.total ? ` · ${fmtN(ra.earned)} de ${fmtN(ra.total)} conquistas` : ""}</span>
+        ${pct !== null ? `<span class="bar"><i style="width:${pct}%"></i></span>` : ""}
+      </span>
+      <span class="cont-go" aria-hidden="true">${icon("chevron-right")}</span>
+    </a>`;
+  el.hidden = false;
 }
 // Quais jogos do catálogo têm conquistas no RA (selo na grade e lista na página do jogo, mesmo sem ter jogado).
 async function loadRACatalog() {
@@ -1547,6 +1576,7 @@ $("#themeList").onclick = (e) => {
     loadMine();
     loadRelation();
     RA.ready = loadRA();
+    RA.ready.then(drawContinue);
     loadHealthTiles();
     route();
     $("#boot").remove();

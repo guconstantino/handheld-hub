@@ -817,3 +817,20 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
 #settingsBtn { display: inline-grid; place-items: center; }
 .srow > * { order: 0 !important; }                      /* a ordem dos filtros de Jogos não vale aqui */
 .srow { flex-wrap: wrap; }
+
+/* Continuar jogando: faixa com a capa desfocada ao fundo (estilo tela inicial de console). */
+.cont { position: relative; overflow: hidden; padding: 0; isolation: isolate; background: #111; color: #fff; border: 0; }
+.cont-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(36px) saturate(1.4) brightness(.5); transform: scale(1.25); z-index: -1; }
+.cont-in { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: clamp(14px, 2.5vw, 28px); padding: clamp(14px, 2.5vw, 24px); color: inherit; text-decoration: none; }
+.cont-cover { width: clamp(72px, 9vw, 110px); aspect-ratio: 3 / 4; border-radius: 10px; overflow: hidden; background: #000; box-shadow: 0 12px 30px rgb(0 0 0 / .45); }
+.cont-cover img { width: 100%; height: 100%; object-fit: cover; }
+.cont-text { display: grid; gap: 6px; min-width: 0; }
+.cont-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #e4e4ea; }
+.cont-title { font-size: clamp(20px, 2.6vw, 30px); line-height: 1.15; letter-spacing: -0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cont-sub { font-size: 14px; color: #e4e4ea; }
+.cont .bar { max-width: 320px; background: rgb(255 255 255 / .2); }
+.cont .bar i { background: #4ade80; }
+.cont-go { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: rgb(255 255 255 / .14); transition: background .2s, transform .2s; }
+.cont-in:hover .cont-go { background: rgb(255 255 255 / .26); transform: translateX(3px); }
+.cont-in:focus-visible { outline: 2px solid #fff; outline-offset: -4px; border-radius: 16px; }
+@media (prefers-reduced-motion: no-preference) { .cont-in:hover .cont-cover { transform: translateY(-2px) scale(1.02); } .cont-cover { transition: transform .3s cubic-bezier(.2, .7, .2, 1); } }
