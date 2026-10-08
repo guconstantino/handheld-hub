@@ -240,6 +240,7 @@
       });
       return {
         total: byKey.size,
+        runs: Object.fromEntries(devs.map((d) => [d, [...runs[d]]])),
         combos: [...combos].map(([sig, n]) => ({ devices: sig ? sig.split("+") : [], n })).sort((a, b) => b.n - a.n),
         install,
         matrix: Object.values(matrix).sort((a, b) => b.total - a.total),

@@ -834,3 +834,5 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
 .cont-in:hover .cont-go { background: rgb(255 255 255 / .26); transform: translateX(3px); }
 .cont-in:focus-visible { outline: 2px solid #fff; outline-offset: -4px; border-radius: 16px; }
 @media (prefers-reduced-motion: no-preference) { .cont-in:hover .cont-cover { transform: translateY(-2px) scale(1.02); } .cont-cover { transition: transform .3s cubic-bezier(.2, .7, .2, 1); } }
+.gwhere { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; padding: 10px 12px; margin-bottom: 12px; border-radius: 10px; background: var(--hover); }
+.gwhere b { font-weight: 600; }

@@ -1069,6 +1069,7 @@ async function renderGame(key) {
           const where = good ? copyLabel(deviceOf(good.device_id), good.location_id) : null;
           return `<p class="gwarn">${icon("triangle-alert", "sm")}<span>Há cópia corrompida${where ? `. Cópia boa em <b>${esc(where)}</b>: copie de lá.` : g.copies.some((c) => c.device_id === "drive") ? ". A cópia do Drive não foi verificada." : ". Baixe de novo da fonte."}</span></p>`;
         })() : ""}
+        <p class="gwhere hidden" id="gWhere"></p>
         <div class="xscroll" tabindex="0" role="region" aria-label="Cópias deste jogo"><table class="table copies-table"><caption class="sr-only">Cópias deste jogo</caption>
           <thead><tr><th scope="col">Lugar</th><th scope="col">Região</th><th scope="col">Formato</th><th scope="col">Tamanho</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Abrir</span></th></tr></thead>
           <tbody>${g.copies.map((c) => `<tr ${dev(c.device_id)}>
@@ -1086,6 +1087,15 @@ async function renderGame(key) {
     <section aria-labelledby="t-more"><div class="tile-head"><h2 id="t-more">Mais de ${esc(sysName(g.system))}</h2>
       <a class="small tlink" href="#platform-${esc(g.system)}">Ver todos</a></div><ul class="morerow" id="gmore"></ul></section>
 `;
+  // Onde mais roda: consoles que já têm jogos desta plataforma, mas não este jogo.
+  api("/api/insights").then((x) => {
+    const has = new Set(g.copies.map((c) => c.device_id));
+    const more = state.devices.filter((d) => d.kind === "console" && !has.has(d.id) && x.runs[d.id]?.includes(g.system));
+    if (!more.length || !$("#gWhere")) return;
+    const from = has.has("drive") ? "do Drive" : `do ${shortName(deviceOf([...has][0]))}`;
+    $("#gWhere").innerHTML = `${icon("info", "sm")}<span>Também roda no ${more.map((d) => `<b ${dev(d.id)}>${esc(d.name)}</b>`).join(" e no ")}, que já tem jogos de ${esc(sysName(g.system))}. Dá para copiar ${from}.</span>`;
+    $("#gWhere").classList.remove("hidden");
+  });
   // Marcar numa lista: ícone dá um "pop" e um aviso confirma, com Desfazer (como nos consoles).
   const LIST_NAME = { playing: "Jogando agora", fav: "Favoritos", want: "Quero jogar", done: "Zerei" };
   const flip = (b) => {
