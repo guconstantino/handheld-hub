@@ -801,8 +801,9 @@ const normTitle = (t) => t.replace(/\.\d{2}$/, "").replace(/[\s_-]*decrypted\b/i
 // Chave (ou apelido) → chave do grupo, e também a grafia sem espaços ("megaman zx" acha "mega man zx").
 function keyIndex(index) {
   const m = new Map();
-  for (const g of index) for (const k of g.a || [g.k]) { m.set(k, g.k); m.set(k.replace(/ /g, ""), g.k); }
-  return { get: (k) => m.get(k) || m.get(k.replace(/ /g, "")) };
+  const loose = (k) => k.replace(/\|the /, "|").replace(/ /g, "");          // mesma regra do agrupamento (hh-api)
+  for (const g of index) for (const k of g.a || [g.k]) { m.set(k, g.k); m.set(loose(k), g.k); }
+  return { get: (k) => m.get(k) || m.get(loose(k)) };
 }
 const RA = { data: null, keyOf: new Map(), has: new Map() };   // has: jogo do catálogo → nº de conquistas no RA
 async function loadRA() {

@@ -18,14 +18,14 @@
     }));
     const byKey = new Map();
     for (const f of F) (byKey.get(f.game_key) || byKey.set(f.game_key, []).get(f.game_key)).push(f);
-    // Uma página por jogo: grafias que só diferem por espaço ("Timecop"/"Time Cop", "Megaman"/"Mega Man")
+    // Uma página por jogo: grafias que só diferem por espaço ou "The" inicial ("Timecop"/"Time Cop", "Megaman"/"Mega Man")
     // viram um grupo. A chave com mais cópias (ou com capa) representa; as outras viram apelidos (favoritos,
     // links e vínculos antigos continuam valendo). Algarismos romanos ficam de fora ("I II" ≠ "III").
     const groups = new Map();
     for (const k of byKey.keys()) {
       const [sys, rest] = [k.slice(0, k.indexOf("|")), k.slice(k.indexOf("|") + 1)];
       if (/(^| )[ivx]{1,4}( |$)/.test(rest)) continue;
-      const gk = sys + "|" + rest.replace(/ /g, "");
+      const gk = sys + "|" + rest.replace(/^the /, "").replace(/ /g, "");   // "The Punisher" = "Punisher"
       (groups.get(gk) || groups.set(gk, []).get(gk)).push(k);
     }
     const alias = {}, members = {};
