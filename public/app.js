@@ -731,7 +731,7 @@ async function renderPlatform(id) {
       ${info.text?.length ? `<section class="tile pabout-text" aria-labelledby="t-pabout"><h2 id="t-pabout">Sobre ${esc(sysName(p.system))}</h2>
         ${info.lang === "en" ? `<p class="muted small">Sem artigo em português; resumo da Wikipédia em inglês.</p>` : ""}
         <div class="prose">${info.text.map((t, i) => `<p ${i ? `class="more-p"` : ""}>${esc(t)}</p>`).join("")}</div>
-        ${info.text.length > 1 ? `<button type="button" class="linkbtn" id="pmore" aria-expanded="false">Ler mais</button>` : ""}
+        ${info.text.length > 1 || info.text[0].length > 280 ? `<button type="button" class="linkbtn" id="pmore" aria-expanded="false">Ler mais</button>` : ""}
         <p class="muted small credit">Texto: <a class="tlink" href="${esc(info.url)}" target="_blank" rel="noopener">Wikipédia</a> (CC BY-SA 4.0).</p></section>` : ""}
       ${specs.length ? `<section class="tile" aria-labelledby="t-pspecs"><h2 id="t-pspecs">Ficha técnica</h2>
         <dl class="kv">${specs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></section>` : ""}`;
@@ -1034,7 +1034,7 @@ async function renderGame(key) {
     $("#gabout").innerHTML = `<h2 id="t-gabout">Sobre o jogo</h2>
       ${ab.lang === "en" ? `<p class="muted small">Sem artigo em português; resumo da Wikipédia em inglês.</p>` : ""}
       <div class="prose">${ab.text.map((t, i) => `<p ${i ? `class="more-p"` : ""}>${esc(t)}</p>`).join("")}</div>
-      ${ab.text.length > 1 ? `<button type="button" class="linkbtn" id="gmore2" aria-expanded="false">Ler mais</button>` : ""}
+      ${ab.text.length > 1 || ab.text[0].length > 280 ? `<button type="button" class="linkbtn" id="gmore2" aria-expanded="false">Ler mais</button>` : ""}
       <p class="muted small credit">Texto: <a class="tlink" href="${esc(ab.url)}" target="_blank" rel="noopener">Wikipédia</a> (CC BY-SA 4.0).</p>`;
     $("#gmore2")?.addEventListener("click", (e) => {
       const open = e.target.getAttribute("aria-expanded") !== "true";
