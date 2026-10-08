@@ -264,16 +264,24 @@ const copyChip = (c) => {
   return `<span class="${bad ? "bad" : ""}" ${dev(c.device_id)} title="${fmtB(c.size)}"><i class="dot"></i>${esc(copyLabel(d, c.location_id))}${bad ? " · corrompido" : ""}</span>`;
 };
 
-// Cartões da grade de jogos (tela Jogos e página de plataforma).
-const gridHtml = (games) => games.length ? games.map((g) => `<li class="gcard">
-      <div class="gcover">${coverImg(g) || `<div class="ph">${icon("gamepad-2")}<span>${esc(sysName(g.system))}</span></div>`}</div>
-      <div class="gbody">
+// Cartões da grade de jogos (tela Jogos e página de plataforma): a capa ocupa o cartão inteiro,
+// nome e sistema ficam sobre ela. Sem capa: a arte da plataforma (lado do logo) no fundo.
+const gridHtml = (games) => games.length ? games.map((g) => {
+  const bad = g.copies.some((c) => c.status === "corrupted");
+  const art = g.cover
+    ? `<img class="gblur" src="covers/${esc(g.cover)}" alt="" loading="lazy" decoding="async"><img class="gimg" src="covers/${esc(g.cover)}" alt="" loading="lazy" decoding="async">`
+    : `<img class="gplat" src="platforms/${esc(g.system)}.webp" alt="" loading="lazy" decoding="async">`;
+  return `<li class="gcard ${g.cover ? "" : "nocover"}">
+      <div class="gart">${art}</div>
+      ${bad ? `<span class="gbad">${icon("triangle-alert", "sm")}Corrompido</span>` : ""}
+      <div class="gover">
         <span class="gtitle">${esc(g.title)}</span>
-        <span class="gmeta"><span class="sys">${esc(g.system)}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span>
-          <span class="sr-only">Onde está: ${g.copies.map((c) => esc(copyLabel(deviceOf(c.device_id), c.location_id))).join(", ")}</span>
-          ${g.copies.some((c) => c.status === "corrupted") ? `<span class="bad">· corrompido</span>` : ""}</span>
-        ${driveBtn(g)}
-      </div></li>`).join("") : `<li class="muted">Nada encontrado.</li>`;
+        <span class="gmeta"><span>${esc(sysName(g.system))}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span></span>
+        <span class="sr-only">Onde está: ${g.copies.map((c) => esc(copyLabel(deviceOf(c.device_id), c.location_id))).join(", ")}</span>
+      </div>
+      <div class="gdrive">${driveBtn(g)}</div>
+    </li>`;
+}).join("") : `<li class="muted">Nada encontrado.</li>`;
 
 // Exibição em grade ou lista (fica salva neste navegador).
 let viewMode = "grid";
