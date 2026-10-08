@@ -27,7 +27,7 @@
     mount(el, () => {
       const max = Math.max(...rows.map(value), 1);
       return P.plot(base(el, {
-        ariaLabel: aria, height: rows.length * 26 + 8, marginLeft: 150, marginRight: 64, marginTop: 4, marginBottom: 4,
+        ariaLabel: aria, height: rows.length * 26 + 8, marginLeft: el.clientWidth < 480 ? 118 : 150, marginRight: 56, marginTop: 4, marginBottom: 4,
         x: { axis: null, domain: [0, max] }, y: { label: null, domain: rows.map(label), tickSize: 0 },
         marks: [
           P.barX(rows, { y: label, x: value, fill: css(color), rx: 4, insetTop: 6, insetBottom: 6,
@@ -41,18 +41,21 @@
 
   // Porcentagem por linha: trilho cinza + barra preenchida + "91% · 3.048/3.339".
   function percent(el, rows, { label, done, total, href, aria }) {
-    mount(el, () => P.plot(base(el, {
-      ariaLabel: aria, height: rows.length * 26 + 8, marginLeft: 150, marginRight: 150, marginTop: 4, marginBottom: 4,
+    mount(el, () => { const narrow = el.clientWidth < 480; return P.plot(base(el, {
+      ariaLabel: aria, height: rows.length * 26 + 8, marginLeft: narrow ? 118 : 150, marginRight: narrow ? 52 : 170, marginTop: 4, marginBottom: 4,
       x: { axis: null, domain: [0, 1] }, y: { label: null, domain: rows.map(label), tickSize: 0 },
       marks: [
         P.barX(rows, { y: label, x: 1, fill: css("--line"), rx: 4, insetTop: 7, insetBottom: 7 }),
         P.barX(rows, { y: label, x: (d) => done(d) / (total(d) || 1), fill: css("--series"), rx: 4, insetTop: 7, insetBottom: 7,
           href: href ? (d) => href(d) : undefined, title: (d) => `${label(d)}: ${nf(done(d))} de ${nf(total(d))}` }),
-        P.text(rows, { y: label, x: 1, dx: 10, textAnchor: "start", fill: css("--muted"), fontVariant: "tabular-nums",
-          text: (d) => `${Math.round((done(d) / (total(d) || 1)) * 100)}% · ${nf(done(d))}/${nf(total(d))}` }),
+        // % em destaque (alinhada) e a contagem em cinza ao lado: lê-se a % de relance.
+        P.text(rows, { y: label, x: 1, dx: 46, textAnchor: "end", fill: css("--text"), fontWeight: 600, fontVariant: "tabular-nums",
+          text: (d) => `${Math.round((done(d) / (total(d) || 1)) * 100)}%` }),
+        narrow ? null : P.text(rows, { y: label, x: 1, dx: 56, textAnchor: "start", fill: css("--muted"), fontVariant: "tabular-nums",
+          text: (d) => `${nf(done(d))} de ${nf(total(d))}` }),
         P.axisY({ tickSize: 0, fill: css("--text"), fontSize: 13 }),
       ],
-    })));
+    })); });
   }
 
   // Uma barra empilhada por console, na ordem fixa (a cor segue o console). A legenda com números fica no HTML.
