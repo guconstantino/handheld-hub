@@ -38,7 +38,7 @@ button, input, select { font: inherit; color: inherit; }
 .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
 
 /* ---------- topo ---------- */
-.top { border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 5; }
+.top { border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 5; }
 .top .wrap { display: flex; align-items: center; gap: 28px; height: 56px; }
 .brand { font-weight: 650; letter-spacing: -0.01em; }
 .nav { display: flex; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }

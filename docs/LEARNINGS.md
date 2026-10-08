@@ -4,6 +4,8 @@ Pegadinhas, comandos que funcionaram ou falharam, quirks de plataforma. Mais rec
 
 ---
 
+- **2026-10-07 — Versão para o celular sem produção:** `npm run build:static` gera `dist/handheld-hub.html` (arquivo único, dados do D1 local embutidos, ~2 MB) e publica como página privada no claude.ai: https://claude.ai/artifact/Pj1T3dTi6S5RnkCKWhn7wo. O visualizador só repassa âncoras simples, por isso as rotas aceitam `#device-<id>` além de `#device/<id>`. Atualizar = rodar o build e republicar o mesmo arquivo.
+
 - **2026-10-07 — Ícones nítidos:** Lucide é desenhado em grade 24 com traço 2. Para o traço cair em 1,5 px CSS (3 px exatos no Retina) em qualquer tamanho: `stroke-width = 1.5 × 24 / tamanho` (20 px → 1,8; 16 px → 2,25). Sprite em `public/icons.svg`, gerado por `scripts/build_icons.py` a partir de `assets/icons/`.
 - **2026-10-07 — Logos Nintendo:** removidos do Simple Icons atual; `nintendoswitch.svg` veio da `simple-icons@6.0.0`. Wordmark da Samsung ocupa só uma faixa do quadro 24×24: o sprite recorta o `viewBox` (`0 9.6 24 4.8`).
 

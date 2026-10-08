@@ -7,7 +7,8 @@
     "db:migrate": "wrangler d1 migrations apply gamehub --local",
     "scan:s20": "python3 scanner/scan.py s20-sd s20-int",
     "scan:drive": "python3 scanner/scan.py drive-plataform",
-    "devices": "python3 scanner/scan.py --devices"
+    "devices": "python3 scanner/scan.py --devices",
+    "build:static": "python3 scripts/build_static.py"
   },
   "devDependencies": {
     "wrangler": "4.135.0"

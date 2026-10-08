@@ -1,7 +1,8 @@
 // Handheld Hub: lê a API do Worker e monta as telas (visão geral, console, jogos, saúde).
 
 const $ = (s) => document.querySelector(s);
-const api = (path) => fetch(path).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${path}: ${r.status}`))));
+// No snapshot estático (scripts/build_static.py), window.HH_API responde no lugar do Worker.
+const api = (path) => window.HH_API ? window.HH_API(path) : fetch(path).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${path}: ${r.status}`))));
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmtN = (n) => Number(n || 0).toLocaleString("pt-BR");
 const fmtB = (b) => {
@@ -52,7 +53,7 @@ $("#themeToggle").onclick = () => {
 
 // ---------- rotas: #overview, #device/<id>, #games, #health ----------
 function route() {
-  const [view, arg] = (location.hash.slice(1) || "overview").split("/");
+  const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
   const target = ["overview", "device", "games", "health"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.view === (target === "device" ? "overview" : target)));
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== `view-${target}`));
@@ -92,7 +93,7 @@ async function loadSummary() {
   $("#devices").innerHTML = s.devices.map((d) => {
     const facts = Object.entries(d.specs.facts || {}).slice(0, 3);
     const bad = s.locations.filter((l) => l.device_id === d.id).reduce((n, l) => n + (l.corrupted || 0), 0);
-    return `<a class="device" href="#device/${esc(d.id)}" style="--accent:${esc(d.accent)}">
+    return `<a class="device" href="#device-${esc(d.id)}" style="--accent:${esc(d.accent)}">
       <div class="device-name"><span class="dot"></span>${esc(d.name)}<span style="margin-left:auto;display:flex">${logo(d)}</span></div>
       ${bad ? `<span class="badge bad" style="align-self:flex-start">${fmtN(bad)} corrompidos</span>` : ""}
       <p>${esc(d.notes || "")}</p>
