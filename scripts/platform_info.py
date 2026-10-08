@@ -3,9 +3,10 @@
 mais a ficha técnica curada em scanner/platforms.json. Gera public/data/platforms.json.
 
 Texto da Wikipédia: CC BY-SA 4.0 — a página mostra o crédito e o link do artigo.
-  python3 scripts/platform_info.py
+  python3 scripts/platform_info.py            # textos (rede) + fichas
+  python3 scripts/platform_info.py --specs    # só as fichas, sem rede
 """
-import json, os, re, urllib.parse, urllib.request
+import json, os, re, sys, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UA = "HandheldHub/1.0 (uso pessoal; catálogo privado)"
@@ -45,8 +46,13 @@ def intro(lang, titles):
         req = urllib.request.Request(f"https://{lang}.wikipedia.org/w/api.php?{q}", headers={"User-Agent": UA})
         d = json.load(urllib.request.urlopen(req, timeout=60))["query"]
         alias = {r["from"]: r["to"] for r in d.get("redirects", []) + d.get("normalized", [])}
+        # Redirecionamento para uma seção ou lista ("Sega Model 2" → "List of Sega arcade system boards#…") traz a
+        # introdução de outra coisa; esses ficam sem texto. Redirecionamento de grafia ("Neo-Geo" → "Neo Geo") vale.
+        bad = {r["from"] for r in d.get("redirects", []) if r.get("tofragment") or re.match(r"(List of|Lista de) ", r["to"])}
         pages = {p["title"]: p for p in d["pages"].values() if "missing" not in p}
         for t in titles[i:i + 20]:
+            if alias.get(t, t) in bad:
+                continue
             p = pages.get(alias.get(alias.get(t, t), alias.get(t, t)))
             if p and p.get("extract"):
                 out[t] = (p["extract"], p["fullurl"])
@@ -56,6 +62,17 @@ def intro(lang, titles):
 def clean(text, max_par=3):
     pars = [re.sub(r"\s+", " ", p).strip() for p in text.split("\n") if len(p.strip()) > 40]
     return pars[:max_par]
+
+
+def specs_only():
+    """Só mescla a ficha curada no arquivo já gerado (sem rede), inclusive plataformas sem artigo."""
+    path = os.path.join(ROOT, "public", "data", "platforms.json")
+    out = json.load(open(path)) if os.path.exists(path) else {}
+    for key, spec in json.load(open(os.path.join(ROOT, "scanner", "platforms.json"))).items():
+        if not key.startswith("_"):
+            out.setdefault(key, {})["specs"] = spec
+    json.dump(out, open(path, "w"), ensure_ascii=False, separators=(",", ":"))
+    print(f"{path}: {sum(1 for r in out.values() if r.get('specs'))} fichas")
 
 
 def main():
@@ -76,4 +93,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    specs_only() if "--specs" in sys.argv else main()
