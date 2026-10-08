@@ -1,25 +1,25 @@
 [
  {
   "date": "2026-10-08",
-  "games": 15733,
-  "files": 35675,
+  "games": 15716,
+  "files": 38127,
   "covers": 15224,
-  "corrupted": 284,
+  "corrupted": 194,
   "devices": {
    "drive": {
-    "games": 13195,
+    "games": 15625,
     "total": null,
     "free": null
    },
    "miyoo": {
     "games": 6493,
-    "total": 62277025792,
-    "free": 21474836480
+    "total": 62535499776,
+    "free": 21692088320
    },
    "s20fe": {
     "games": 10482,
-    "total": null,
-    "free": null
+    "total": 177608814592,
+    "free": 29464899584
    },
    "switch": {
     "games": 8,
