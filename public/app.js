@@ -300,6 +300,23 @@ document.querySelectorAll(".seg button").forEach((b) => (b.onclick = () => {
   renderGames();
 }));
 
+// Rolagem infinita: quando o botão "Carregar mais" chega perto da tela, ele se aciona sozinho.
+// O botão continua visível e focável (teclado e leitor de tela).
+let busy = false;
+const autoMore = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (e.isIntersecting && !e.target.classList.contains("hidden") && !busy) e.target.click();
+  }
+}, { rootMargin: "800px 0px" });
+const watchMore = (btn) => autoMore.observe(btn);
+// O observer só avisa quando muda de estado: se depois de carregar o botão ainda está perto, carrega de novo.
+const stillNear = (btn) => !btn.classList.contains("hidden") && btn.getBoundingClientRect().top < innerHeight + 800;
+const autoLoad = async (btn, load) => {
+  if (busy) return;
+  busy = true;
+  try { do { await load(); } while (stillNear(btn)); } finally { busy = false; }
+};
+
 let gamesReq = 0;
 async function loadGames(append = false) {
   const req = ++gamesReq;                 // descarta respostas antigas (busca digitada durante a carga)
@@ -318,7 +335,8 @@ async function loadGames(append = false) {
 let t;
 $("#q").oninput = () => { clearTimeout(t); t = setTimeout(() => loadGames(), 250); };
 ["#fDevice", "#fSystem", "#fStatus"].forEach((s) => ($(s).onchange = () => loadGames()));
-$("#more").onclick = () => loadGames(true);
+$("#more").onclick = () => autoLoad($("#more"), () => loadGames(true));
+watchMore($("#more"));
 
 // ---------- plataformas (arte do pacote "Arrow" do Daijishō) ----------
 const getPlatforms = async () => (state.platforms ||= await api("/api/platforms"));
@@ -374,7 +392,8 @@ async function renderPlatform(id) {
     offset += r.games.length;
     $("#platformMore").classList.toggle("hidden", offset >= r.total);
   };
-  $("#platformMore").onclick = more;
+  $("#platformMore").onclick = () => autoLoad($("#platformMore"), more);
+  watchMore($("#platformMore"));
   await more();
 }
 
