@@ -4,6 +4,12 @@ Formato ADR curto. Mais recente no topo. Data AAAA-MM-DD.
 
 ---
 
+## 2026-10-07 — Visual minimalista + ficha por console
+
+- **Contexto:** o visual herdado do universal-dashboard (brilhos, vidro, gradientes) ficou carregado; faltavam os dados do Switch.
+- **Decisão:** CSS próprio, neutro, fonte do sistema, cor só no acento de cada console; página de detalhe por console (`#device/<id>`). Fichas em `scanner/devices.json` (`facts`, `sections`, `storage`, `source`, `snapshot`), carregadas com `npm run devices`. Switch a partir de `switch-cfw/references/estado-do-console.md` (snapshot 2026-09-19).
+- **Motivo:** pedido do Gustavo ("clean e minimalista"); a ficha declarada cobre consoles que ainda não são varridos.
+
 ## 2026-10-07 — Escrita no D1 só pelo scanner (sem API de escrita)
 
 - **Contexto:** o portal vai ficar na internet; os dados vêm de varreduras feitas no Mac.

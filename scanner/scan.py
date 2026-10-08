@@ -4,6 +4,7 @@
   python3 scanner/scan.py s20-sd s20-int        # S20 FE via adb (lê 8 bytes de cada arquivo)
   python3 scanner/scan.py drive-plataform       # pasta do Drive no Mac (só nome e tamanho)
   python3 scanner/scan.py --rebuild s20-sd       # reprocessa a última varredura (sem reler o device)
+  python3 scanner/scan.py --devices             # só atualiza fichas/locais a partir do devices.json
   python3 scanner/scan.py --remote ...          # grava no D1 de produção (só com ok)
 
 Fluxo: lista arquivos → monta data/<local>.sql (substitui os arquivos daquele local) →
@@ -148,8 +149,7 @@ def q(v):
     return "'" + str(v).replace("'", "''") + "'"
 
 
-def build_sql(loc, rows, space):
-    ts = now()
+def devices_sql(ts):
     out = []
     for d in CFG["devices"]:
         out.append("INSERT INTO devices (id,name,kind,accent,specs,notes,updated_at) VALUES "
@@ -161,6 +161,12 @@ def build_sql(loc, rows, space):
         out.append("INSERT INTO locations (id,device_id,label,root) VALUES "
                    f"({q(l['id'])},{q(l['device_id'])},{q(l['label'])},{q(l['root'])}) "
                    "ON CONFLICT(id) DO UPDATE SET device_id=excluded.device_id, label=excluded.label, root=excluded.root;")
+    return out
+
+
+def build_sql(loc, rows, space):
+    ts = now()
+    out = devices_sql(ts)
     out.append(f"UPDATE locations SET last_scan={q(ts)} WHERE id={q(loc)};")
     if space[0]:
         out.append(f"UPDATE locations SET total_bytes={q(space[0])}, free_bytes={q(space[1])} WHERE id={q(loc)};")
@@ -177,6 +183,14 @@ def main():
     remote = "--remote" in args
     rebuild = "--rebuild" in args
     locs = [a for a in args if not a.startswith("--")]
+    if "--devices" in args:
+        os.makedirs(os.path.join(ROOT, "data"), exist_ok=True)
+        path = os.path.join(ROOT, "data", "devices.sql")
+        open(path, "w").write("\n".join(devices_sql(now())) + "\n")
+        subprocess.run(["npx", "wrangler", "d1", "execute", "gamehub", "--remote" if remote else "--local",
+                        "--file", path], cwd=ROOT, check=True, stdout=subprocess.DEVNULL)
+        print("devices atualizados")
+        return
     known = {l["id"]: l for l in CFG["locations"]}
     if not locs or any(l not in known for l in locs):
         sys.exit(f"uso: scan.py [--remote] <local> ...   locais: {', '.join(known)}")

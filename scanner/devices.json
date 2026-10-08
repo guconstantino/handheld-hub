@@ -5,15 +5,24 @@
       "name": "Galaxy S20 FE",
       "kind": "console",
       "accent": "#3b82f6",
-      "notes": "Front-end Daijishō, gerenciado via adb. Repo: s20fe-gamesirx5lite.",
+      "notes": "Android como console portátil: Daijishō de front-end, GameSir X5 Lite, tudo gerenciado via adb.",
       "specs": {
-        "Modelo": "SM-G780G",
-        "SoC / GPU": "Snapdragon 865 / Adreno 650",
-        "RAM": "6 GB",
-        "Tela": "6,5\" 1080×2400 (20:9)",
-        "Sistema": "Android 13",
-        "Controle": "GameSir X5 Lite",
-        "Emuladores": "RetroArch 1.21, Dolphin 2609, NetherSX2, DuckStation, PPSSPP, Azahar, melonDS"
+        "source": "s20fe-gamesirx5lite",
+        "snapshot": "2026-10-07",
+        "facts": {
+          "Modelo": "SM-G780G",
+          "SoC / GPU": "Snapdragon 865 / Adreno 650",
+          "RAM": "6 GB",
+          "Tela": "6,5\" 1080×2400 (20:9)",
+          "Sistema": "Android 13",
+          "Controle": "GameSir X5 Lite"
+        },
+        "sections": [
+          { "title": "Emuladores", "items": ["RetroArch 1.21", "Dolphin 2609 + Turnip v26", "NetherSX2 v2.2b", "DuckStation", "PPSSPP 1.20.4", "Azahar 2126.1.2", "melonDS 2.0.1"] },
+          { "title": "Ports nativos", "items": ["Ship of Harkinian (OoT)", "Dusklight (Twilight Princess)", "DriftDroid (Mario Kart Wii)", "Retro Rewind"] },
+          { "title": "Ajustes", "items": ["Bordas 20:9 por sistema", "Widescreen GC/Wii e PS2", "RetroAchievements (hardcore off)", "BIOS FDS / Sega CD / 32X"] },
+          { "title": "Atenção", "items": ["284 ROMs corrompidas (cópia nova necessária)", "Limite térmico: bateria > 42 °C corta a CPU"] }
+        ]
       }
     },
     {
@@ -21,26 +30,52 @@
       "name": "Miyoo Mini Plus",
       "kind": "console",
       "accent": "#f59e0b",
-      "notes": "OnionOS. Repo: miyoominiplus. Ainda não escaneado pelo hub.",
+      "notes": "Portátil Linux com OnionOS. Ainda não varrido pelo hub (plugar o SD no Mac).",
       "specs": {
-        "SoC": "SigmaStar dual-core",
-        "RAM": "128 MB",
-        "Tela": "3,5\" IPS 4:3",
-        "Sistema": "OnionOS, RetroArch 1.22",
-        "Saves": "rclone → Google Drive"
+        "source": "miyoominiplus",
+        "snapshot": "2026-09-20",
+        "facts": {
+          "SoC": "SigmaStar dual-core",
+          "RAM": "128 MB",
+          "Tela": "3,5\" IPS 4:3",
+          "Sistema": "OnionOS · RetroArch 1.22"
+        },
+        "sections": [
+          { "title": "Acervo", "items": ["81 traduções PT-BR preservadas", "Capas: faltam 44 (homebrews)", "PC Engine: 58 títulos", "PES 2020 com capa custom"] },
+          { "title": "Saves", "items": ["rclone v1.75 → Google Drive", "1º backup: 1.507 arquivos (175 MB)"] },
+          { "title": "Extras", "items": ["Stardew Valley (port Mono)", "260+ temas", "FlipClock", "Horário via NTP (UTC-3)"] }
+        ]
       }
     },
     {
       "id": "switch",
-      "name": "Nintendo Switch OLED",
+      "name": "Switch OLED",
       "kind": "console",
-      "accent": "#ff384c",
-      "notes": "CFW Atmosphère + hekate, emuMMC. Repo: switch-cfw. Ainda não escaneado pelo hub.",
+      "accent": "#ef4444",
+      "notes": "Mariko com modchip, Atmosphère no emuMMC. Configurado para não falar com a Nintendo.",
       "specs": {
-        "Firmware": "22.5.0",
-        "CFW": "Atmosphère 1.11.2 (emuMMC)",
-        "Modchip": "Picofly / HWFLY",
-        "Transferência": "DBI (USB) e ftpd :5000"
+        "source": "switch-cfw",
+        "snapshot": "2026-09-19",
+        "facts": {
+          "Firmware": "22.5.0",
+          "Atmosphère": "1.11.2 (via hekate 6.5.3)",
+          "Pacote": "CNX 22.5.0-5 (CostelaBR)",
+          "Desbloqueio": "Modchip, payload.bin (sem RCM)",
+          "NAND": "emuMMC file-based (SD00)",
+          "Instalador": "DBI 912"
+        },
+        "storage": [
+          { "label": "Cartão microSD", "total": 255550210048, "free": 35755376640 },
+          { "label": "NAND interna", "total": 59055800320, "free": 57552715776 }
+        ],
+        "sections": [
+          { "title": "Boot (hekate)", "items": ["[ATMOSPHERE] emuMMC · CFW", "[ORIGINAL] sysNAND stock", "bootwait 3 s, menu manual"] },
+          { "title": "Segurança e offline", "items": ["PRODINFO zerado no emuMMC", "Servidores Nintendo bloqueados (90DNS)", "Updates, telemetria e sync desligados", "sysNAND limpa (rede de segurança)"] },
+          { "title": "Sysmodules", "items": ["sys-patch", "sys-clk", "MissionControl", "sys-con", "status-monitor", "SysDVR", "Tesla + Ultrahand"] },
+          { "title": "Homebrew", "items": ["DBI", "JKSV", "EdiZon", "sphaira", "ftpd :5000", "Daybreak", "NX-Activity-Log", "Fizeau", "Moonlight", "Ship of Harkinian", "NetherSX2", "DrasticDS", "Dolphin", "Cemu"] },
+          { "title": "Backups e reinstalação", "items": ["hekate 6.5.3", "Atmosphère 1.11.2", "sys-patch 1.6.2.3", "DBI 912", "nxdumptool", "CNX Pack", "Firmwares 20.4 → 23.0 no Drive"] },
+          { "title": "Atenção", "items": ["App N64 (NSO) 2.8.0 em inglês: tradução PT-BR só existe para 2.5.0"] }
+        ]
       }
     },
     {
@@ -48,13 +83,13 @@
       "name": "Google Drive",
       "kind": "backup",
       "accent": "#10b981",
-      "notes": "Acervo em Games/Retrogame/Plataform (pasta sincronizada no Mac). Só nome e tamanho: o conteúdo não é baixado na varredura.",
+      "notes": "Acervo em Games/Retrogame/Plataform. A varredura lê só nome e tamanho (sem baixar).",
       "specs": {}
     }
   ],
   "locations": [
-    { "id": "s20-sd",  "device_id": "s20fe", "label": "Cartão SD (KODAK)", "root": "/storage/6847-D042/Rom" },
-    { "id": "s20-int", "device_id": "s20fe", "label": "Interno (3-Jogos)", "root": "/sdcard/3-Jogos" },
+    { "id": "s20-sd",  "device_id": "s20fe", "label": "Cartão SD", "root": "/storage/6847-D042/Rom" },
+    { "id": "s20-int", "device_id": "s20fe", "label": "Interno", "root": "/sdcard/3-Jogos" },
     { "id": "drive-plataform", "device_id": "drive", "label": "Retrogame/Plataform", "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/Retrogame/Plataform" }
   ]
 }

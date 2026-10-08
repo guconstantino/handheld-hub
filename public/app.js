@@ -1,4 +1,4 @@
-// Handheld Hub: lê a API do Worker e monta as três abas (visão geral, jogos, saúde).
+// Handheld Hub: lê a API do Worker e monta as telas (visão geral, console, jogos, saúde).
 
 const $ = (s) => document.querySelector(s);
 const api = (path) => fetch(path).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${path}: ${r.status}`))));
@@ -8,28 +8,59 @@ const fmtB = (b) => {
   if (!b) return "—";
   const u = ["B", "KB", "MB", "GB", "TB"]; let i = 0; let v = b;
   while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
-  return `${v.toFixed(v < 10 && i > 2 ? 1 : 0)} ${u[i]}`;
+  return `${v.toLocaleString("pt-BR", { maximumFractionDigits: v < 10 && i > 2 ? 1 : 0 })} ${u[i]}`;
 };
-const fmtDate = (s) => (s ? new Date(s).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "nunca");
+// Data pura (AAAA-MM-DD) vira meio-dia local para não voltar um dia por causa do fuso.
+const fmtDate = (s) => (s ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? `${s}T12:00` : s).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "nunca");
 
-let state = { devices: [], locations: [], offset: 0 };
+const state = { devices: [], locations: [], offset: 0, loaded: {} };
+const deviceOf = (id) => state.devices.find((d) => d.id === id) || {};
+const locOf = (id) => state.locations.find((l) => l.id === id) || {};
+// Rótulo curto de uma cópia: "S20 FE · Cartão SD", ou só "Drive" quando o device tem um local só.
+const shortName = (d) => (d.name || "").replace(/^(Galaxy|Google|Nintendo) /, "");
+const copyLabel = (d, locId) => {
+  const many = state.locations.filter((l) => l.device_id === d.id).length > 1;
+  return many ? `${shortName(d)} · ${locOf(locId).label}` : shortName(d);
+};
 
 // ---------- tema ----------
-try { document.documentElement.dataset.theme = localStorage.getItem("hh_theme") || "dark"; } catch {}
+try { const t = localStorage.getItem("hh_theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
 $("#themeToggle").onclick = () => {
-  const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  const dark = document.documentElement.dataset.theme
+    ? document.documentElement.dataset.theme === "dark"
+    : matchMedia("(prefers-color-scheme: dark)").matches;
+  const t = dark ? "light" : "dark";
   document.documentElement.dataset.theme = t;
   try { localStorage.setItem("hh_theme", t); } catch {}
 };
 
-// ---------- abas ----------
-document.querySelectorAll(".tab-btn").forEach((b) => (b.onclick = () => show(b.dataset.view)));
-function show(view) {
-  document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
-  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== `view-${view}`));
-  if (view === "games" && !$("#gamesTable tbody").children.length) loadGames();
-  if (view === "health" && !$("#health").children.length) loadHealth();
-  history.replaceState(null, "", `#${view}`);
+// ---------- rotas: #overview, #device/<id>, #games, #health ----------
+function route() {
+  const [view, arg] = (location.hash.slice(1) || "overview").split("/");
+  const target = ["overview", "device", "games", "health"].includes(view) ? view : "overview";
+  document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.view === (target === "device" ? "overview" : target)));
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== `view-${target}`));
+  if (target === "device") renderDevice(arg);
+  if (target === "games" && !state.loaded.games) { state.loaded.games = true; loadGames(); }
+  if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+
+// ---------- armazenamento (varrido ou declarado no devices.json) ----------
+function storageOf(d) {
+  const scanned = state.locations.filter((l) => l.device_id === d.id).map((l) => ({
+    label: l.label, total: l.total_bytes, free: l.free_bytes, files: l.files, corrupted: l.corrupted, last: l.last_scan,
+  }));
+  return scanned.length ? scanned : (d.specs.storage || []);
+}
+function storageHtml(s) {
+  const used = s.total ? Math.round(((s.total - s.free) / s.total) * 100) : null;
+  const right = s.total ? `${fmtB(s.free)} livres de ${fmtB(s.total)}` : s.files != null ? `${fmtN(s.files)} itens` : "";
+  return `<div class="store">
+    <div class="store-row"><span>${esc(s.label)}</span><span>${right}</span></div>
+    ${used !== null ? `<div class="bar"><i style="width:${used}%"></i></div>` : ""}
+  </div>`;
 }
 
 // ---------- visão geral ----------
@@ -37,38 +68,53 @@ async function loadSummary() {
   const s = await api("/api/summary");
   state.devices = s.devices; state.locations = s.locations;
   const t = s.totals;
-  $("#kpis").innerHTML = [
-    ["Jogos únicos", fmtN(t.games)], ["Arquivos", fmtN(t.files)],
-    ["Sistemas", fmtN(t.systems)], ["Corrompidos", fmtN(t.corrupted)],
-  ].map(([l, v]) => `<div class="kpi-card"><div><div class="kpi-value">${v}</div><div class="kpi-label">${l}</div></div></div>`).join("");
+  $("#stats").innerHTML = [
+    ["Jogos", t.games], ["Arquivos", t.files], ["Sistemas", t.systems], ["Corrompidos", t.corrupted, t.corrupted > 0],
+  ].map(([l, v, bad]) => `<div class="stat ${bad ? "bad" : ""}"><b>${fmtN(v)}</b><span>${l}</span></div>`).join("");
 
   $("#devices").innerHTML = s.devices.map((d) => {
-    const locs = s.locations.filter((l) => l.device_id === d.id);
-    const scanned = locs.some((l) => l.last_scan);
-    const specs = Object.entries(d.specs || {}).map(([k, v]) =>
-      `<li><span class="label">${esc(k)}</span><span class="value">${esc(v)}</span></li>`).join("");
-    const locHtml = locs.map((l) => {
-      const used = l.total_bytes ? Math.round(((l.total_bytes - l.free_bytes) / l.total_bytes) * 100) : null;
-      return `<div class="hub-loc">
-        <div class="hub-loc-head"><span>${esc(l.label)}</span><span>${fmtN(l.files)} arquivos · ${fmtB(l.bytes)}</span></div>
-        ${used !== null ? `<div class="progress-track"><div class="progress-fill" style="width:${used}%;background:${esc(d.accent)}"></div></div>
-          <div class="hub-muted">${fmtB(l.free_bytes)} livres de ${fmtB(l.total_bytes)}</div>` : ""}
-        ${l.corrupted ? `<span class="tag-pill tag-bad">${fmtN(l.corrupted)} corrompidos</span>` : ""}
-        <div class="hub-muted">Varrido: ${fmtDate(l.last_scan)}</div></div>`;
-    }).join("");
-    return `<article class="card" style="--accent:${esc(d.accent)}">
-      <div class="card-head"><h3>${esc(d.name)}</h3>
-        <span class="tag-pill ${scanned ? "tag-ok" : "tag-warn"}">${scanned ? "varrido" : "não varrido"}</span></div>
-      <p class="card-desc">${esc(d.notes || "")}</p>
-      ${specs ? `<ul class="data-list">${specs}</ul>` : ""}
-      ${locHtml}
-    </article>`;
+    const facts = Object.entries(d.specs.facts || {}).slice(0, 3);
+    const bad = s.locations.filter((l) => l.device_id === d.id).reduce((n, l) => n + (l.corrupted || 0), 0);
+    return `<a class="device" href="#device/${esc(d.id)}" style="--accent:${esc(d.accent)}">
+      <div class="device-name"><span class="dot"></span>${esc(d.name)}
+        ${bad ? `<span class="badge bad" style="margin-left:auto">${fmtN(bad)} corrompidos</span>` : ""}</div>
+      <p>${esc(d.notes || "")}</p>
+      ${facts.length ? `<dl class="kv">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` : ""}
+      <div>${storageOf(d).map(storageHtml).join("")}</div>
+      <span class="more">Ver detalhes →</span>
+    </a>`;
   }).join("");
 
   $("#fDevice").innerHTML = `<option value="">Todos os lugares</option>` +
     s.devices.map((d) => `<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("");
   const last = s.locations.map((l) => l.last_scan).filter(Boolean).sort().pop();
-  $("#footer").textContent = `Última varredura: ${fmtDate(last)} · dados locais (wrangler dev)`;
+  $("#footer").textContent = `Última varredura: ${fmtDate(last)}`;
+}
+
+// ---------- detalhe do console ----------
+function renderDevice(id) {
+  const d = deviceOf(id);
+  if (!d.id) { $("#view-device").innerHTML = `<a class="back" href="#overview">← Consoles</a><p class="muted">Console não encontrado.</p>`; return; }
+  const sp = d.specs || {};
+  const facts = Object.entries(sp.facts || {});
+  const locs = state.locations.filter((l) => l.device_id === d.id);
+  $("#view-device").style.setProperty("--accent", d.accent);
+  $("#view-device").innerHTML = `
+    <div>
+      <a class="back" href="#overview">← Consoles</a>
+      <div class="detail-head"><span class="dot"></span><h1>${esc(d.name)}</h1></div>
+      <p class="lead">${esc(d.notes || "")}</p>
+    </div>
+    <div class="detail-grid">
+      ${facts.length ? `<div><h2>Ficha</h2><div class="panel"><dl class="kv">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div></div>` : ""}
+      <div><h2>Armazenamento</h2><div class="panel">${storageOf(d).map(storageHtml).join("") || `<p class="muted small">Sem dados.</p>`}
+        ${locs.map((l) => `<p class="muted small" style="margin-top:10px">${esc(l.label)}: ${fmtN(l.files)} itens, ${fmtB(l.bytes)} · varrido ${fmtDate(l.last_scan)}${l.corrupted ? ` · <span style="color:var(--danger)">${fmtN(l.corrupted)} corrompidos</span>` : ""}</p>`).join("")}
+        ${locs.length ? `<p style="margin-top:14px"><a class="small" href="#games" onclick="setTimeout(()=>{$('#fDevice').value='${esc(d.id)}';loadGames()},0)">Ver jogos deste console →</a></p>` : ""}
+      </div></div>
+    </div>
+    ${(sp.sections || []).length ? `<div class="sections">${sp.sections.map((s) => `
+      <div><h2>${esc(s.title)}</h2><div class="tags">${s.items.map((i) => `<span>${esc(i)}</span>`).join("")}</div></div>`).join("")}</div>` : ""}
+    ${sp.source ? `<p class="source">Fonte: repo ${esc(sp.source)} · snapshot de ${fmtDate(sp.snapshot)}</p>` : ""}`;
 }
 
 // ---------- jogos ----------
@@ -78,9 +124,6 @@ async function loadSystems() {
   $("#fSystem").innerHTML = `<option value="">Todos os sistemas</option>` +
     systems.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
 }
-
-const deviceOf = (id) => state.devices.find((d) => d.id === id) || {};
-const locOf = (id) => state.locations.find((l) => l.id === id) || {};
 
 let gamesReq = 0;
 async function loadGames(append = false) {
@@ -92,14 +135,14 @@ async function loadGames(append = false) {
   const r = await api(`/api/games?${p}`);
   if (req !== gamesReq) return;
   const rows = r.games.map((g) => `<tr>
-      <td>${esc(g.title)}</td><td>${esc(g.system)}</td>
-      <td><div class="hub-copies">${g.copies.map((c) => {
+      <td>${esc(g.title)}</td><td class="sys">${esc(g.system)}</td>
+      <td><div class="copies">${g.copies.map((c) => {
         const d = deviceOf(c.device_id);
-        return `<span class="hub-copy ${c.status === "corrupted" ? "corrupted" : ""}" style="--dot:${esc(d.accent)}"
-          title="${esc(c.rel_path)} · ${fmtB(c.size)}">${esc(locOf(c.location_id).label || c.location_id)}${c.status === "corrupted" ? " · corrompido" : ""}</span>`;
+        const bad = c.status === "corrupted";
+        return `<span class="${bad ? "bad" : ""}" title="${esc(c.rel_path)} · ${fmtB(c.size)}"><i class="dot" style="--accent:${esc(d.accent)}"></i>${esc(copyLabel(d, c.location_id))}${bad ? " · corrompido" : ""}</span>`;
       }).join("")}</div></td></tr>`).join("");
   const tbody = $("#gamesTable tbody");
-  tbody.innerHTML = append ? tbody.innerHTML + rows : rows || `<tr><td colspan="3" class="hub-muted">Nada encontrado.</td></tr>`;
+  tbody.innerHTML = append ? tbody.innerHTML + rows : rows || `<tr><td colspan="3" class="muted">Nada encontrado.</td></tr>`;
   state.offset += r.games.length;
   $("#gamesCount").textContent = `${fmtN(r.total)} ${r.total === 1 ? "jogo" : "jogos"}`;
   $("#more").classList.toggle("hidden", state.offset >= r.total);
@@ -112,27 +155,25 @@ $("#more").onclick = () => loadGames(true);
 // ---------- saúde ----------
 async function loadHealth() {
   const h = await api("/api/health");
-  const list = (rows, fmt) => rows.length ? `<ul class="hub-list">${rows.map(fmt).join("")}</ul>` : `<p class="hub-muted">Nada aqui.</p>`;
+  const list = (rows, fmt) => rows.length ? `<ul class="list">${rows.map(fmt).join("")}</ul>` : `<p class="muted small">Nada aqui.</p>`;
   $("#health").innerHTML = `
-    <article class="card"><div class="card-head"><h3>Corrompidos</h3><span class="tag-pill tag-bad">${fmtN(h.corrupted.length)}</span></div>
-      <p class="card-desc">Começo do arquivo zerado: o emulador não reconhece. Precisam de cópia nova da fonte.</p>
-      ${list(h.corrupted, (c) => `<li><span>${esc(c.title)}</span><span>${esc(c.system)} · ${esc(locOf(c.location_id).label || c.location_id)}</span></li>`)}</article>
-    <article class="card"><div class="card-head"><h3>Sem backup no Drive</h3></div>
-      <p class="card-desc">Jogos que estão em algum console mas não aparecem no Drive (por sistema).</p>
-      ${list(h.noBackup, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`)}</article>
-    <article class="card"><div class="card-head"><h3>Só no Drive</h3></div>
-      <p class="card-desc">Jogos do acervo que não estão em nenhum console (por sistema).</p>
-      ${list(h.driveOnly, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`)}</article>`;
+    <div><h2>Corrompidos · ${fmtN(h.corrupted.length)}</h2>
+      <p class="muted small" style="margin-bottom:10px">Começo do arquivo zerado. Precisam de cópia nova da fonte.</p>
+      ${list(h.corrupted, (c) => `<li><span>${esc(c.title)}</span><span>${esc(c.system)}</span></li>`)}</div>
+    <div><h2>Sem backup no Drive</h2>
+      <p class="muted small" style="margin-bottom:10px">Estão em algum console, mas não no Drive.</p>
+      ${list(h.noBackup, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`)}</div>
+    <div><h2>Só no Drive</h2>
+      <p class="muted small" style="margin-bottom:10px">Estão no acervo, mas em nenhum console.</p>
+      ${list(h.driveOnly, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`)}</div>`;
 }
-
-window.addEventListener("hashchange", () => show((location.hash || "#overview").slice(1)));
 
 // ---------- início ----------
 (async () => {
   try {
     await loadSummary();
-    await loadSystems();
-    show((location.hash || "#overview").slice(1));
+    loadSystems();
+    route();
   } catch (e) {
     $("#footer").textContent = `Erro ao carregar: ${e.message}`;
   }
