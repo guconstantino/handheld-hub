@@ -913,9 +913,22 @@ function keyIndex(index) {
 const RA = { data: null, keyOf: new Map(), has: new Map() };   // has: jogo do catálogo → nº de conquistas no RA
 // Usuário do RetroAchievements desta pessoa (Configurações). Vazio: o Worker usa o do admin, ou nenhum.
 const raQ = (sep) => { const u = pref("hh_ra_user", "").trim(); return u ? `${sep}u=${encodeURIComponent(u)}` : ""; };
+function raInvite() {
+  const el = $("#raBlock");
+  if (!el) return;
+  el.classList.remove("ra-off");
+  $("#raNote").textContent = "";
+  $("#raHead").innerHTML = `<div><b>Ligue sua conta do RetroAchievements</b><span class="muted small">Suas conquistas, o progresso e o "Continuar jogando" aparecem aqui.</span></div>
+    <a class="btn" href="#settings">Ligar em Configurações</a>`;
+  $("#raRecent").innerHTML = ""; $("#raAch").innerHTML = "";
+  el.querySelectorAll(".more-btn").forEach((b) => b.remove());
+}
 async function loadRA() {
   try {
+    $("#raBlock")?.classList.add("ra-off");          // cada carga recomeça: dados, convite ou nada
     const r = await fetch(`api/ra/summary${raQ("?")}`, { credentials: "same-origin" });
+    // Usuário sem conta do RA ligada (ex.: um sobrinho novo): em vez de sumir, o bloco convida a ligar.
+    if (r.status === 404) { raInvite(); return; }
     if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) return;
     RA.data = await r.json();
   } catch { return; }
@@ -1530,7 +1543,7 @@ $("#sRaForm").onsubmit = async (e) => {
   setPref("hh_ra_user", v);
   RA.data = null; RA.keyOf.clear();
   RA.ready = loadRA(); await RA.ready;
-  if (!RA.data) { $("#raBlock").classList.add("ra-off"); $("#contBlock").hidden = true; }
+  if (!RA.data) $("#contBlock").hidden = true;
   drawContinue();
   toast(RA.data ? `RetroAchievements: ${RA.data.user}` : v ? "Não achei esse usuário no RetroAchievements" : "RetroAchievements: padrão");
 };
