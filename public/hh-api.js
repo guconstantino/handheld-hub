@@ -22,11 +22,33 @@
   const byTitle = (a, b) => a.system.localeCompare(b.system) || a.title.localeCompare(b.title);
 
   const routes = {
-    "/api/summary": ({ D, F, byKey }) => ({
-      devices: D.devices, locations: D.locations,
-      totals: { games: byKey.size, files: F.length, corrupted: F.filter((f) => f.status === "corrupted").length,
-                systems: new Set(F.map((f) => f.system)).size },
-    }),
+    "/api/summary": ({ D, F, byKey }) => {
+      // Por console: jogos únicos, sistemas, quantos têm capa e quantos não têm cópia no Drive.
+      const per = {};
+      for (const [k, copies] of byKey) {
+        const inDrive = copies.some((c) => c.device_id === "drive");
+        for (const dev of new Set(copies.map((c) => c.device_id))) {
+          const s = (per[dev] ||= { games: 0, systems: new Set(), covered: 0, noBackup: 0, driveOnly: 0 });
+          s.games++; s.systems.add(copies[0].system);
+          if (D.covers[k]) s.covered++;
+          if (dev !== "drive" && !inDrive) s.noBackup++;
+          if (dev === "drive" && copies.every((c) => c.device_id === "drive")) s.driveOnly++;
+        }
+      }
+      // Cobertura de capas por sistema (jogos únicos).
+      const cov = {};
+      for (const [k, copies] of byKey) {
+        const c = (cov[copies[0].system] ||= { system: copies[0].system, games: 0, covered: 0 });
+        c.games++; if (D.covers[k]) c.covered++;
+      }
+      return {
+        devices: D.devices, locations: D.locations,
+        stats: Object.fromEntries(Object.entries(per).map(([d, s]) => [d, { ...s, systems: s.systems.size }])),
+        coverage: Object.values(cov).sort((a, b) => b.games - a.games),
+        totals: { games: byKey.size, files: F.length, corrupted: F.filter((f) => f.status === "corrupted").length,
+                  systems: new Set(F.map((f) => f.system)).size, covers: [...byKey.keys()].filter((k) => D.covers[k]).length },
+      };
+    },
     // Jogos (game_keys distintos) por sistema e device, como a rota antiga do Worker.
     "/api/systems": ({ F }) => {
       const m = new Map();

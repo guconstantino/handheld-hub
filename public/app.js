@@ -126,25 +126,34 @@ async function loadSummary() {
   const disks = s.devices.flatMap((d) => storageOf(d)).filter((x) => x.total);
   const free = disks.reduce((n, x) => n + (x.free || 0), 0);
   const total = disks.reduce((n, x) => n + x.total, 0);
+  const covPct = t.games ? (t.covers / t.games) * 100 : 0;
   $("#stats").innerHTML = [
     ["Jogos", fmtN(t.games), "gamepad-2", "títulos únicos"],
+    ["Capas", fmtP(covPct), "image", `${fmtN(t.covers)} de ${fmtN(t.games)} jogos`, false, covPct],
     ["Arquivos", fmtN(t.files), "folder-open", `em ${s.locations.length} lugares`],
     ["Sistemas", fmtN(t.systems), "layers", "plataformas"],
     ["Espaço livre", fmtB(free), "hard-drive", `de ${fmtB(total)} nos consoles`],
     ["Corrompidos", fmtN(t.corrupted), "triangle-alert", t.corrupted ? "precisam de cópia nova" : "nenhum problema", t.corrupted > 0],
-  ].map(([l, v, ic, sub, bad]) => `<div class="kpi ${bad ? "bad" : ""}" role="listitem">
-      <span class="kpi-label">${icon(ic, "sm")}${l}</span><span class="kpi-value">${v}</span><span class="kpi-sub">${sub}</span></div>`).join("");
+  ].map(([l, v, ic, sub, bad, pct]) => `<div class="kpi ${bad ? "bad" : ""}" role="listitem">
+      <span class="kpi-label">${icon(ic, "sm")}${l}</span><span class="kpi-value">${v}</span><span class="kpi-sub">${sub}</span>
+      ${pct != null ? `<div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>` : ""}</div>`).join("");
 
   $("#devices").innerHTML = s.devices.map((d) => {
-    const facts = Object.entries(d.specs.facts || {}).slice(0, 2);
+    const st = (s.stats || {})[d.id] || { games: 0, systems: 0, covered: 0, noBackup: 0, driveOnly: 0 };
     const bad = s.locations.filter((l) => l.device_id === d.id).reduce((n, l) => n + (l.corrupted || 0), 0);
+    const nums = [
+      ["Jogos", fmtN(st.games)], ["Sistemas", fmtN(st.systems)],
+      ["Com capa", st.games ? fmtP((st.covered / st.games) * 100) : "—"],
+      d.id === "drive" ? ["Só no Drive", fmtN(st.driveOnly)] : ["Sem backup", fmtN(st.noBackup)],
+    ];
     return `<article class="device" ${dev(d.id)}>
       ${cover(d)}
       <div class="device-body">
         <h3 class="device-name"><span class="dot"></span><a class="device-link" href="#device-${esc(d.id)}">${esc(d.name)}</a><span style="margin-left:auto;display:flex">${logo(d)}</span></h3>
         <div class="chips">${bad ? `<span class="badge bad">${icon("triangle-alert", "sm")}${fmtN(bad)} corrompidos</span>` : `<span class="badge ok">${icon("shield-check", "sm")}Sem problemas</span>`}</div>
-        ${facts.length ? `<dl class="kv">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` : ""}
+        <dl class="nums">${nums.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>
         <div>${storageOf(d).map(storageHtml).join("")}</div>
+        <p class="small muted">Varrido ${fmtDate(s.locations.filter((l) => l.device_id === d.id).map((l) => l.last_scan).filter(Boolean).sort().pop())}</p>
         <span class="more" aria-hidden="true">Ver detalhes ${icon("chevron-right", "sm")}</span>
       </div>
     </article>`;
@@ -156,6 +165,12 @@ async function loadSummary() {
   $("#where").innerHTML = `
     <div class="stack" aria-hidden="true">${byDev.map((x) => `<i ${dev(x.d.id)} style="flex:${x.n}" data-tip="${esc(x.d.name)}: ${fmtN(x.n)} arquivos (${fmtP((x.n / sum) * 100)})"></i>`).join("")}</div>
     <ul class="legend">${byDev.map((x) => `<li ${dev(x.d.id)}><span class="sw"></span><span>${esc(x.d.name)}</span><span class="num">${fmtN(x.n)}</span><span class="pct">${fmtP((x.n / sum) * 100)}</span></li>`).join("")}</ul>`;
+
+  // Cobertura de capas: sistemas com mais jogos, % com capa (o número fica escrito).
+  $("#coverage").innerHTML = `<ul class="barlist cov">${(s.coverage || []).slice(0, 14).map((c) => {
+    const pct = c.games ? (c.covered / c.games) * 100 : 0;
+    return `<li data-tip="${esc(c.system)}: ${fmtN(c.covered)} de ${fmtN(c.games)} com capa"><span class="name">${esc(c.system)}</span><span class="track" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="num">${fmtP(pct)} · ${fmtN(c.covered)}/${fmtN(c.games)}</span></li>`;
+  }).join("")}</ul>`;
 
   $("#fDevice").innerHTML = `<option value="">Todos os lugares</option>` +
     s.devices.map((d) => `<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("");

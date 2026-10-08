@@ -93,7 +93,9 @@ h2 .ic { color: var(--faint); }
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 
 /* ---------- indicadores ---------- */
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.kpi .bar { margin-top: 4px; }
+.kpi .bar i { background: var(--series); }
 .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px; }
 .kpi-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 .kpi-label .ic { color: var(--faint); }
@@ -126,6 +128,9 @@ h2 .ic { color: var(--faint); }
 .device .more { margin-top: auto; font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
 .device:hover .more { color: var(--text); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 10px 0; border-block: 1px solid var(--line); }
+.nums dt { font-size: 12px; color: var(--muted); }
+.nums dd { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .meter + .meter { margin-top: 10px; }
 .meter-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
@@ -158,6 +163,9 @@ h2 .ic { color: var(--faint); }
 .barlist .track { height: 10px; }
 .barlist .track i { display: block; height: 100%; background: var(--series); border-radius: 0 4px 4px 0; min-width: 2px; }
 .barlist .num { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+.barlist.cov li { grid-template-columns: 96px minmax(0, 1fr) 150px; }
+.barlist.cov .track { background: var(--line); border-radius: 4px; }
+.barlist.cov .track i { border-radius: 4px; }
 .chart-note { margin-top: 12px; font-size: 13px; color: var(--muted); }
 
 .tip { position: fixed; z-index: 30; pointer-events: none; background: var(--text); color: var(--bg); font-size: 13px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
@@ -272,6 +280,8 @@ footer { border-top: 1px solid var(--line); padding: 20px 40px; font-size: 13px;
   .table th { top: 56px; }
   .table th:nth-child(2), .table td:nth-child(2) { display: none; }
   .barlist li { grid-template-columns: 80px minmax(0, 1fr) 56px; }
+  .barlist.cov li { grid-template-columns: 72px minmax(0, 1fr) 118px; }
+  .nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .seg { order: -1; }
 }
