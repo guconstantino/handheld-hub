@@ -42,7 +42,7 @@
         c.games++; if (D.covers[k]) c.covered++;
       }
       return {
-        devices: D.devices, locations: D.locations,
+        devices: D.devices, locations: D.locations, history: D.history || [],
         stats: Object.fromEntries(Object.entries(per).map(([d, s]) => [d, { ...s, systems: s.systems.size }])),
         coverage: Object.values(cov).sort((a, b) => b.games - a.games),
         totals: { games: byKey.size, files: F.length, corrupted: F.filter((f) => f.status === "corrupted").length,

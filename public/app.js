@@ -114,6 +114,7 @@ function route(moveFocus = false) {
   const h1 = document.querySelector(`#view-${target} h1`);
   document.title = h1 && target !== "overview" ? `${h1.textContent} · Handheld Hub` : "Handheld Hub";
   window.scrollTo(0, 0);
+  window.HH_CHARTS?.redraw();                       // gráficos desenhados com a tela escondida ganham a largura certa
   // Troca de tela sem recarregar: leva o foco ao título para o leitor de tela anunciar a tela nova.
   if (moveFocus) (pending || Promise.resolve()).then(focusHeading);
   return pending;
@@ -199,14 +200,31 @@ async function loadSummary() {
   const byDev = ORDER.map((id) => ({ d: deviceOf(id), n: s.locations.filter((l) => l.device_id === id).reduce((a, l) => a + (l.files || 0), 0) })).filter((x) => x.d.id);
   const sum = byDev.reduce((a, x) => a + x.n, 0) || 1;
   $("#where").innerHTML = `
-    <div class="stack" aria-hidden="true">${byDev.map((x) => `<i ${dev(x.d.id)} style="flex:${x.n}" data-tip="${esc(x.d.name)}: ${fmtN(x.n)} arquivos (${fmtP((x.n / sum) * 100)})"></i>`).join("")}</div>
+    <div class="stack-plot" aria-hidden="true"></div>
     <ul class="legend">${byDev.map((x) => `<li ${dev(x.d.id)}><span class="sw"></span><span>${esc(x.d.name)}</span><span class="num">${fmtN(x.n)}</span><span class="pct">${fmtP((x.n / sum) * 100)}</span></li>`).join("")}</ul>`;
 
   // Cobertura de capas: sistemas com mais jogos, % com capa (o número fica escrito).
-  $("#coverage").innerHTML = `<ul class="barlist cov">${(s.coverage || []).slice(0, 14).map((c) => {
+  const covRows = (s.coverage || []).slice(0, 14);
+  if (window.HH_CHARTS) HH_CHARTS.percent($("#coverage"), covRows, {
+    label: (c) => sysName(c.system), done: (c) => c.covered, total: (c) => c.games, href: (c) => `#platform-${c.system}`,
+    aria: "Capas por sistema: " + covRows.map((c) => `${sysName(c.system)} ${fmtN(c.covered)} de ${fmtN(c.games)}`).join(", "),
+  });
+  else $("#coverage").innerHTML = `<ul class="barlist cov">${(s.coverage || []).slice(0, 14).map((c) => {
     const pct = c.games ? (c.covered / c.games) * 100 : 0;
     return `<li data-tip="${esc(sysName(c.system))}: ${fmtN(c.covered)} de ${fmtN(c.games)} com capa"><a class="name" href="#platform-${esc(c.system)}">${esc(sysName(c.system))}</a><span class="track" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="num">${fmtP(pct)} · ${fmtN(c.covered)}/${fmtN(c.games)}</span></li>`;
   }).join("")}</ul>`;
+
+  if (window.HH_CHARTS) HH_CHARTS.stack($("#where .stack-plot"), byDev.map((x) => ({ id: x.d.id, name: x.d.name, n: x.n })), { aria: "Arquivos por lugar" });
+
+  // Evolução do acervo (um retrato por dia de varredura).
+  const hist = s.history || [];
+  if (window.HH_CHARTS && hist.length) HH_CHARTS.timeline($("#timeline"), hist, {
+    series: [{ name: "Jogos", value: (h) => h.games, color: "--series" }, { name: "Capas", value: (h) => h.covers, color: "--acc-drive" }],
+    aria: `Evolução do acervo: ${hist.length} retrato(s); hoje ${fmtN(t.games)} jogos e ${fmtN(t.covers)} capas`,
+  });
+  $("#timelineNote").textContent = hist.length < 2
+    ? "Primeiro retrato do acervo. As linhas aparecem a partir da próxima varredura."
+    : `${hist.length} retratos, de ${fmtDate(hist[0].date)} a ${fmtDate(hist.at(-1).date)}.`;
 
   $("#fDevice").innerHTML = `<option value="">Todos os lugares</option>` +
     s.devices.map((d) => `<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("");
@@ -263,6 +281,10 @@ async function loadMosaic() {
 // Jogos por plataforma: cada jogo conta uma vez, mesmo que esteja em vários lugares.
 async function loadTopPlatforms() {
   const top = (await getPlatforms()).slice(0, 10);
+  if (window.HH_CHARTS) return HH_CHARTS.bars($("#topSystems"), top, {
+    label: (p) => sysName(p.system), value: (p) => p.games, href: (p) => `#platform-${p.system}`,
+    aria: "Jogos por plataforma: " + top.map((p) => `${sysName(p.system)} ${fmtN(p.games)}`).join(", "),
+  });
   const max = top.length ? top[0].games : 1;
   $("#topSystems").innerHTML = `<ul class="barlist">${top.map((p) => `
     <li data-tip="${esc(sysName(p.system))}: ${fmtN(p.games)} jogos"><a class="name" href="#platform-${esc(p.system)}">${esc(sysName(p.system))}</a><span class="track" aria-hidden="true"><i style="width:${(p.games / max) * 100}%"></i></span><span class="num">${fmtN(p.games)}</span></li>`).join("")}</ul>
@@ -415,7 +437,7 @@ async function renderPlatform(id) {
     </div>
     <section class="panel" aria-labelledby="t-pwhere">
       <h2 id="t-pwhere">Onde estão os jogos</h2>
-      <div class="stack" aria-hidden="true">${devs.map((d) => `<i ${dev(d)} style="flex:${p.byDevice[d]}" data-tip="${esc(deviceOf(d).name)}: ${fmtN(p.byDevice[d])} jogos"></i>`).join("")}</div>
+      <div class="stack-plot" id="pstack" aria-hidden="true"></div>
       <ul class="legend">${devs.map((d) => `<li ${dev(d)}><span class="sw"></span><span>${esc(deviceOf(d).name)}</span><span class="num">${fmtN(p.byDevice[d])}</span><span class="pct">${fmtP((p.byDevice[d] / sum) * 100)}</span></li>`).join("")}</ul>
       <p class="chart-note">Um jogo pode estar em mais de um lugar.</p>
     </section>
@@ -424,6 +446,7 @@ async function renderPlatform(id) {
       <ul class="grid" id="platformGames"></ul>
       <button class="btn hidden" id="platformMore" style="margin-top:16px">Carregar mais</button>
     </div>`;
+  if (window.HH_CHARTS) HH_CHARTS.stack($("#pstack"), devs.map((d) => ({ id: d, name: deviceOf(d).name, n: p.byDevice[d] })), { aria: "Jogos por lugar" });
   let offset = 0;
   const more = async () => {
     const r = await api(`/api/games?system=${encodeURIComponent(p.system)}&limit=60&offset=${offset}`);

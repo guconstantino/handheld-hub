@@ -40,8 +40,43 @@ def build():
             "files": rows, "covers": covers}
 
 
+HISTORY = os.path.join(ROOT, "scanner", "history.json")   # no git: é o que permite gráficos de linha
+
+
+def snapshot(data):
+    """Um retrato por dia (o do mesmo dia é substituído): totais e, por console, jogos e espaço."""
+    from datetime import date
+    keys, per = set(), {}
+    locs = data["locations"]
+    for li, si, _t, key, st, *_ in data["files"]:
+        k = data["systems"][si] + "|" + key
+        keys.add(k)
+        dev = locs[li]["device_id"]
+        per.setdefault(dev, set()).add(k)
+    space = {}
+    for l in locs:
+        if l.get("total_bytes"):
+            s = space.setdefault(l["device_id"], [0, 0])
+            s[0] += l["total_bytes"]; s[1] += l["free_bytes"] or 0
+    for d in data["devices"]:                      # espaço declarado na ficha (ex.: Switch)
+        if d["id"] not in space:
+            st = [x for x in (d["specs"].get("storage") or []) if x.get("total")]
+            if st:
+                space[d["id"]] = [sum(x["total"] for x in st), sum(x.get("free") or 0 for x in st)]
+    covered = sum(1 for k in keys if k in data["covers"])
+    snap = {"date": date.today().isoformat(), "games": len(keys), "files": len(data["files"]), "covers": covered,
+            "corrupted": sum(1 for f in data["files"] if data["status"][f[4]] == "corrupted"),
+            "devices": {d: {"games": len(v), "total": space.get(d, [None, None])[0], "free": space.get(d, [None, None])[1]}
+                        for d, v in sorted(per.items())}}
+    hist = json.load(open(HISTORY)) if os.path.exists(HISTORY) else []
+    hist = [h for h in hist if h["date"] != snap["date"]] + [snap]
+    json.dump(hist, open(HISTORY, "w"), ensure_ascii=False, indent=1)
+    return hist
+
+
 if __name__ == "__main__":
     data = build()
+    data["history"] = snapshot(data)
     os.makedirs(os.path.join(ROOT, "public", "data"), exist_ok=True)
     out = os.path.join(ROOT, "public", "data", "catalog.json")
     open(out, "w").write(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
