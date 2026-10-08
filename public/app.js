@@ -211,6 +211,57 @@ async function loadSystems() {
     <p class="chart-note">Cópias somadas em todos os lugares: o mesmo jogo no S20 e no Drive conta duas vezes.</p>`;
 }
 
+// Link do Drive do jogo: a cópia no Drive (arquivo ou pasta de jogo), se houver.
+const driveUrl = (g) => {
+  const c = g.copies.find((x) => x.device_id === "drive" && x.drive_id);
+  if (!c) return null;
+  return c.ext === "pasta" ? `https://drive.google.com/drive/folders/${c.drive_id}` : `https://drive.google.com/file/d/${c.drive_id}/view`;
+};
+const driveBtn = (g, label = "Drive") => {
+  const u = driveUrl(g);
+  return u ? `<a class="drive-btn" href="${esc(u)}" target="_blank" rel="noopener" aria-label="Abrir ${esc(g.title)} no Google Drive (nova aba)"><svg class="logo" aria-hidden="true"><use href="icons.svg#b-googledrive"/></svg>${label}</a>` : "";
+};
+// Capa (alt vazio: o título está escrito ao lado) ou cartão com o sistema.
+const coverImg = (g) => g.cover ? `<img src="covers/${esc(g.cover)}" alt="" loading="lazy" decoding="async">` : "";
+const copyChip = (c) => {
+  const d = deviceOf(c.device_id);
+  const bad = c.status === "corrupted";
+  return `<span class="${bad ? "bad" : ""}" ${dev(c.device_id)} title="${esc(c.rel_path)} · ${fmtB(c.size)}"><i class="dot"></i>${esc(copyLabel(d, c.location_id))}${bad ? " · corrompido" : ""}</span>`;
+};
+
+// Exibição em grade ou lista (fica salva neste navegador).
+let viewMode = "grid";
+try { viewMode = localStorage.getItem("hh_view") || "grid"; } catch {}
+function renderGames() {
+  const games = state.games || [];
+  const grid = viewMode === "grid";
+  document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === viewMode)));
+  $("#gamesGrid").classList.toggle("hidden", !grid);
+  $("#gamesList").classList.toggle("hidden", grid);
+  if (grid) {
+    $("#gamesGrid").innerHTML = games.length ? games.map((g) => `<li class="gcard">
+      <div class="gcover">${coverImg(g) || `<div class="ph">${icon("gamepad-2")}<span>${esc(g.system)}</span></div>`}</div>
+      <div class="gbody">
+        <span class="gtitle">${esc(g.title)}</span>
+        <span class="gmeta"><span class="sys">${esc(g.system)}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span>
+          <span class="sr-only">Onde está: ${g.copies.map((c) => esc(copyLabel(deviceOf(c.device_id), c.location_id))).join(", ")}</span>
+          ${g.copies.some((c) => c.status === "corrupted") ? `<span class="bad">· corrompido</span>` : ""}</span>
+        ${driveBtn(g)}
+      </div></li>`).join("") : `<li class="muted">Nada encontrado.</li>`;
+  } else {
+    $("#gamesTable tbody").innerHTML = games.length ? games.map((g) => `<tr>
+      <td><div class="game-cell"><span class="thumb">${coverImg(g) || icon("gamepad-2")}</span><span>${esc(g.title)}</span></div></td>
+      <td class="sys">${esc(g.system)}</td>
+      <td><div class="copies">${g.copies.map(copyChip).join("")}</div></td>
+      <td>${driveBtn(g)}</td></tr>`).join("") : `<tr><td colspan="4" class="muted">Nada encontrado.</td></tr>`;
+  }
+}
+document.querySelectorAll(".seg button").forEach((b) => (b.onclick = () => {
+  viewMode = b.dataset.mode;
+  try { localStorage.setItem("hh_view", viewMode); } catch {}
+  renderGames();
+}));
+
 let gamesReq = 0;
 async function loadGames(append = false) {
   const req = ++gamesReq;                 // descarta respostas antigas (busca digitada durante a carga)
@@ -220,15 +271,8 @@ async function loadGames(append = false) {
     if ($(el).value.trim()) p.set(k, $(el).value.trim());
   const r = await api(`/api/games?${p}`);
   if (req !== gamesReq) return;
-  const rows = r.games.map((g) => `<tr>
-      <td>${esc(g.title)}</td><td class="sys">${esc(g.system)}</td>
-      <td><div class="copies">${g.copies.map((c) => {
-        const d = deviceOf(c.device_id);
-        const bad = c.status === "corrupted";
-        return `<span class="${bad ? "bad" : ""}" ${dev(c.device_id)} title="${esc(c.rel_path)} · ${fmtB(c.size)}"><i class="dot"></i>${esc(copyLabel(d, c.location_id))}${bad ? " · corrompido" : ""}</span>`;
-      }).join("")}</div></td></tr>`).join("");
-  const tbody = $("#gamesTable tbody");
-  tbody.innerHTML = append ? tbody.innerHTML + rows : rows || `<tr><td colspan="3" class="muted">Nada encontrado.</td></tr>`;
+  state.games = append ? [...(state.games || []), ...r.games] : r.games;
+  renderGames();
   state.offset += r.games.length;
   $("#gamesCount").textContent = `${fmtN(r.total)} ${r.total === 1 ? "jogo" : "jogos"}`;
   $("#more").classList.toggle("hidden", state.offset >= r.total);

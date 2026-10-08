@@ -74,11 +74,16 @@
             <option value="corrupted">Corrompido</option>
             <option value="unknown">Não verificado</option>
           </select>
+          <div class="seg" role="group" aria-label="Exibição">
+            <button type="button" data-mode="grid" aria-pressed="false"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layout-grid"/></svg>Grade</button>
+            <button type="button" data-mode="list" aria-pressed="true"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-list"/></svg>Lista</button>
+          </div>
         </div>
-        <div class="panel table-wrap">
+        <ul class="grid hidden" id="gamesGrid" aria-label="Jogos"></ul>
+        <div class="panel table-wrap" id="gamesList">
           <table class="table" id="gamesTable">
             <caption class="sr-only">Jogos e onde está cada cópia</caption>
-            <thead><tr><th scope="col">Jogo</th><th scope="col">Sistema</th><th scope="col">Onde está</th></tr></thead>
+            <thead><tr><th scope="col">Jogo</th><th scope="col">Sistema</th><th scope="col">Onde está</th><th scope="col"><span class="sr-only">Drive</span></th></tr></thead>
             <tbody></tbody>
           </table>
         </div>

@@ -251,6 +251,7 @@
       "device_id": "drive",
       "label": "Retrogame/Plataform",
       "method": "local",
+      "drive_ids": true,
       "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/Retrogame/Plataform"
     }
   ]

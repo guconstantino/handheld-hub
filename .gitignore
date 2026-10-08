@@ -29,3 +29,4 @@ data/
 .wrangler/
 .dev.vars
 dist/
+public/covers/

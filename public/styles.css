@@ -162,6 +162,35 @@ h2 .ic { color: var(--faint); }
 
 .tip { position: fixed; z-index: 30; pointer-events: none; background: var(--text); color: var(--bg); font-size: 13px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
 
+/* ---------- jogos: alternância, capas, grade ---------- */
+.seg { display: inline-flex; border: 1px solid var(--control); border-radius: 8px; padding: 2px; background: var(--surface); }
+.seg button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--muted); padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--hover); color: var(--text); font-weight: 550; }
+.seg button:hover { color: var(--text); }
+
+.thumb { width: 36px; height: 48px; flex: none; border-radius: 4px; overflow: hidden; background: var(--hover); display: grid; place-items: center; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.thumb .ic { width: 16px; height: 16px; color: var(--faint); }
+.game-cell { display: flex; align-items: center; gap: 12px; }
+
+.drive-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; padding: 5px 10px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); }
+.drive-btn:hover { border-color: var(--text); }
+.drive-btn .logo { width: 14px; height: 14px; color: var(--acc-drive); }
+
+.grid { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 16px; }
+.gcard { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.gcover { aspect-ratio: 3 / 4; background: var(--hover); display: grid; place-items: center; border-bottom: 1px solid var(--line); }
+.gcover img { width: 100%; height: 100%; object-fit: contain; }
+.gcover .ph { display: grid; justify-items: center; gap: 8px; padding: 12px; text-align: center; color: var(--muted); font-size: 13px; }
+.gcover .ph .ic { width: 28px; height: 28px; color: var(--faint); }
+.gbody { display: flex; flex-direction: column; gap: 8px; padding: 12px; flex: 1; }
+.gtitle { font-size: 14px; font-weight: 550; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.gmeta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
+.gmeta .sys { font-family: var(--mono); }
+.gdots { display: inline-flex; gap: 4px; }
+.gcard .drive-btn { margin-top: auto; align-self: flex-start; }
+.gcard .bad { color: var(--danger); }
+
 /* ---------- saúde ---------- */
 .health-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .htile { display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
@@ -200,7 +229,7 @@ h2 .ic { color: var(--faint); }
 .table-wrap { padding: 0; overflow: clip; }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th { position: sticky; top: 0; z-index: 1; text-align: left; font-weight: 550; color: var(--muted); font-size: 13px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
-.table td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.table td { padding: 10px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .table tbody tr:last-child td { border-bottom: 0; }
 .table tbody tr:hover td { background: var(--hover); }
 .table .sys { color: var(--muted); font-family: var(--mono); font-size: 13px; }
@@ -243,4 +272,6 @@ footer { border-top: 1px solid var(--line); padding: 20px 40px; font-size: 13px;
   .table th { top: 56px; }
   .table th:nth-child(2), .table td:nth-child(2) { display: none; }
   .barlist li { grid-template-columns: 80px minmax(0, 1fr) 56px; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .seg { order: -1; }
 }

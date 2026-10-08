@@ -41,15 +41,15 @@ const routes = {
     const offset = Number(p.get("offset")) || 0;
     const cond = where.length ? "WHERE " + where.join(" AND ") : "";
     const keys = (await db.prepare(
-      `SELECT f.game_key, MIN(f.title) AS title, f.system, COUNT(*) AS copies
-         FROM files f JOIN locations l ON l.id = f.location_id ${cond}
+      `SELECT f.game_key, MIN(f.title) AS title, f.system, COUNT(*) AS copies, MAX(c.file) AS cover
+         FROM files f JOIN locations l ON l.id = f.location_id LEFT JOIN covers c ON c.game_key = f.game_key ${cond}
         GROUP BY f.game_key ORDER BY f.system, title LIMIT ? OFFSET ?`).bind(...args, limit, offset).all()).results;
     const total = (await db.prepare(
       `SELECT COUNT(DISTINCT f.game_key) AS n FROM files f JOIN locations l ON l.id = f.location_id ${cond}`)
       .bind(...args).first()).n;
     if (!keys.length) return { total, games: [] };
     const copies = (await db.prepare(
-      `SELECT f.game_key, f.location_id, l.device_id, f.rel_path, f.size, f.status
+      `SELECT f.game_key, f.location_id, l.device_id, f.rel_path, f.size, f.status, f.ext, f.drive_id
          FROM files f JOIN locations l ON l.id = f.location_id
         WHERE f.game_key IN (${keys.map(() => "?").join(",")})`).bind(...keys.map((k) => k.game_key)).all()).results;
     const byKey = {};

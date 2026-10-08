@@ -10,7 +10,7 @@
 Fluxo: lista arquivos → monta data/<local>.sql (substitui os arquivos daquele local) →
 `wrangler d1 execute gamehub`. Os devices e locais vêm de scanner/devices.json.
 """
-import glob, json, os, re, subprocess, sys, time
+import ctypes, glob, json, os, re, subprocess, sys, time
 from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -48,6 +48,16 @@ def game_key(system, title):
     return f"{system}|{t}"
 
 
+_libc = ctypes.CDLL(None, use_errno=True)
+
+
+def drive_id(path):
+    """ID do item no Google Drive (xattr do Drive para Desktop no macOS); None fora do Drive."""
+    buf = ctypes.create_string_buffer(128)
+    n = _libc.getxattr(os.fsencode(path), b"com.google.drivefs.item-id#S", buf, 128, 0, 0)
+    return buf.raw[:n].decode() if n > 0 else None
+
+
 def record(loc, rel, size, mtime, head=None):
     parts = rel.split("/")
     if len(parts) < 2:
@@ -72,16 +82,20 @@ def record(loc, rel, size, mtime, head=None):
                 game_key=game_key(system, title), ext=ext, size=size, mtime=mtime, status=status)
 
 
-def to_rows(loc, entries):
-    """entries: (rel, size, mtime, head|None) → linhas da tabela files, agrupando jogos-pasta."""
+def to_rows(loc, entries, ids=None):
+    """entries: (rel, size, mtime, head|None) → linhas da tabela files, agrupando jogos-pasta.
+    ids: rel_path → ID no Google Drive (arquivos e pastas de jogo), quando o local é o Drive."""
+    ids = ids or {}
     rows, groups = [], {}
     for rel, size, mtime, head in entries:
         r = record(loc, rel, size, mtime, head)
         if not r:
             continue
+        r["drive_id"] = ids.get(rel)
         parts = rel.split("/")
         if r["system"] in FOLDER_SYSTEMS and len(parts) >= 3:
-            g = groups.setdefault("/".join(parts[:2]), dict(r, rel_path="/".join(parts[:2]), title=parts[1],
+            key = "/".join(parts[:2])
+            g = groups.setdefault(key, dict(r, rel_path=key, title=parts[1], drive_id=ids.get(key),
                                   game_key=game_key(r["system"], parts[1]), ext="pasta", size=0, mtime=0, status="unknown"))
             g["size"] += size or 0
             g["mtime"] = max(g["mtime"], mtime or 0)
@@ -130,16 +144,21 @@ def scan_adb(loc, root):
     return rows, space
 
 
-def scan_local(loc, root, detect=None, read_head=False):
+def scan_local(loc, root, detect=None, read_head=False, with_ids=False):
     matches = glob.glob(os.path.expanduser(root))
     if detect:                                           # ex.: só o cartão que tem .tmp_update (OnionOS)
         matches = [m for m in matches if os.path.exists(os.path.join(m, detect))]
     if len(matches) != 1:
         sys.exit(f"{loc}: esperava 1 pasta para {root}, achei {len(matches)}. O cartão está plugado?")
     base = matches[0]
-    rows = []
+    rows, ids = [], {}
     for dirpath, dirnames, filenames in os.walk(base):
         dirnames[:] = [d for d in dirnames if d.lower() not in SKIP_DIRS and not d.startswith(".")]
+        if with_ids:                                     # pastas de jogo (psx/<jogo>) também ganham link
+            for d in dirnames:
+                rel = os.path.relpath(os.path.join(dirpath, d), base)
+                if rel.count(os.sep) == 1 and (i := drive_id(os.path.join(dirpath, d))):
+                    ids[rel] = i
         for fn in filenames:
             full = os.path.join(dirpath, fn)
             try:
@@ -154,11 +173,13 @@ def scan_local(loc, root, detect=None, read_head=False):
                 except OSError:
                     pass
             rows.append((os.path.relpath(full, base), st.st_size, int(st.st_mtime), head))
+            if with_ids and (i := drive_id(full)):
+                ids[rows[-1][0]] = i
     space = (None, None)
     if read_head:                                        # disco físico: espaço total/livre do volume
         st = os.statvfs(base)
         space = (st.f_blocks * st.f_frsize, st.f_bavail * st.f_frsize)
-    return rows, space
+    return rows, space, ids
 
 
 def scan_ftp(loc, root):
@@ -204,7 +225,7 @@ def build_sql(loc, rows, space):
     if space[0]:
         out.append(f"UPDATE locations SET total_bytes={q(space[0])}, free_bytes={q(space[1])} WHERE id={q(loc)};")
     out.append(f"DELETE FROM files WHERE location_id={q(loc)};")
-    cols = ["location_id", "system", "folder", "rel_path", "title", "game_key", "ext", "size", "mtime", "status"]
+    cols = ["location_id", "system", "folder", "rel_path", "title", "game_key", "ext", "size", "mtime", "status", "drive_id"]
     for i in range(0, len(rows), 200):
         vals = ",".join("(" + ",".join(q(r[c]) for c in cols) + f",{q(ts)})" for r in rows[i:i + 200])
         out.append(f"INSERT INTO files ({','.join(cols)},scanned_at) VALUES {vals};")
@@ -232,10 +253,13 @@ def main():
         l = known[loc]
         t0 = time.time()
         dev = next(d for d in CFG["devices"] if d["id"] == l["device_id"])
+        ids = {}
         if rebuild:
             rp = raw_path(loc)
-            entries = [tuple(e) for e in json.load(open(rp))["entries"]] if os.path.exists(rp) else raw_from_d1(loc)
-            space = tuple(json.load(open(rp))["space"]) if os.path.exists(rp) else (None, None)
+            raw = json.load(open(rp)) if os.path.exists(rp) else None
+            entries = [tuple(e) for e in raw["entries"]] if raw else raw_from_d1(loc)
+            space = tuple(raw["space"]) if raw else (None, None)
+            ids = (raw or {}).get("ids", {})
         else:
             method = l.get("method", "local")
             if method == "adb":
@@ -243,9 +267,9 @@ def main():
             elif method == "ftp":
                 entries, space = scan_ftp(loc, l["root"])
             else:
-                entries, space = scan_local(loc, l["root"], l.get("detect"), l.get("read_head", False))
-            json.dump({"entries": entries, "space": space}, open(raw_path(loc), "w"))
-        rows = to_rows(loc, entries)
+                entries, space, ids = scan_local(loc, l["root"], l.get("detect"), l.get("read_head", False), l.get("drive_ids", False))
+            json.dump({"entries": entries, "space": space, "ids": ids}, open(raw_path(loc), "w"))
+        rows = to_rows(loc, entries, ids)
         path = os.path.join(ROOT, "data", f"{loc}.sql")
         open(path, "w").write(build_sql(loc, rows, space))
         bad = sum(r["status"] == "corrupted" for r in rows)

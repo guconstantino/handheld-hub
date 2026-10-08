@@ -1,0 +1,192 @@
+#!/usr/bin/env python3
+"""Capas dos jogos a partir do acervo público do libretro (thumbnails.libretro.com).
+
+Casa cada jogo do D1 local com a lista de capas do sistema (nome No-Intro), baixa só as que
+faltam, converte para WebP de 384 px em public/covers/ e gera data/covers.sql.
+
+  python3 scripts/covers.py --match                 # só casa os nomes e mostra o acerto (não baixa)
+  python3 scripts/covers.py gba snes                # baixa as capas desses sistemas
+  python3 scripts/covers.py --all                   # todos os sistemas mapeados
+  python3 scripts/covers.py --sql [--remote]        # grava data/covers.sql no D1
+
+Precisa de Pillow (ex.: ~/.cache/s20fe-outpaint/bin/python). Só a lista de capas de cada
+sistema fica em cache (~/.cache/handheld-hub/libretro/, 7 dias).
+"""
+import hashlib, html, io, json, os, re, subprocess, sys, time, urllib.parse, urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, "public", "covers")
+CACHE = os.path.expanduser("~/.cache/handheld-hub/libretro")
+BASE = "https://thumbnails.libretro.com"
+UA = "HandheldHub/1.0 (uso pessoal; capas para um catálogo privado)"
+SIZE = 384
+
+# Sistema canônico do Hub → pasta do libretro. Arcade (nomes curtos de ROM) fica de fora.
+LIBRETRO = {
+    "nes": "Nintendo - Nintendo Entertainment System", "snes": "Nintendo - Super Nintendo Entertainment System",
+    "gb": "Nintendo - Game Boy", "gbc": "Nintendo - Game Boy Color", "gba": "Nintendo - Game Boy Advance",
+    "n64": "Nintendo - Nintendo 64", "nds": "Nintendo - Nintendo DS", "3ds": "Nintendo - Nintendo 3DS",
+    "fds": "Nintendo - Family Computer Disk System", "virtualboy": "Nintendo - Virtual Boy",
+    "sufami": "Nintendo - Sufami Turbo", "gamecube": "Nintendo - GameCube", "wii": "Nintendo - Wii",
+    "megadrive": "Sega - Mega Drive - Genesis", "mastersystem": "Sega - Master System - Mark III",
+    "gamegear": "Sega - Game Gear", "sg1000": "Sega - SG-1000", "sega32x": "Sega - 32X",
+    "segacd": "Sega - Mega-CD - Sega CD", "dreamcast": "Sega - Dreamcast",
+    "psx": "Sony - PlayStation", "ps2": "Sony - PlayStation 2", "psp": "Sony - PlayStation Portable",
+    "pcengine": "NEC - PC Engine - TurboGrafx 16", "pcenginecd": "NEC - PC Engine CD - TurboGrafx-CD",
+    "supergrafx": "NEC - PC Engine SuperGrafx",
+    "atari2600": "Atari - 2600", "atari5200": "Atari - 5200", "atari7800": "Atari - 7800",
+    "lynx": "Atari - Lynx", "jaguar": "Atari - Jaguar",
+    "colecovision": "Coleco - ColecoVision", "intellivision": "Mattel - Intellivision", "vectrex": "GCE - Vectrex",
+    "msx": "Microsoft - MSX", "msx2": "Microsoft - MSX2", "c64": "Commodore - 64",
+    "ngp": "SNK - Neo Geo Pocket", "ngpc": "SNK - Neo Geo Pocket Color", "neogeocd": "SNK - Neo Geo CD",
+    "wswanc": "Bandai - WonderSwan Color", "3do": "The 3DO Company - 3DO", "lutro": "Lutro",
+}
+
+
+def norm(title):
+    """Mesmo critério do game_key do scanner: sem (região)/[tags], artigo no começo, só letras e números."""
+    t = re.sub(r"[\(\[][^\)\]]*[\)\]]", " ", title)
+    t = re.sub(r"^(.*), (the|a|an)\b", r"\2 \1", t.strip(), flags=re.I)
+    return re.sub(r"[^a-z0-9]+", " ", t.lower()).strip()
+
+
+def safe(name):
+    """O libretro troca estes caracteres por _ no nome do arquivo."""
+    return re.sub(r'[&*/:`<>?\\|"]', "_", name)
+
+
+def region_rank(name):
+    n = name.lower()
+    for i, tag in enumerate(["(usa", "(world", "(usa, europe", "(europe", "(brazil", "(japan"]):
+        if tag in n:
+            return i
+    return 9
+
+
+def d1(sql, remote=False):
+    out = subprocess.run(["npx", "wrangler", "d1", "execute", "gamehub", "--remote" if remote else "--local", "--json", "--command", sql],
+                         cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    return json.loads(out)[0]["results"]
+
+
+def fetch(url, tries=3):
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+            time.sleep(2 * (i + 1))
+        except Exception:
+            time.sleep(2 * (i + 1))
+    return None
+
+
+def listing(system):
+    """Nomes das capas disponíveis (sem .png) no Named_Boxarts do sistema, com cache de 7 dias."""
+    os.makedirs(CACHE, exist_ok=True)
+    cp = os.path.join(CACHE, f"_list_{system}.json")
+    if os.path.exists(cp) and time.time() - os.path.getmtime(cp) < 7 * 86400:
+        return json.load(open(cp))
+    page = fetch(f"{BASE}/{urllib.parse.quote(LIBRETRO[system])}/Named_Boxarts/")
+    names = []
+    if page:
+        for href in re.findall(r'href="([^"]+\.png)"', page.decode("utf-8", "replace")):
+            names.append(html.unescape(urllib.parse.unquote(href)).rsplit("/", 1)[-1][:-4])
+    json.dump(names, open(cp, "w"))
+    return names
+
+
+def match(systems):
+    """game_key → nome da capa no libretro. Primeiro o nome exato do arquivo, depois o nome normalizado."""
+    games = d1("SELECT game_key, system, GROUP_CONCAT(title, '\x1f') AS titles FROM files GROUP BY game_key")
+    plan, stats = {}, {}
+    for s in systems:
+        names = listing(s)
+        exact = {n: n for n in names}
+        byn = {}
+        for n in sorted(names, key=region_rank):
+            byn.setdefault(norm(n), n)
+        rows = [g for g in games if g["system"] == s]
+        hit = 0
+        for g in rows:
+            titles = sorted(set(g["titles"].split("\x1f")), key=region_rank)
+            name = next((exact[safe(t)] for t in titles if safe(t) in exact), None) or byn.get(g["game_key"].split("|", 1)[1])
+            if name:
+                plan[g["game_key"]] = (s, name)
+                hit += 1
+        stats[s] = (hit, len(rows), len(names))
+    return plan, stats
+
+
+def cover_file(game_key):
+    return hashlib.sha1(game_key.encode()).hexdigest()[:16] + ".webp"
+
+
+def download(plan):
+    from PIL import Image
+    os.makedirs(OUT, exist_ok=True)
+    todo = [(k, s, n) for k, (s, n) in plan.items() if not os.path.exists(os.path.join(OUT, cover_file(k)))]
+    print(f"{len(plan)} capas casadas, {len(todo)} para baixar")
+
+    def one(item):
+        k, s, n = item
+        # O .webp em public/covers/ já é o "baixado": o PNG original (~700 KB) não fica no disco.
+        data = fetch(f"{BASE}/{urllib.parse.quote(LIBRETRO[s])}/Named_Boxarts/{urllib.parse.quote(n)}.png")
+        time.sleep(0.2)                                  # devagar com o servidor do libretro
+        if not data:
+            return False
+        try:
+            im = Image.open(io.BytesIO(data)).convert("RGB")
+            im.thumbnail((SIZE, SIZE * 2))
+            im.save(os.path.join(OUT, cover_file(k)), "WEBP", quality=80, method=6)
+            return True
+        except Exception:
+            return False
+
+    ok = 0
+    with ThreadPoolExecutor(4) as ex:
+        for i, r in enumerate(ex.map(one, todo), 1):
+            ok += r
+            if i % 250 == 0:
+                print(f"  {i}/{len(todo)}")
+    print(f"{ok} novas capas em public/covers/")
+
+
+def write_sql(remote=False):
+    """Registra no D1 só as capas que existem em public/covers/."""
+    plan, _ = match(sorted(LIBRETRO))
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    rows = [(k, cover_file(k)) for k in plan if os.path.exists(os.path.join(OUT, cover_file(k)))]
+    q = lambda v: "'" + v.replace("'", "''") + "'"
+    out = ["DELETE FROM covers WHERE source='libretro';"]
+    for i in range(0, len(rows), 200):
+        out.append("INSERT OR REPLACE INTO covers (game_key,file,source,updated_at) VALUES " +
+                   ",".join(f"({q(k)},{q(f)},'libretro',{q(ts)})" for k, f in rows[i:i + 200]) + ";")
+    path = os.path.join(ROOT, "data", "covers.sql")
+    open(path, "w").write("\n".join(out) + "\n")
+    subprocess.run(["npx", "wrangler", "d1", "execute", "gamehub", "--remote" if remote else "--local", "--file", path],
+                   cwd=ROOT, check=True, stdout=subprocess.DEVNULL)
+    print(f"{len(rows)} capas gravadas no D1 {'remoto' if remote else 'local'}")
+
+
+if __name__ == "__main__":
+    args = sys.argv[1:]
+    if "--sql" in args:
+        write_sql("--remote" in args)
+        sys.exit()
+    systems = sorted(LIBRETRO) if ("--all" in args or "--match" in args) else [a for a in args if not a.startswith("--")]
+    unknown = [s for s in systems if s not in LIBRETRO]
+    if unknown or not systems:
+        sys.exit(f"uso: covers.py --match | --all | <sistema>...   sem mapa: {unknown}")
+    plan, stats = match(systems)
+    for s, (hit, n, avail) in sorted(stats.items(), key=lambda x: -x[1][1]):
+        print(f"{s:14s} {hit:5d}/{n:<5d} {100 * hit / max(n, 1):5.1f}%   ({avail} capas no libretro)")
+    tot = sum(h for h, _, _ in stats.values()), sum(n for _, n, _ in stats.values())
+    print(f"{'total':14s} {tot[0]:5d}/{tot[1]:<5d} {100 * tot[0] / max(tot[1], 1):5.1f}%")
+    if "--match" not in args:
+        download(plan)
