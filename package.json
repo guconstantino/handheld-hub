@@ -11,14 +11,16 @@
     "build:static": "python3 scripts/build_static.py",
     "scan:miyoo": "python3 scanner/scan.py miyoo-sd",
     "scan:switch": "python3 scanner/scan.py switch-jksv",
-    "vendor": "mkdir -p public/vendor public/fonts && cp node_modules/motion/dist/motion.js node_modules/d3/dist/d3.min.js node_modules/@observablehq/plot/dist/plot.umd.min.js public/vendor/ && cp node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2 node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2 public/fonts/",
+    "vendor": "mkdir -p public/vendor public/fonts && cp node_modules/motion/dist/motion.js node_modules/d3/dist/d3.min.js node_modules/@observablehq/plot/dist/plot.umd.min.js public/vendor/ && cp node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2 node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2 public/fonts/ && mkdir -p public/flags && for c in us eu jp br de fr es it au tw kr gb nl se cn ca pt; do cp node_modules/flag-icons/flags/4x3/$c.svg public/flags/; done",
     "catalog": "python3 scripts/catalog.py",
     "serve": "node scripts/serve.mjs",
-    "r2": "python3 scripts/r2_sync.py"
+    "r2": "python3 scripts/r2_sync.py",
+    "ra": "python3 scripts/ra_catalog.py"
   },
   "devDependencies": {
     "@observablehq/plot": "0.6.17",
     "d3": "7.9.0",
+    "flag-icons": "7.5.0",
     "geist": "1.7.2",
     "motion": "13.4.2",
     "wrangler": "4.135.0"

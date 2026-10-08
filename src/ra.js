@@ -60,7 +60,7 @@ export async function game({ user, key }, id) {
   };
 }
 
-// Roteia /api/ra/summary e /api/ra/game?id=N.
+// Roteia /api/ra/summary e /api/ra/game?id=N. (A lista de jogos com conquistas é estática: scripts/ra_catalog.py.)
 export async function raRoute(url, cfg) {
   if (url.pathname === "/api/ra/summary") return summary(cfg);
   if (url.pathname === "/api/ra/game") {

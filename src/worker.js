@@ -21,7 +21,7 @@ async function cover(request, env, ctx, url) {
   const key = decodeURIComponent(url.pathname.slice(1));          // "covers/<arquivo>.webp"
   if (!/^covers\/[\w.-]+\.webp$/.test(key)) return new Response("não encontrado", { status: 404 });
   const obj = await env.MEDIA.get(key);
-  if (!obj) return env.ASSETS.fetch(request);                       // ainda não subiu ao R2: usa a cópia dos assets
+  if (!obj) return env.ASSETS.fetch(request);                       // sem a capa no R2 (rodar npm run r2): os assets respondem 404
   const res = new Response(obj.body, {
     headers: { "content-type": "image/webp", "cache-control": "public, max-age=31536000, immutable", etag: obj.httpEtag },
   });
@@ -73,8 +73,9 @@ async function ra(request, env, ctx, url) {
   if (hit) return hit;
   try {
     const data = await raRoute(url, { user: env.RA_USER, key: env.RA_API_KEY });
-    const res = Response.json(data, { headers: { "cache-control": "private, max-age=600" } });
-    ctx.waitUntil(caches.default.put(cacheKey, new Response(JSON.stringify(data), { headers: { "content-type": "application/json", "cache-control": "public, max-age=600" } })));
+    const ttl = 600;
+    const res = Response.json(data, { headers: { "cache-control": `private, max-age=${ttl}` } });
+    ctx.waitUntil(caches.default.put(cacheKey, new Response(JSON.stringify(data), { headers: { "content-type": "application/json", "cache-control": `public, max-age=${ttl}` } })));
     return res;
   } catch (e) {
     return Response.json({ error: e.message }, { status: e.status || 502 });

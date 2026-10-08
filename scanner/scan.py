@@ -44,6 +44,9 @@ def now():
 
 
 def game_key(system, title):
+    title = re.sub(r"\.\d{2}$", "", title)                   # "Super Mario World (USA).00": cópia renomeada
+    title = re.sub(r"(?i)[\s_-]*decrypted\b", "", title)     # "-decrypted" do 3DS: mesmo jogo
+    title = re.sub(r"(?i)\s*-\s*(c[oó]pia|copy)(\s*\(\d+\))?$", "", title)   # "- Copia" do Windows
     t = re.sub(r"[\(\[][^\)\]]*[\)\]]", " ", title)        # tira (USA), [!], (Rev A)...
     t = re.sub(r"^(.*), (the|a|an)\b", r"\2 \1", t.strip(), flags=re.I)  # "Zelda, The" → "The Zelda"
     t = re.sub(r"[^a-z0-9]+", " ", t.lower()).strip()

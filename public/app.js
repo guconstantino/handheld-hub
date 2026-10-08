@@ -446,10 +446,36 @@ const coverImg = (g) => g.cover ? `<img src="covers/${esc(g.cover)}" alt="" load
 const copyChip = (c) => {
   const d = deviceOf(c.device_id);
   const bad = c.status === "corrupted";
-  return `<span class="${bad ? "bad" : ""}" ${dev(c.device_id)} title="${fmtB(c.size)}"><i class="dot"></i>${esc(copyLabel(d, c.location_id))}${bad ? " · corrompido" : ""}</span>`;
+  return `<span class="${bad ? "bad" : ""}" ${dev(c.device_id)} title="${fmtB(c.size)}"><i class="dot"></i>${esc(copyLabel(d, c.location_id))}${flagsHtml(regionsOf(c.title), 2)}${bad ? " · corrompido" : ""}</span>`;
 };
 
 const gameHref = (g) => `#game-${encodeURIComponent(g.game_key)}`;
+// Região pelo nome do arquivo: No-Intro "(USA, Europe)", GoodTools "(U)"/"(UE)"/"(J)", traduções "(BR)".
+// Bandeiras em SVG (flag-icons): o Windows não desenha bandeira em emoji.
+const REGION = {
+  usa: "us", us: "us", u: "us", europe: "eu", eur: "eu", eu: "eu", e: "eu", pal: "eu", japan: "jp", jpn: "jp", j: "jp",
+  world: "world", w: "world", brazil: "br", br: "br", b: "br", germany: "de", g: "de", france: "fr", f: "fr", spain: "es", s: "es",
+  italy: "it", i: "it", australia: "au", a: "au", taiwan: "tw", korea: "kr", k: "kr", uk: "gb", netherlands: "nl", sweden: "se",
+  china: "cn", ch: "cn", canada: "ca", portugal: "pt", asia: "asia",
+};
+const REGION_NAME = { us: "EUA", eu: "Europa", jp: "Japão", world: "Mundo", br: "Brasil", de: "Alemanha", fr: "França", es: "Espanha",
+  it: "Itália", au: "Austrália", tw: "Taiwan", kr: "Coreia", gb: "Reino Unido", nl: "Holanda", se: "Suécia", cn: "China", ca: "Canadá", pt: "Portugal", asia: "Ásia" };
+function regionsOf(title) {
+  const out = [];
+  for (const grp of (title || "").match(/\(([^)]*)\)/g) || []) {
+    const inner = grp.slice(1, -1);
+    const toks = /^[UEJ]{2,3}$/.test(inner) ? inner.split("") : inner.split(",").map((t) => t.trim());   // "(UE)" → U, E
+    for (const t of toks) { const c = REGION[t.toLowerCase()]; if (c && !out.includes(c)) out.push(c); }
+    if (out.length) break;                           // a região vem no primeiro parêntese que tem região
+  }
+  return out;
+}
+const flag = (c) => (c === "world" || c === "asia"
+  ? `<span class="flag globe" title="${REGION_NAME[c]}" aria-hidden="true">${icon("globe", "sm")}</span>`
+  : `<img class="flag" src="flags/${c}.svg" alt="" title="${REGION_NAME[c]}">`);
+const flagsHtml = (codes, max = 9) => codes.length
+  ? `<span class="flags">${codes.slice(0, max).map(flag).join("")}${codes.length > max ? `<span class="muted small">+${codes.length - max}</span>` : ""}<span class="sr-only">${codes.map((c) => REGION_NAME[c]).join(", ")}</span></span>` : "";
+const gameRegions = (g) => [...new Set(g.copies.flatMap((c) => regionsOf(c.title)))];
 // Estado vazio com explicação e saída (em vez de só "Nada encontrado").
 const emptyState = (title, hint, withClear = true) => `<div class="empty">${icon("search")}<b>${esc(title)}</b><span>${esc(hint)}</span>
   ${withClear ? `<button type="button" class="btn" data-clear-all>Limpar filtros</button>` : ""}</div>`;
@@ -465,10 +491,11 @@ const gridHtml = (games) => games.length ? games.map((g) => {
       <div class="gart">${art}</div>
       <a class="gfull" href="${gameHref(g)}" tabindex="-1" aria-hidden="true"></a>
       ${bad ? `<span class="gbad">${icon("triangle-alert", "sm")}Corrompido</span>` : ""}
-      ${LISTS.fav.has(g.game_key) ? `<span class="gfav" title="Favorito">${icon("star", "sm")}<span class="sr-only">Favorito</span></span>` : ""}
+      ${inList("fav", g.game_key) ? `<span class="gfav" title="Favorito">${icon("star", "sm")}<span class="sr-only">Favorito</span></span>` : ""}
+      ${RA.has.get(g.game_key) ? `<span class="gra" title="${fmtN(RA.has.get(g.game_key))} conquistas no RetroAchievements">${icon("trophy", "sm")}<span class="sr-only">Tem conquistas</span></span>` : ""}
       <div class="gover">
         <a class="gtitle glink" href="${gameHref(g)}">${esc(g.title)}</a>
-        <span class="gmeta"><span>${esc(sysName(g.system))}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span></span>
+        <span class="gmeta"><span>${esc(sysName(g.system))} ${flagsHtml(gameRegions(g), 3)}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span></span>
         <span class="sr-only">Onde está: ${g.copies.map((c) => esc(copyLabel(deviceOf(c.device_id), c.location_id))).join(", ")}</span>
       </div>
       <div class="gdrive">${driveBtn(g)}</div>
@@ -741,9 +768,12 @@ async function putList(list, key, on) {
     if (r.ok) setLists(await r.json());
   } catch {}
 }
+// Está na lista? Considera todas as chaves do grupo (favorito salvo na grafia antiga continua valendo).
+const inList = (list, key) => (window.HH_MEMBERS?.[key] || [key]).some((k) => LISTS[list].has(k));
 function toggleList(list, key) {
-  const on = !LISTS[list].has(key);
-  if (on) LISTS[list].add(key); else LISTS[list].delete(key);
+  const on = !inList(list, key);
+  if (on) LISTS[list].add(key);
+  else for (const k of window.HH_MEMBERS?.[key] || [key]) { LISTS[list].delete(k); if (k !== key) putList(list, k, false); }
   setLists(listsSnapshot());
   putList(list, key, on);
   return on;
@@ -764,11 +794,17 @@ const RA_CONSOLE = {
   "PC Engine/TurboGrafx-16": "pcengine", "PC Engine CD/TurboGrafx-CD": "pcenginecd", "Atari 2600": "atari2600", "Atari 7800": "atari7800",
   "Atari Lynx": "lynx", "Atari Jaguar": "jaguar", "Neo Geo Pocket": "ngpc", "Neo Geo CD": "neogeocd", "WonderSwan": "wswanc",
   "MSX": "msx", "ColecoVision": "colecovision", "Intellivision": "intellivision", "Vectrex": "vectrex", "3DO Interactive Multiplayer": "3do",
-  "Arcade": "arcade",
+  "Arcade": "arcade", "Famicom Disk System": "fds",
 };
 // Mesma normalização do game_key do scanner: sem (região)/[tags], artigo no começo, só letras e números.
-const normTitle = (t) => t.replace(/[([][^)\]]*[)\]]/g, " ").trim().replace(/^(.*), (the|a|an)\b/i, "$2 $1").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-const RA = { data: null, keyOf: new Map() };
+const normTitle = (t) => t.replace(/\.\d{2}$/, "").replace(/[\s_-]*decrypted\b/i, "").replace(/\s*-\s*(c[oó]pia|copy)(\s*\(\d+\))?$/i, "").replace(/[([][^)\]]*[)\]]/g, " ").trim().replace(/^(.*), (the|a|an)\b/i, "$2 $1").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+// Chave (ou apelido) → chave do grupo, e também a grafia sem espaços ("megaman zx" acha "mega man zx").
+function keyIndex(index) {
+  const m = new Map();
+  for (const g of index) for (const k of g.a || [g.k]) { m.set(k, g.k); m.set(k.replace(/ /g, ""), g.k); }
+  return { get: (k) => m.get(k) || m.get(k.replace(/ /g, "")) };
+}
+const RA = { data: null, keyOf: new Map(), has: new Map() };   // has: jogo do catálogo → nº de conquistas no RA
 async function loadRA() {
   try {
     const r = await fetch("api/ra/summary", { credentials: "same-origin" });
@@ -776,13 +812,34 @@ async function loadRA() {
     RA.data = await r.json();
   } catch { return; }
   // Liga cada jogo do RA a um jogo do catálogo (plataforma + título normalizado).
-  const idx = new Set((await api("/api/index")).map((g) => g.k));
+  const idx = keyIndex(await api("/api/index"));
   for (const g of [...RA.data.recent, ...RA.data.progress]) {
     const sys = RA_CONSOLE[g.console];
-    const k = sys && `${sys}|${normTitle(g.title.replace(/^~[^~]+~\s*/, ""))}`;
-    if (k && idx.has(k)) { g.key = k; RA.keyOf.set(k, g.id); }
+    const k = sys && idx.get(`${sys}|${normTitle(g.title.replace(/^~[^~]+~\s*/, ""))}`);
+    if (k) { g.key = k; RA.keyOf.set(k, g.id); }
   }
   drawRA();
+  loadRACatalog();
+}
+// Quais jogos do catálogo têm conquistas no RA (selo na grade e lista na página do jogo, mesmo sem ter jogado).
+async function loadRACatalog() {
+  try {
+    const r = await fetch("data/ra-catalog.json");
+    if (!r.ok) return;
+    const cat = await r.json();
+    const idx = keyIndex(await api("/api/index"));
+    for (const [console, list] of Object.entries(cat)) {
+      const sys = console !== "_ids" && RA_CONSOLE[console];
+      if (!sys) continue;
+      for (const [id, title, n] of list) {
+        const k = idx.get(`${sys}|${normTitle(title)}`);
+        if (!k) continue;
+        RA.has.set(k, n);
+        if (!RA.keyOf.has(k)) RA.keyOf.set(k, id);
+      }
+    }
+    if (!$("#view-games").classList.contains("hidden")) renderGames();
+  } catch {}
 }
 const raHref = (g) => (g.key ? gameHref({ game_key: g.key }) : `https://retroachievements.org/game/${g.id}`);
 const raExt = (g) => (g.key ? "" : `target="_blank" rel="noopener"`);
@@ -824,9 +881,10 @@ async function drawGameRA(g) {
   if (!r?.ok) { sec.innerHTML = `<h2>Conquistas</h2><p class="muted small">Não consegui falar com o RetroAchievements agora.</p>`; return; }
   const x = await r.json();
   const pct = x.total ? (x.earned / x.total) * 100 : 0;
+  const neverPlayed = !RA.data.progress.some((p) => p.id === x.id) && !RA.data.recent.some((p) => p.id === x.id);
   sec.innerHTML = `<div class="tile-head"><h2>Conquistas · ${fmtN(x.earned)} de ${fmtN(x.total)}</h2>
       <a class="tlink small" href="https://retroachievements.org/game/${x.id}" target="_blank" rel="noopener">Ver no RetroAchievements</a></div>
-    <div class="ra-progress"><span class="bar"><i style="width:${pct}%"></i></span><span class="muted small">${fmtN(x.userPoints)} de ${fmtN(x.points)} pontos · ${fmtN(x.players)} jogadores</span></div>
+    <div class="ra-progress"><span class="bar"><i style="width:${pct}%"></i></span><span class="muted small">${neverPlayed ? "Você ainda não jogou com conquistas ligadas · " : ""}${fmtN(x.userPoints)} de ${fmtN(x.points)} pontos · ${fmtN(x.players)} jogadores</span></div>
     <ul class="ach">${x.achievements.map((a) => `<li class="${a.earned ? "on" : ""}">
       <img src="${esc(a.badge || "")}" alt="" loading="lazy">
       <span><b>${esc(a.title)}</b><span class="muted small">${esc(a.description)}</span></span>
@@ -853,7 +911,9 @@ async function renderGame(key) {
   document.title = `${g.title} · Handheld Hub`;
   markSeen(g.game_key);
   const short = g.game_key.split("|").slice(1).join("|");
-  const info = (await getData("info", g.system))[short] || {};
+  const shorts = (window.HH_MEMBERS?.[g.game_key] || [g.game_key]).map((k) => k.split("|").slice(1).join("|"));
+  const pickAny = (obj) => shorts.map((k) => obj[k]).find(Boolean);
+  const info = pickAny(await getData("info", g.system)) || {};
   const bad = g.copies.some((c) => c.status === "corrupted");
   const year = info.ano ? `${info.mes ? MONTHS[info.mes - 1] + " de " : ""}${info.ano}` : null;
   const facts = [["Lançamento", year], ["Desenvolvedora", info.dev], ["Publicadora", info.pub], ["Gênero", info.genero],
@@ -871,9 +931,10 @@ async function renderGame(key) {
             <a class="pchip" href="#platform-${esc(g.system)}">${esc(sysName(g.system))}</a>
             <h1 tabindex="-1">${esc(g.title)}</h1>
             <p class="gsub">${[year, info.dev, info.genero].filter(Boolean).map(esc).join(" · ") || "Sem ficha no banco do libretro"}</p>
+            ${gameRegions(g).length ? `<p class="gregions">${gameRegions(g).map((c) => `<span>${flag(c)}${REGION_NAME[c]}</span>`).join("")}</p>` : ""}
             ${bad ? `<span class="badge bad">${icon("triangle-alert", "sm")}Tem cópia corrompida</span>` : ""}
             <div class="gactions">
-              ${Object.entries(LIST_LABEL).map(([l, [label, ic]]) => `<button type="button" class="listbtn" data-list="${l}" aria-pressed="${LISTS[l].has(g.game_key)}">${icon(ic, "sm")}${label}</button>`).join("")}
+              ${Object.entries(LIST_LABEL).map(([l, [label, ic]]) => `<button type="button" class="listbtn" data-list="${l}" aria-pressed="${inList(l, g.game_key)}">${icon(ic, "sm")}${label}</button>`).join("")}
             </div>
             <div class="gactions">
               ${driveBtn(g, "Abrir no Drive")}
@@ -893,9 +954,10 @@ async function renderGame(key) {
           return `<p class="gwarn">${icon("triangle-alert", "sm")}<span>Há cópia corrompida${where ? `. Cópia boa em <b>${esc(where)}</b>: copie de lá.` : g.copies.some((c) => c.device_id === "drive") ? ". A cópia do Drive não foi verificada." : ". Baixe de novo da fonte."}</span></p>`;
         })() : ""}
         <table class="table copies-table"><caption class="sr-only">Cópias deste jogo</caption>
-          <thead><tr><th scope="col">Lugar</th><th scope="col">Formato</th><th scope="col">Tamanho</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Abrir</span></th></tr></thead>
+          <thead><tr><th scope="col">Lugar</th><th scope="col">Região</th><th scope="col">Formato</th><th scope="col">Tamanho</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Abrir</span></th></tr></thead>
           <tbody>${g.copies.map((c) => `<tr ${dev(c.device_id)}>
             <td><span class="cell-dev"><i class="dot"></i>${esc(copyLabel(deviceOf(c.device_id), c.location_id))}</span></td>
+            <td>${flagsHtml(regionsOf(c.title)) || `<span class="muted small">—</span>`}</td>
             <td>${esc(c.ext === "pasta" ? "pasta" : (c.ext || "—").toUpperCase())}</td>
             <td class="num-cell">${c.size ? fmtB(c.size) : "—"}</td>
             <td>${c.status === "corrupted" ? `<span class="badge bad">corrompido</span>` : c.status === "ok" ? `<span class="badge ok">${icon("shield-check", "sm")}ok</span>` : `<span class="muted small">não verificado</span>`}</td>
@@ -926,7 +988,7 @@ async function renderGame(key) {
   });
   // Sobre o jogo: introdução da Wikipédia (casada pelo Wikidata), um arquivo por plataforma.
   getData("about", g.system).then((all) => {
-    const ab = all[short];
+    const ab = pickAny(all);
     if (!ab) return;
     $("#gabout").classList.remove("hidden");
     $("#gabout").innerHTML = `<h2 id="t-gabout">Sobre o jogo</h2>
@@ -942,7 +1004,7 @@ async function renderGame(key) {
     });
   });
   drawGameRA(g);
-  const cheats = (await getData("cheats", g.system))[short] || [];
+  const cheats = pickAny(await getData("cheats", g.system)) || [];
   const total = cheats.reduce((n, [, list]) => n + list.length, 0);
   $("#gcodes").innerHTML = `<h2 id="t-codes">Códigos · ${fmtN(total)}</h2>` + (cheats.length
     ? `<p class="muted small">Para o RetroArch: Menu rápido → Trapaças → Adicionar. Fonte: libretro-database.</p>

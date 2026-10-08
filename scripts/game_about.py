@@ -6,7 +6,7 @@ da Wikipédia; o nome é casado com o game_key (mesma normalização do scanner)
 a página mostra crédito e link. Gera public/data/about/<sistema>.json (um arquivo por plataforma).
   python3 scripts/game_about.py [sistema...]
 """
-import json, os, re, sys, time, urllib.parse, urllib.request
+import json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -26,29 +26,32 @@ QID = {
 }
 
 
-def get(url, tries=4):
+def get(url, tries=5):
     for i in range(tries):
         try:
-            return json.load(urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"}), timeout=120))
+            return json.load(urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"}), timeout=180))
+        except urllib.error.HTTPError as e:
+            # 429: o servidor diz quanto esperar (Retry-After); respeita, até 25 min.
+            wait = int(e.headers.get("Retry-After") or 0) if e.code == 429 else 0
+            print(f"  HTTP {e.code}; esperando {max(wait, 30 * (i + 1))} s", flush=True)
+            time.sleep(min(max(wait, 30 * (i + 1)), 1500))
         except Exception:
-            time.sleep(5 * (i + 1))
+            time.sleep(30 * (i + 1))
     return None
 
 
 def wikidata_games(qid):
-    q = f"""SELECT ?g ?en ?pt ?ptw ?enw WHERE {{
+    """Jogos da plataforma com artigo na Wikipédia PT ou EN. Consulta leve (sem rótulos) para não estourar o
+    tempo nos consoles grandes; o casamento usa o título do artigo. None = falhou (não sobrescrever nada)."""
+    q = f"""SELECT ?g ?ptw ?enw WHERE {{
       ?g wdt:P400 wd:{qid} .
-      OPTIONAL {{ ?g rdfs:label ?en FILTER(lang(?en)="en") }}
-      OPTIONAL {{ ?g rdfs:label ?pt FILTER(lang(?pt)="pt") }}
       OPTIONAL {{ ?ptw schema:about ?g ; schema:isPartOf <https://pt.wikipedia.org/> }}
       OPTIONAL {{ ?enw schema:about ?g ; schema:isPartOf <https://en.wikipedia.org/> }}
       FILTER(BOUND(?ptw) || BOUND(?enw)) }}"""
     d = get("https://query.wikidata.org/sparql?" + urllib.parse.urlencode({"query": q, "format": "json"}))
-    out = []
-    for b in (d or {}).get("results", {}).get("bindings", []):
-        v = {k: x["value"] for k, x in b.items()}
-        out.append(v)
-    return out
+    if d is None:
+        return None
+    return [{k: x["value"] for k, x in b.items()} for b in d.get("results", {}).get("bindings", [])]
 
 
 def extracts(lang, titles):
@@ -85,14 +88,22 @@ def main():
         want = keys.get(s, set())
         if not want:
             continue
+        path = os.path.join(ROOT, "public", "data", "about", f"{s}.json")
+        if "--force" not in sys.argv and os.path.exists(path) and json.load(open(path)):
+            print(f"{s:14s} já existe, pulando", flush=True)
+            continue
+        rows = wikidata_games(QID[s])
+        if rows is None:
+            print(f"{s:14s} Wikidata não respondeu; arquivo mantido", flush=True)
+            continue
         found = {}
         art = lambda u: u and re.sub(r"\s*\((?:video ?game|jogo eletrônico|videojogo|jogo)[^)]*\)$", "", urllib.parse.unquote(u.rsplit("/wiki/", 1)[-1]).replace("_", " "), flags=re.I)
-        for r in wikidata_games(QID[s]):
-            for label in (r.get("en"), r.get("pt"), art(r.get("enw")), art(r.get("ptw"))):
+        for r in rows:
+            for label in (art(r.get("enw")), art(r.get("ptw"))):
                 k = label and norm(label)
                 if k in want and k not in found:
                     found[k] = r
-        time.sleep(1)
+        time.sleep(60)                                   # um minuto entre plataformas: gentil com o Wikidata
         # Artigo em PT quando existe; senão EN.
         url_title = lambda u: urllib.parse.unquote(u.rsplit("/wiki/", 1)[-1]).replace("_", " ")
         pt = extracts("pt", sorted({url_title(r["ptw"]) for r in found.values() if r.get("ptw")}))
@@ -108,7 +119,7 @@ def main():
             ps = paras(text)
             if ps:
                 out[k] = {"lang": lang, "text": ps, "url": url}
-        json.dump(out, open(os.path.join(ROOT, "public", "data", "about", f"{s}.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+        json.dump(out, open(path, "w"), ensure_ascii=False, separators=(",", ":"))
         total += len(out)
         print(f"{s:14s} {len(out):5d}/{len(want):<5d} ({sum(1 for v in out.values() if v['lang'] == 'pt')} em PT)", flush=True)
     print(f"total: {total} jogos com texto")

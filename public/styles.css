@@ -420,6 +420,16 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
   .codes code { grid-column: 1 / -1; order: 3; }
 }
 
+/* ---------- bandeiras de região ---------- */
+.flags { display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; margin-left: 4px; }
+.flag { width: 16px; height: 12px; border-radius: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / .15); object-fit: cover; flex: none; }
+.flag.globe { display: inline-grid; place-items: center; box-shadow: none; color: inherit; }
+.flag.globe .ic { width: 13px; height: 13px; }
+.gmeta .flags { margin-left: 6px; }
+.gregions { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: #e4e4ea; }
+.gregions span { display: inline-flex; align-items: center; gap: 6px; }
+.gregions .flag { width: 20px; height: 15px; }
+
 /* ---------- cópias na página do jogo ---------- */
 .gwarn { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; margin-bottom: 12px; border-radius: 10px; font-size: 14px;
   border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent); background: color-mix(in srgb, var(--danger) 8%, transparent); }
@@ -450,6 +460,11 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
   background: rgb(0 0 0 / .65); color: #ffd84d; }
 .gfav .ic { fill: currentColor; width: 14px; height: 14px; }
 .gcard:has(.gbad) .gfav { top: 36px; }
+.gra { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: rgb(0 0 0 / .65); color: #ffd84d; transition: opacity .15s; }
+.gra .ic { width: 14px; height: 14px; }
+.gcard:hover .gra, .gcard:focus-within .gra { opacity: 0; }   /* no hover, o botão do Drive ocupa o canto */
+@media (hover: none) { .gra { top: 44px; } }
 .gnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .gstep { display: inline-flex; align-items: center; gap: 10px; color: #e4e4ea; }
 .gstep .muted { color: #e4e4ea; }

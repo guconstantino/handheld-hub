@@ -50,6 +50,9 @@ LIBRETRO = {
 
 def norm(title):
     """Mesmo critério do game_key do scanner: sem (região)/[tags], artigo no começo, só letras e números."""
+    title = re.sub(r"\.\d{2}$", "", title)
+    title = re.sub(r"(?i)[\s_-]*decrypted\b", "", title)
+    title = re.sub(r"(?i)\s*-\s*(c[oó]pia|copy)(\s*\(\d+\))?$", "", title)
     t = re.sub(r"[\(\[][^\)\]]*[\)\]]", " ", title)
     t = re.sub(r"^(.*), (the|a|an)\b", r"\2 \1", t.strip(), flags=re.I)
     return re.sub(r"[^a-z0-9]+", " ", t.lower()).strip()

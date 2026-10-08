@@ -15,7 +15,33 @@
     }));
     const byKey = new Map();
     for (const f of F) (byKey.get(f.game_key) || byKey.set(f.game_key, []).get(f.game_key)).push(f);
-    return { D, F, byKey };
+    // Uma página por jogo: grafias que só diferem por espaço ("Timecop"/"Time Cop", "Megaman"/"Mega Man")
+    // viram um grupo. A chave com mais cópias (ou com capa) representa; as outras viram apelidos (favoritos,
+    // links e vínculos antigos continuam valendo). Algarismos romanos ficam de fora ("I II" ≠ "III").
+    const groups = new Map();
+    for (const k of byKey.keys()) {
+      const [sys, rest] = [k.slice(0, k.indexOf("|")), k.slice(k.indexOf("|") + 1)];
+      if (/(^| )[ivx]{1,4}( |$)/.test(rest)) continue;
+      const gk = sys + "|" + rest.replace(/ /g, "");
+      (groups.get(gk) || groups.set(gk, []).get(gk)).push(k);
+    }
+    const alias = {}, members = {};
+    for (const keys of groups.values()) {
+      if (keys.length < 2) continue;
+      keys.sort((a, b) => (byKey.get(b).length - byKey.get(a).length) || (!!D.covers[b] - !!D.covers[a]));
+      const rep = keys[0];
+      members[rep] = keys;
+      for (const k of keys.slice(1)) {
+        byKey.get(rep).push(...byKey.get(k));
+        byKey.delete(k);
+        alias[k] = rep;
+        if (!D.covers[rep] && D.covers[k]) D.covers[rep] = D.covers[k];
+      }
+      for (const f of byKey.get(rep)) f.game_key = rep;
+    }
+    window.HH_ALIAS = alias;                       // chave antiga → chave do grupo
+    window.HH_MEMBERS = members;                   // chave do grupo → todas as chaves
+    return { D, F, byKey, alias };
   }
   const bySystem = (list) => Object.entries(list.reduce((m, g) => ((m[g.system] = (m[g.system] || 0) + 1), m), {}))
     .map(([system, n]) => ({ system, n })).sort((a, b) => b.n - a.n);
@@ -71,7 +97,7 @@
       // Listas do usuário (favoritos, quero jogar, zerei): vêm de window.HH_LISTS (app.js).
       if (["playing", "fav", "want", "done"].includes(p.get("status"))) {
         const set = window.HH_LISTS?.[p.get("status")] || new Set();
-        for (const k of [...hit]) if (!set.has(k)) hit.delete(k);
+        for (const k of [...hit]) if (!(window.HH_MEMBERS[k] || [k]).some((m) => set.has(m))) hit.delete(k);
       }
       // Presença: "sem backup" = em algum console mas não no Drive; "só no Drive" = em nenhum console.
       const pres = p.get("status");
@@ -121,15 +147,16 @@
       return out;
     },
     // Um jogo: cópias, capa e título (os dados extras vêm de data/info e data/cheats, por plataforma).
-    "/api/game": ({ D, byKey }, p) => {
-      const k = p.get("key"), copies = byKey.get(k);
+    "/api/game": (X, p) => {
+      const { D, byKey } = X;
+      const k = X.alias[p.get("key")] || p.get("key"), copies = byKey.get(k);
       if (!copies) return null;
       return { game_key: k, system: copies[0].system, title: copies.reduce((t, c) => (c.title < t ? c.title : t), copies[0].title),
                cover: D.covers[k] || null, copies };
     },
     // Índice da busca global: um item por jogo (título, plataforma, capa). Montado uma vez.
     "/api/index": (X) => (X.index ||= [...X.byKey].map(([k, c]) => ({
-      k, s: c[0].system, t: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), c: X.D.covers[k] || null,
+      k, s: c[0].system, t: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), c: X.D.covers[k] || null, a: X.alias && window.HH_MEMBERS[k],
     }))),
     // Comparar dois lugares: só em A, só em B e em ambos (jogos únicos), por plataforma, e a lista de cada lado.
     "/api/compare": ({ D, byKey }, p) => {
@@ -151,7 +178,7 @@
       return out;
     },
     // Vários jogos pela chave, na ordem pedida (favoritos, vistos recentemente).
-    "/api/pick": ({ D, byKey }, p) => (p.get("keys") ? JSON.parse(p.get("keys")) : []).map((k) => {
+    "/api/pick": ({ D, byKey, alias }, p) => [...new Set((p.get("keys") ? JSON.parse(p.get("keys")) : []).map((k) => alias[k] || k))].map((k) => {
       const c = byKey.get(k);
       return c && { game_key: k, system: c[0].system, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), cover: D.covers[k] || null, copies: c };
     }).filter(Boolean),

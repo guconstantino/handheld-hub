@@ -1,13 +1,13 @@
 [
  {
   "date": "2026-10-08",
-  "games": 15746,
+  "games": 15733,
   "files": 35675,
-  "covers": 14356,
+  "covers": 14351,
   "corrupted": 284,
   "devices": {
    "drive": {
-    "games": 13203,
+    "games": 13195,
     "total": null,
     "free": null
    },
@@ -17,7 +17,7 @@
     "free": 21474836480
    },
    "s20fe": {
-    "games": 10484,
+    "games": 10482,
     "total": null,
     "free": null
    },
