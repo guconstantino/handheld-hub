@@ -7,7 +7,7 @@ Fase 1 pronta localmente: S20 FE (SD + interno) e Drive indexados; portal com vi
 - [x] **Fase 0 — Fundação:** schema D1, Worker só leitura, scanner Python, portal herdado do Handheld Hub.
 - [x] **Fase 1 — S20 FE + Drive:** varredura, detecção de corrompidos, agrupamento por jogo.
 - [x] **Fase 1.5 — Visual minimalista + fichas:** S20, Miyoo e Switch com ficha, armazenamento e seções.
-- [ ] **Fase 2 — Miyoo + Switch:** scanners prontos (`npm run scan:miyoo` com o SD plugado; `npm run scan:switch` com o ftpd aberto). Falta rodar com os devices.
+- [ ] **Fase 2 — Miyoo + Switch:** Miyoo varrido ✅ (6.689 jogos). Switch: scanner pronto (`npm run scan:switch` com o ftpd aberto), falta rodar.
 - [ ] **Fase 3 — Produção (só com ok):** `wrangler d1 create gamehub`, deploy, domínio `gamehub.gustavoconstantino.com`, Cloudflare Access (só o e-mail do Gustavo), `scan.py --remote`.
 - [ ] **Depois:** capas (Daijishō/OnionOS), pendências de cada repo no painel, varredura agendada.
 

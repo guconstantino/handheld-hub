@@ -29,7 +29,9 @@ SYSTEM_ALIAS = {"megadrivebr": "megadrive", "snesbr": "snes", "mastersystembr": 
                 "sfc": "snes", "n3ds": "3ds", "pc": "windows",
                 # códigos de pasta do OnionOS (Miyoo)
                 "fc": "nes", "ps": "psx", "md": "megadrive", "pce": "pcengine", "ws": "wswanc", "coleco": "colecovision",
-                "gg": "gamegear", "ms": "mastersystem", "vb": "virtualboy", "atari": "atari2600", "32x": "sega32x"}
+                "gg": "gamegear", "ms": "mastersystem", "vb": "virtualboy", "atari": "atari2600", "32x": "sega32x",
+                "thirtytwox": "sega32x", "fiftytwohundred": "atari5200", "seventyeighthundred": "atari7800",
+                "commodore": "c64", "neocd": "neogeocd"}
 # Sistemas em que cada subpasta é UM jogo (3DS instalado, PSX multidisco, PC, Lutro).
 # Nos demais, subpastas são só organização (c64/A-Z, gba/hacks) e cada arquivo é um jogo.
 FOLDER_SYSTEMS = {"3ds", "psx", "ps2", "psp", "windows", "lutro", "naomi"}
@@ -152,7 +154,11 @@ def scan_local(loc, root, detect=None, read_head=False):
                 except OSError:
                     pass
             rows.append((os.path.relpath(full, base), st.st_size, int(st.st_mtime), head))
-    return rows, (None, None)
+    space = (None, None)
+    if read_head:                                        # disco físico: espaço total/livre do volume
+        st = os.statvfs(base)
+        space = (st.f_blocks * st.f_frsize, st.f_bavail * st.f_frsize)
+    return rows, space
 
 
 def scan_ftp(loc, root):

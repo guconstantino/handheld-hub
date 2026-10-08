@@ -64,7 +64,7 @@
       "name": "Miyoo Mini Plus",
       "kind": "console",
       "accent": "#f59e0b",
-      "notes": "Portátil Linux com OnionOS. Ainda não varrido pelo hub (plugar o SD no Mac).",
+      "notes": "Portátil Linux com OnionOS. Cartão de 64 GB varrido pelo Mac.",
       "specs": {
         "source": "miyoominiplus",
         "snapshot": "2026-09-20",
