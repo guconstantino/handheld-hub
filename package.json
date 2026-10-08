@@ -10,9 +10,14 @@
     "devices": "python3 scanner/scan.py --devices",
     "build:static": "python3 scripts/build_static.py",
     "scan:miyoo": "python3 scanner/scan.py miyoo-sd",
-    "scan:switch": "python3 scanner/scan.py switch-jksv"
+    "scan:switch": "python3 scanner/scan.py switch-jksv",
+    "vendor": "mkdir -p public/vendor public/fonts && cp node_modules/motion/dist/motion.js public/vendor/motion.js && cp node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2 node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2 public/fonts/",
+    "catalog": "python3 scripts/catalog.py",
+    "serve": "node scripts/serve.mjs"
   },
   "devDependencies": {
+    "geist": "1.7.2",
+    "motion": "13.4.2",
     "wrangler": "4.135.0"
   }
 }

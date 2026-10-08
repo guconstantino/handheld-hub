@@ -108,16 +108,22 @@ function route(moveFocus = false) {
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== `view-${target}`));
   if (target === "device") renderDevice(arg);
   if (target === "platforms" && !state.loaded.platforms) { state.loaded.platforms = true; loadPlatforms(); }
-  if (target === "platform") renderPlatform(arg);
+  const pending = target === "platform" ? renderPlatform(arg) : null;
   if (target === "games" && !state.loaded.games) { state.loaded.games = true; loadGames(); }
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
   const h1 = document.querySelector(`#view-${target} h1`);
   document.title = h1 && target !== "overview" ? `${h1.textContent} · Handheld Hub` : "Handheld Hub";
   window.scrollTo(0, 0);
   // Troca de tela sem recarregar: leva o foco ao título para o leitor de tela anunciar a tela nova.
-  if (moveFocus) focusHeading();
+  if (moveFocus) (pending || Promise.resolve()).then(focusHeading);
+  return pending;
 }
-window.addEventListener("hashchange", () => route(true));
+// Com fx.js, a troca de tela usa View Transitions (a arte da plataforma "cresce" até o topo).
+window.addEventListener("hashchange", () => {
+  if (!window.HH_TRANSITION) return route(true);
+  window.HH_TRANSITION(() => route(true)).finally(() =>
+    document.querySelectorAll(".ptile img").forEach((i) => (i.style.viewTransitionName = "")));
+});
 
 // ---------- armazenamento (varrido ou declarado no devices.json) ----------
 function storageOf(d) {
@@ -324,6 +330,14 @@ document.querySelectorAll(".seg button").forEach((b) => (b.onclick = () => {
   try { localStorage.setItem("hh_view", viewMode); } catch {}
   renderGames();
 }));
+
+// Capa terminou de carregar: tira o brilho de carregamento do cartão.
+document.addEventListener("load", (e) => {
+  if (e.target.tagName === "IMG" && e.target.closest(".gart")) e.target.closest(".gcard")?.classList.add("loaded");
+}, true);
+document.addEventListener("error", (e) => {
+  if (e.target.tagName === "IMG" && e.target.closest(".gart")) e.target.closest(".gcard")?.classList.add("loaded");
+}, true);
 
 // Rolagem infinita: quando o botão "Carregar mais" chega perto da tela, ele se aciona sozinho.
 // O botão continua visível e focável (teclado e leitor de tela).

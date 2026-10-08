@@ -16,7 +16,7 @@
   --series: #2a78d6;  /* série única dos gráficos */
   --shadow: 0 1px 2px rgb(16 16 20 / .04), 0 1px 1px rgb(16 16 20 / .03);
   --radius: 12px;
-  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   color-scheme: light;
   /* Acento de cada console: paleta categórica validada (dataviz) nos dois temas.
      Ordem fixa nos gráficos empilhados: Switch → S20 → Drive → Miyoo. */
@@ -41,11 +41,15 @@
 [data-dev="drive"]  { --accent: var(--acc-drive); }
 [data-dev="miyoo"]  { --accent: var(--acc-miyoo); }
 
+@font-face { font-family: "Geist"; src: url("fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("fonts/GeistMono-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-padding-top: 72px; } /* WCAG 2.4.11: foco não fica embaixo do topo fixo (celular) */
 body {
   background: var(--bg); color: var(--text);
-  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 15px/1.55 "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "ss01";
   -webkit-font-smoothing: antialiased;
   display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh;
 }
@@ -53,6 +57,24 @@ a { color: inherit; text-decoration: none; }
 button, input, select { font: inherit; color: inherit; }
 .hidden { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- micro-interações (fx.js liga a classe .fx; sem ela tudo aparece parado) ---------- */
+.fx :is(.tile, .device, .ptile, .gcard, .htile, .phero, .page-head, .panel, .mosaic li):not(.in) { opacity: 0; }
+.bar i, .barlist .track i { transform-origin: left center; }
+.ptile, .gcard, .device { will-change: transform; }
+.phero img { view-transition-name: platform-art; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .25s; }
+::view-transition-group(platform-art) { animation-duration: .45s; animation-timing-function: cubic-bezier(.2, .7, .2, 1); }
+/* Capa carregando: brilho passando (skeleton); a imagem entra com fade quando chega. */
+.gart { background: linear-gradient(100deg, #1a1a1d 30%, #2a2a2f 50%, #1a1a1d 70%) 0 0 / 300% 100%; }
+@media (prefers-reduced-motion: no-preference) {
+  .gcard:not(.loaded) .gart { animation: shimmer 1.4s linear infinite; }
+  .gart img { opacity: 0; transition: opacity .35s ease; }
+  .gcard.loaded .gart img { opacity: 1; }
+}
+.gcard.loaded .gart .gplat { opacity: 1; }
+@keyframes shimmer { to { background-position: -300% 0; } }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
 
 /* ---------- foco e atalho ---------- */
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
@@ -150,7 +172,7 @@ h2 .ic { color: var(--faint); }
   border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); transition: border-color .15s, transform .15s;
 }
 .device:hover { border-color: var(--control); }
-@media (prefers-reduced-motion: no-preference) { .device:hover { transform: translateY(-1px); } }
+
 .cover {
   height: 148px; display: grid; place-items: center; border-bottom: 1px solid var(--line);
   background: radial-gradient(120% 90% at 50% 100%, color-mix(in srgb, var(--accent) 22%, var(--surface)), color-mix(in srgb, var(--accent) 6%, var(--surface)));
