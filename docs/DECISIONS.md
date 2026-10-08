@@ -17,6 +17,12 @@ Formato ADR curto. Mais recente no topo. Data AAAA-MM-DD.
 - **Decisão:** SQL + wrangler. O Worker só tem GETs.
 - **Motivo:** nenhum segredo de escrita no Worker e menos código; o wrangler já autentica na conta Cloudflare.
 
+## 2026-10-08 — Capas no R2
+
+- **Contexto:** os assets do Worker têm limite de 20 mil arquivos por versão; as capas já eram ~14,3 mil e ainda vêm ícones do RetroAchievements e mídia nova.
+- **Decisão:** capas no bucket R2 `gamehub-media` (plano grátis: 10 GB, 1 mi escritas e 10 mi leituras/mês; uso ~0,3 GB). O Worker serve `/covers/*` do R2 (atrás do mesmo Access), com cache longo no navegador e na borda (`caches.default`), já que o nome da capa é hash e nunca muda. `public/.assetsignore` tira `covers/` dos assets. Envio com o login do wrangler (`npm run r2`, retomável via `data/r2-uploaded.txt`) — sem token.
+- **Alternativas:** Workers pago (US$ 5/mês, 100 mil arquivos), Oracle (mais um servidor e outra regra de Access), Supabase Storage (tráfego grátis pequeno, fora do login), sprites de capas (pior carregamento).
+
 ## 2026-10-08 — Catálogo estático em vez de API no D1
 
 - **Contexto:** no primeiro dia em produção o D1 estourou o limite grátis de leitura (5 mi de linhas/dia): cada acesso varria a tabela inteira (~36 mil linhas) em várias consultas; a busca, a cada letra.

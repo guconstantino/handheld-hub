@@ -9,6 +9,7 @@ faltam, converte para WebP de 384 px em public/covers/ e gera data/covers.sql.
   python3 scripts/covers.py --all                   # todos os sistemas mapeados
   python3 scripts/covers.py --onion /Volumes/ONION  # completa com as capas do cartão do Miyoo (só leitura)
   python3 scripts/covers.py --daijisho              # completa com as capas do Daijishō no S20 via adb (só leitura)
+  python3 scripts/covers.py --eshop                 # Switch: arte oficial da eShop via titledb (o libretro não tem Switch)
   python3 scripts/covers.py --sql [--remote]        # grava data/covers.sql no D1
 
 Precisa de Pillow (ex.: ~/.cache/s20fe-outpaint/bin/python). Só a lista de capas de cada
@@ -248,6 +249,41 @@ def daijisho():
     print(f"{len(done)} capas do Daijishō no total")
 
 
+ESHOP_MAP = os.path.join(ROOT, "data", "covers-eshop.json")
+TITLEDB = os.path.expanduser("~/.cache/handheld-hub/titledb-US.en.json")   # github.com/blawar/titledb (US.en.json)
+
+
+def eshop():
+    """Switch: casa o nome com o titledb e usa o ícone oficial da eShop (arte quadrada, 1024 px)."""
+    from PIL import Image
+    if not os.path.exists(TITLEDB):
+        data = fetch("https://raw.githubusercontent.com/blawar/titledb/master/US.en.json")
+        os.makedirs(os.path.dirname(TITLEDB), exist_ok=True)
+        open(TITLEDB, "wb").write(data)
+    db = json.load(open(TITLEDB))
+    clean = lambda t: norm(t.replace("™", "").replace("®", ""))
+    idx = {}
+    for v in db.values():
+        if v.get("name") and v.get("iconUrl"):
+            idx.setdefault(clean(v["name"]), v["iconUrl"])
+    done = json.load(open(ESHOP_MAP)) if os.path.exists(ESHOP_MAP) else {}
+    os.makedirs(OUT, exist_ok=True)
+    for r in d1("SELECT DISTINCT game_key, title FROM files WHERE system='switch'"):
+        url = idx.get(clean(r["title"]))
+        if r["game_key"] in done or not url:
+            continue
+        data = fetch(url)
+        if not data:
+            continue
+        im = Image.open(io.BytesIO(data)).convert("RGB")
+        im.thumbnail((SIZE, SIZE))
+        name = "e-" + cover_file(r["game_key"])
+        im.save(os.path.join(OUT, name), "WEBP", quality=82, method=6)
+        done[r["game_key"]] = name
+    json.dump(done, open(ESHOP_MAP, "w"), ensure_ascii=False)
+    print(f"{len(done)} capas da eShop")
+
+
 def write_sql(remote=False):
     """Registra no D1 só as capas que existem em public/covers/ (libretro primeiro, OnionOS completa)."""
     plan, _ = match(sorted(LIBRETRO))
@@ -259,6 +295,9 @@ def write_sql(remote=False):
     have = {k for k, _, _ in rows}
     daiji = json.load(open(DAIJI_MAP)) if os.path.exists(DAIJI_MAP) else {}
     rows += [(k, f, "daijisho") for k, f in daiji.items() if k not in have and os.path.exists(os.path.join(OUT, f))]
+    have = {k for k, _, _ in rows}
+    esh = json.load(open(ESHOP_MAP)) if os.path.exists(ESHOP_MAP) else {}
+    rows += [(k, f, "eshop") for k, f in esh.items() if k not in have and os.path.exists(os.path.join(OUT, f))]
     q = lambda v: "'" + v.replace("'", "''") + "'"
     out = ["DELETE FROM covers;"]
     for i in range(0, len(rows), 200):
@@ -275,6 +314,9 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if "--sql" in args:
         write_sql("--remote" in args)
+        sys.exit()
+    if "--eshop" in args:
+        eshop()
         sys.exit()
     if "--daijisho" in args:
         daijisho()

@@ -13,7 +13,8 @@
     "scan:switch": "python3 scanner/scan.py switch-jksv",
     "vendor": "mkdir -p public/vendor public/fonts && cp node_modules/motion/dist/motion.js node_modules/d3/dist/d3.min.js node_modules/@observablehq/plot/dist/plot.umd.min.js public/vendor/ && cp node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2 node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2 public/fonts/",
     "catalog": "python3 scripts/catalog.py",
-    "serve": "node scripts/serve.mjs"
+    "serve": "node scripts/serve.mjs",
+    "r2": "python3 scripts/r2_sync.py"
   },
   "devDependencies": {
     "@observablehq/plot": "0.6.17",

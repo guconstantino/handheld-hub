@@ -1,0 +1,2 @@
+# Capas ficam no R2 (bucket gamehub-media, servidas pelo Worker em /covers/*): fora do limite de 20 mil arquivos dos assets.
+covers/
