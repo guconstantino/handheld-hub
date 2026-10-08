@@ -504,6 +504,8 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .ra-p { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .ra-p .bar, .ra-progress .bar { flex: 1; margin: 0; height: 5px; }
 .ra-p .bar i, .ra-progress .bar i { background: var(--ok); }
+.ra-sub { font-size: 14px; font-weight: 600; margin: 18px 0 8px; }
+.ra-ach { max-height: none; }
 .ra-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .ach { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px; max-height: 520px; overflow-y: auto; }
 .ach li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px; border-radius: 8px; }

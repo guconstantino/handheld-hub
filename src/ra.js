@@ -14,9 +14,13 @@ async function call(endpoint, params, key) {
 
 // Resumo do usuário: perfil, jogando agora, jogados recentemente (com progresso) e progresso em todos os jogos.
 export async function summary({ user, key }) {
-  const [sum, prog] = await Promise.all([
+  // Últimas conquistas: o RecentAchievements do resumo só cobre os jogos dos últimos dias; o
+  // "earned between" (últimos 10 anos) traz o histórico completo com data e selo.
+  const now = Math.floor(Date.now() / 1000);
+  const [sum, prog, earned] = await Promise.all([
     call("API_GetUserSummary", { u: user, g: 30, a: 10 }, key),
     call("API_GetUserCompletionProgress", { u: user, c: 500 }, key),
+    call("API_GetAchievementsEarnedBetween", { u: user, f: now - 10 * 365 * 86400, t: now }, key).catch(() => []),
   ]);
   // Jogados recentemente trazem a contagem em sum.Awarded[GameID]; o progresso geral traz no próprio item.
   const game = (g) => {
@@ -36,9 +40,11 @@ export async function summary({ user, key }) {
     rank: sum.Rank ? Number(sum.Rank) : null, totalRanked: sum.TotalRanked ? Number(sum.TotalRanked) : null,
     status: sum.Status || null, richPresence: sum.RichPresenceMsg || null, lastGameId: sum.LastGameID ? Number(sum.LastGameID) : null,
     recent: (sum.RecentlyPlayed || []).map(game),
-    recentAchievements: Object.values(sum.RecentAchievements || {}).flatMap((g) => Object.values(g)).map((a) => ({
-      id: Number(a.ID), title: a.Title, description: a.Description, points: Number(a.Points || 0), game: a.GameTitle, gameId: Number(a.GameID),
-      badge: a.BadgeName ? `${MEDIA}/Badge/${a.BadgeName}.png` : null, date: a.DateAwarded, hardcore: !!Number(a.HardcoreAchieved || 0),
+    achievementsTotal: Array.isArray(earned) ? earned.length : 0,
+    recentAchievements: (Array.isArray(earned) ? earned : []).map((a) => ({
+      id: Number(a.AchievementID), title: a.Title, description: a.Description, points: Number(a.Points || 0), game: a.GameTitle,
+      gameId: Number(a.GameID), console: a.ConsoleName, icon: a.GameIcon ? MEDIA + a.GameIcon : null,
+      badge: a.BadgeURL ? MEDIA + a.BadgeURL : null, date: a.Date, hardcore: !!Number(a.HardcoreMode || 0),
     })).sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, 12),
     progress: (prog.Results || []).map(game),
   };

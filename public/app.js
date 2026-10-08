@@ -861,6 +861,16 @@ function drawRA() {
       <span class="ra-s">${esc(g.console)} · ${fmtD(g.last)}</span>
       <span class="ra-p"><span class="bar"><i style="width:${pct}%"></i></span>${g.total ? `${fmtN(g.earned)}/${fmtN(g.total)}` : "sem conquistas"}</span></a></li>`;
   }).join("");
+  // Últimas conquistas (todas as datas): selo, nome, jogo e quando.
+  const ach = d.recentAchievements || [];
+  $("#raAch").innerHTML = ach.length ? `<h3 class="ra-sub">Últimas conquistas${d.achievementsTotal > ach.length ? ` · ${fmtN(ach.length)} de ${fmtN(d.achievementsTotal)}` : ""}</h3>
+    <ul class="ach ra-ach">${ach.map((a) => {
+      const k = RA.keyOf && [...RA.keyOf].find(([, id]) => id === a.gameId)?.[0];
+      const when = new Date(a.date.replace(" ", "T") + "Z").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+      return `<li class="on"><img src="${esc(a.badge || "")}" alt="" loading="lazy">
+        <span><b>${esc(a.title)}</b><span class="muted small">${k ? `<a class="tlink" href="#game-${encodeURIComponent(k)}">${esc(a.game)}</a>` : esc(a.game)} · <time datetime="${esc(a.date.replace(" ", "T"))}">${when}</time>${a.hardcore ? " · hardcore" : ""}</span></span>
+        <span class="ach-pts">${fmtN(a.points)}</span></li>`;
+    }).join("")}</ul>` : "";
   const started = d.progress.filter((g) => g.earned > 0).sort((a, b) => b.earned / b.total - a.earned / a.total);
   $("#raNote").textContent = started.length
     ? `${fmtN(started.length)} jogos com conquistas desbloqueadas.`
