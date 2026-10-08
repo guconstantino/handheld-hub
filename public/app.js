@@ -188,7 +188,7 @@ async function loadSummary() {
   // Cobertura de capas: sistemas com mais jogos, % com capa (o número fica escrito).
   $("#coverage").innerHTML = `<ul class="barlist cov">${(s.coverage || []).slice(0, 14).map((c) => {
     const pct = c.games ? (c.covered / c.games) * 100 : 0;
-    return `<li data-tip="${esc(c.system)}: ${fmtN(c.covered)} de ${fmtN(c.games)} com capa"><span class="name">${esc(c.system)}</span><span class="track" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="num">${fmtP(pct)} · ${fmtN(c.covered)}/${fmtN(c.games)}</span></li>`;
+    return `<li data-tip="${esc(sysName(c.system))}: ${fmtN(c.covered)} de ${fmtN(c.games)} com capa"><a class="name" href="#platform-${esc(c.system)}">${esc(sysName(c.system))}</a><span class="track" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="num">${fmtP(pct)} · ${fmtN(c.covered)}/${fmtN(c.games)}</span></li>`;
   }).join("")}</ul>`;
 
   $("#fDevice").innerHTML = `<option value="">Todos os lugares</option>` +
@@ -233,16 +233,17 @@ function renderDevice(id) {
 async function loadSystems() {
   const rows = await api("/api/systems");
   const systems = [...new Set(rows.map((r) => r.system))].sort();
-  $("#fSystem").innerHTML = `<option value="">Todos os sistemas</option>` +
-    systems.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
-  // Sistemas com mais cópias (somando todos os lugares): uma série só, sem legenda; o número fica escrito.
-  const tot = {};
-  for (const r of rows) tot[r.system] = (tot[r.system] || 0) + r.games;
-  const top = Object.entries(tot).sort((a, b) => b[1] - a[1]).slice(0, 10);
-  const max = top.length ? top[0][1] : 1;
-  $("#topSystems").innerHTML = `<ul class="barlist">${top.map(([s, n]) => `
-    <li data-tip="${esc(s)}: ${fmtN(n)} cópias"><span class="name">${esc(s)}</span><span class="track" aria-hidden="true"><i style="width:${(n / max) * 100}%"></i></span><span class="num">${fmtN(n)}</span></li>`).join("")}</ul>
-    <p class="chart-note">Cópias somadas em todos os lugares: o mesmo jogo no S20 e no Drive conta duas vezes.</p>`;
+  $("#fSystem").innerHTML = `<option value="">Todas as plataformas</option>` +
+    systems.sort((a, b) => sysName(a).localeCompare(sysName(b))).map((s) => `<option value="${esc(s)}">${esc(sysName(s))}</option>`).join("");
+}
+
+// Jogos por plataforma: cada jogo conta uma vez, mesmo que esteja em vários lugares.
+async function loadTopPlatforms() {
+  const top = (await getPlatforms()).slice(0, 10);
+  const max = top.length ? top[0].games : 1;
+  $("#topSystems").innerHTML = `<ul class="barlist">${top.map((p) => `
+    <li data-tip="${esc(sysName(p.system))}: ${fmtN(p.games)} jogos"><a class="name" href="#platform-${esc(p.system)}">${esc(sysName(p.system))}</a><span class="track" aria-hidden="true"><i style="width:${(p.games / max) * 100}%"></i></span><span class="num">${fmtN(p.games)}</span></li>`).join("")}</ul>
+    <p class="chart-note"><a href="#platforms">Ver todas as plataformas</a></p>`;
 }
 
 // Link do Drive do jogo: a cópia no Drive (arquivo ou pasta de jogo), se houver.
@@ -409,6 +410,7 @@ async function loadHealth() {
   try {
     await loadSummary();
     loadSystems();
+    loadTopPlatforms();
     loadHealthTiles();
     route();
   } catch (e) {

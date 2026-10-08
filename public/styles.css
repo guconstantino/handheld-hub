@@ -160,10 +160,13 @@ h2 .ic { color: var(--faint); }
 .barlist li { display: grid; grid-template-columns: 96px minmax(0, 1fr) 64px; align-items: center; gap: 12px; padding: 2px 0; border-radius: 6px; }
 .barlist li:hover { background: var(--hover); }
 .barlist .name { font-family: var(--mono); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.name { font-family: inherit; text-decoration: underline; text-decoration-color: var(--control); text-underline-offset: 3px; }
+a.name:hover { text-decoration-color: var(--text); }
+.barlist li:has(a.name) { grid-template-columns: 140px minmax(0, 1fr) 64px; }
 .barlist .track { height: 10px; }
 .barlist .track i { display: block; height: 100%; background: var(--series); border-radius: 0 4px 4px 0; min-width: 2px; }
 .barlist .num { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
-.barlist.cov li { grid-template-columns: 96px minmax(0, 1fr) 150px; }
+.barlist.cov li { grid-template-columns: 140px minmax(0, 1fr) 150px; }
 .barlist.cov .track { background: var(--line); border-radius: 4px; }
 .barlist.cov .track i { border-radius: 4px; }
 .chart-note { margin-top: 12px; font-size: 13px; color: var(--muted); }
