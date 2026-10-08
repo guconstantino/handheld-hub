@@ -13,6 +13,22 @@ const fmtB = (b) => {
 // Data pura (AAAA-MM-DD) vira meio-dia local para não voltar um dia por causa do fuso.
 const fmtDate = (s) => (s ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? `${s}T12:00` : s).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "nunca");
 
+const icon = (name, cls = "") => `<svg class="ic ${cls}" aria-hidden="true"><use href="icons.svg#i-${name}"/></svg>`;
+const logo = (d) => {
+  const id = (d.specs || {}).logo;
+  if (!id) return "";
+  if (id.startsWith("i-")) return icon(id.slice(2));
+  return `<svg class="logo ${id === "b-samsung" ? "wide" : ""}" role="img" aria-label="${esc(d.name)}"><use href="icons.svg#${id}"/></svg>`;
+};
+// Ícone de cada título de seção das fichas (devices.json).
+const SECTION_ICON = {
+  "Emuladores": "gamepad-2", "Ports nativos": "package", "Ajustes": "wrench", "Atenção": "triangle-alert",
+  "Boot (hekate)": "power", "Segurança e offline": "shield-check", "Sysmodules": "cpu", "Homebrew": "package",
+  "Backups e reinstalação": "archive", "Acervo": "layers", "Saves": "cloud", "Extras": "puzzle",
+  "Ficha": "info", "Armazenamento": "hard-drive",
+};
+const sectionTitle = (title) => `<h2>${SECTION_ICON[title] ? icon(SECTION_ICON[title], "sm") : ""}${esc(title)}</h2>`;
+
 const state = { devices: [], locations: [], offset: 0, loaded: {} };
 const deviceOf = (id) => state.devices.find((d) => d.id === id) || {};
 const locOf = (id) => state.locations.find((l) => l.id === id) || {};
@@ -50,7 +66,7 @@ window.addEventListener("hashchange", route);
 // ---------- armazenamento (varrido ou declarado no devices.json) ----------
 function storageOf(d) {
   const scanned = state.locations.filter((l) => l.device_id === d.id).map((l) => ({
-    label: l.label, total: l.total_bytes, free: l.free_bytes, files: l.files, corrupted: l.corrupted, last: l.last_scan,
+    label: l.label, cloud: d.kind === "backup", total: l.total_bytes, free: l.free_bytes, files: l.files, corrupted: l.corrupted, last: l.last_scan,
   }));
   return scanned.length ? scanned : (d.specs.storage || []);
 }
@@ -58,7 +74,7 @@ function storageHtml(s) {
   const used = s.total ? Math.round(((s.total - s.free) / s.total) * 100) : null;
   const right = s.total ? `${fmtB(s.free)} livres de ${fmtB(s.total)}` : s.files != null ? `${fmtN(s.files)} itens` : "";
   return `<div class="store">
-    <div class="store-row"><span>${esc(s.label)}</span><span>${right}</span></div>
+    <div class="store-row"><span>${icon(s.cloud ? "cloud" : "hard-drive", "sm")}${esc(s.label)}</span><span>${right}</span></div>
     ${used !== null ? `<div class="bar"><i style="width:${used}%"></i></div>` : ""}
   </div>`;
 }
@@ -69,19 +85,20 @@ async function loadSummary() {
   state.devices = s.devices; state.locations = s.locations;
   const t = s.totals;
   $("#stats").innerHTML = [
-    ["Jogos", t.games], ["Arquivos", t.files], ["Sistemas", t.systems], ["Corrompidos", t.corrupted, t.corrupted > 0],
-  ].map(([l, v, bad]) => `<div class="stat ${bad ? "bad" : ""}"><b>${fmtN(v)}</b><span>${l}</span></div>`).join("");
+    ["Jogos", t.games, "gamepad-2"], ["Arquivos", t.files, "folder-open"], ["Sistemas", t.systems, "layers"],
+    ["Corrompidos", t.corrupted, "triangle-alert", t.corrupted > 0],
+  ].map(([l, v, ic, bad]) => `<div class="stat ${bad ? "bad" : ""}"><b>${fmtN(v)}</b><span>${icon(ic, "sm")}${l}</span></div>`).join("");
 
   $("#devices").innerHTML = s.devices.map((d) => {
     const facts = Object.entries(d.specs.facts || {}).slice(0, 3);
     const bad = s.locations.filter((l) => l.device_id === d.id).reduce((n, l) => n + (l.corrupted || 0), 0);
     return `<a class="device" href="#device/${esc(d.id)}" style="--accent:${esc(d.accent)}">
-      <div class="device-name"><span class="dot"></span>${esc(d.name)}
-        ${bad ? `<span class="badge bad" style="margin-left:auto">${fmtN(bad)} corrompidos</span>` : ""}</div>
+      <div class="device-name"><span class="dot"></span>${esc(d.name)}<span style="margin-left:auto;display:flex">${logo(d)}</span></div>
+      ${bad ? `<span class="badge bad" style="align-self:flex-start">${fmtN(bad)} corrompidos</span>` : ""}
       <p>${esc(d.notes || "")}</p>
       ${facts.length ? `<dl class="kv">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` : ""}
       <div>${storageOf(d).map(storageHtml).join("")}</div>
-      <span class="more">Ver detalhes →</span>
+      <span class="more">Ver detalhes ${icon("chevron-right", "sm")}</span>
     </a>`;
   }).join("");
 
@@ -94,26 +111,26 @@ async function loadSummary() {
 // ---------- detalhe do console ----------
 function renderDevice(id) {
   const d = deviceOf(id);
-  if (!d.id) { $("#view-device").innerHTML = `<a class="back" href="#overview">← Consoles</a><p class="muted">Console não encontrado.</p>`; return; }
+  if (!d.id) { $("#view-device").innerHTML = `<a class="back" href="#overview">${icon("chevron-left", "sm")}Consoles</a><p class="muted">Console não encontrado.</p>`; return; }
   const sp = d.specs || {};
   const facts = Object.entries(sp.facts || {});
   const locs = state.locations.filter((l) => l.device_id === d.id);
   $("#view-device").style.setProperty("--accent", d.accent);
   $("#view-device").innerHTML = `
     <div>
-      <a class="back" href="#overview">← Consoles</a>
-      <div class="detail-head"><span class="dot"></span><h1>${esc(d.name)}</h1></div>
+      <a class="back" href="#overview">${icon("chevron-left", "sm")}Consoles</a>
+      <div class="detail-head"><span class="dot"></span><h1>${esc(d.name)}</h1><span style="margin-left:auto;display:flex">${logo(d)}</span></div>
       <p class="lead">${esc(d.notes || "")}</p>
     </div>
     <div class="detail-grid">
-      ${facts.length ? `<div><h2>Ficha</h2><div class="panel"><dl class="kv">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div></div>` : ""}
-      <div><h2>Armazenamento</h2><div class="panel">${storageOf(d).map(storageHtml).join("") || `<p class="muted small">Sem dados.</p>`}
+      ${facts.length ? `<div>${sectionTitle("Ficha")}<div class="panel"><dl class="kv">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div></div>` : ""}
+      <div>${sectionTitle("Armazenamento")}<div class="panel">${storageOf(d).map(storageHtml).join("") || `<p class="muted small">Sem dados.</p>`}
         ${locs.map((l) => `<p class="muted small" style="margin-top:10px">${esc(l.label)}: ${fmtN(l.files)} itens, ${fmtB(l.bytes)} · varrido ${fmtDate(l.last_scan)}${l.corrupted ? ` · <span style="color:var(--danger)">${fmtN(l.corrupted)} corrompidos</span>` : ""}</p>`).join("")}
-        ${locs.length ? `<p style="margin-top:14px"><a class="small" href="#games" onclick="setTimeout(()=>{$('#fDevice').value='${esc(d.id)}';loadGames()},0)">Ver jogos deste console →</a></p>` : ""}
+        ${locs.length ? `<p style="margin-top:14px"><a class="small" href="#games" onclick="setTimeout(()=>{$('#fDevice').value='${esc(d.id)}';loadGames()},0)">Ver jogos deste console</a></p>` : ""}
       </div></div>
     </div>
     ${(sp.sections || []).length ? `<div class="sections">${sp.sections.map((s) => `
-      <div><h2>${esc(s.title)}</h2><div class="tags">${s.items.map((i) => `<span>${esc(i)}</span>`).join("")}</div></div>`).join("")}</div>` : ""}
+      <div>${sectionTitle(s.title)}<div class="tags">${s.items.map((i) => `<span>${esc(i)}</span>`).join("")}</div></div>`).join("")}</div>` : ""}
     ${sp.source ? `<p class="source">Fonte: repo ${esc(sp.source)} · snapshot de ${fmtDate(sp.snapshot)}</p>` : ""}`;
 }
 
@@ -157,13 +174,13 @@ async function loadHealth() {
   const h = await api("/api/health");
   const list = (rows, fmt) => rows.length ? `<ul class="list">${rows.map(fmt).join("")}</ul>` : `<p class="muted small">Nada aqui.</p>`;
   $("#health").innerHTML = `
-    <div><h2>Corrompidos · ${fmtN(h.corrupted.length)}</h2>
+    <div><h2>${icon("triangle-alert", "sm")}Corrompidos · ${fmtN(h.corrupted.length)}</h2>
       <p class="muted small" style="margin-bottom:10px">Começo do arquivo zerado. Precisam de cópia nova da fonte.</p>
       ${list(h.corrupted, (c) => `<li><span>${esc(c.title)}</span><span>${esc(c.system)}</span></li>`)}</div>
-    <div><h2>Sem backup no Drive</h2>
+    <div><h2>${icon("archive", "sm")}Sem backup no Drive</h2>
       <p class="muted small" style="margin-bottom:10px">Estão em algum console, mas não no Drive.</p>
       ${list(h.noBackup, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`)}</div>
-    <div><h2>Só no Drive</h2>
+    <div><h2>${icon("cloud", "sm")}Só no Drive</h2>
       <p class="muted small" style="margin-bottom:10px">Estão no acervo, mas em nenhum console.</p>
       ${list(h.driveOnly, (r) => `<li><span>${esc(r.system)}</span><span>${fmtN(r.n)}</span></li>`)}</div>`;
 }

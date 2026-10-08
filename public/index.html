@@ -17,7 +17,7 @@
         <a href="#health" data-view="health">Saúde</a>
       </nav>
       <button id="themeToggle" class="icon-btn" title="Alternar tema" aria-label="Alternar tema">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
+        <svg class="ic"><use href="icons.svg#i-sun-moon"/></svg>
       </button>
     </div>
   </header>
@@ -40,7 +40,7 @@
         <p class="lead" id="gamesCount">&nbsp;</p>
       </div>
       <div class="filters">
-        <input type="search" id="q" placeholder="Buscar jogo" autocomplete="off" aria-label="Buscar jogo">
+        <label class="search"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-search"/></svg><input type="search" id="q" placeholder="Buscar jogo" autocomplete="off" aria-label="Buscar jogo"></label>
         <select id="fDevice" aria-label="Lugar"><option value="">Todos os lugares</option></select>
         <select id="fSystem" aria-label="Sistema"><option value="">Todos os sistemas</option></select>
         <select id="fStatus" aria-label="Estado">

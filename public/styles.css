@@ -139,3 +139,23 @@ footer { border-top: 1px solid var(--line); padding: 20px 0; font-size: 13px; co
   .brand { display: none; }
   .nav a { padding: 6px 8px; }
 }
+
+/* ---------- ícones (Lucide, grade 24) e logos (Simple Icons) ----------
+   Traço sempre 1,5 px na tela (3 px no Retina): stroke-width = 1.5 × 24 / tamanho. */
+.ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ic.sm { width: 16px; height: 16px; stroke-width: 2.25; }
+.logo { height: 18px; width: 18px; flex: none; fill: currentColor; }
+.logo.wide { width: 60px; height: 12px; }
+.device-name .logo, .device-name .ic { color: var(--muted); }
+.device-name .logo.wide { margin-left: auto; }
+.detail-head .logo, .detail-head .ic { color: var(--muted); }
+.stat span { display: inline-flex; align-items: center; gap: 6px; }
+.stat.bad span { color: var(--danger); }
+h2 { display: flex; align-items: center; gap: 8px; }
+h2 .ic { color: var(--faint); }
+.store-row span:first-child { display: inline-flex; align-items: center; gap: 8px; }
+.store-row .ic { color: var(--faint); }
+.back, .device .more { display: inline-flex; align-items: center; gap: 4px; }
+.search { position: relative; flex: 1 1 280px; display: flex; }
+.search .ic { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--faint); pointer-events: none; }
+.filters .search input { flex: 1; padding-left: 36px; }
