@@ -30,3 +30,4 @@ data/
 .dev.vars
 dist/
 public/covers/
+public/data/

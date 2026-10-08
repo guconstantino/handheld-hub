@@ -17,6 +17,12 @@ Formato ADR curto. Mais recente no topo. Data AAAA-MM-DD.
 - **Decisão:** SQL + wrangler. O Worker só tem GETs.
 - **Motivo:** nenhum segredo de escrita no Worker e menos código; o wrangler já autentica na conta Cloudflare.
 
+## 2026-10-08 — Catálogo estático em vez de API no D1
+
+- **Contexto:** no primeiro dia em produção o D1 estourou o limite grátis de leitura (5 mi de linhas/dia): cada acesso varria a tabela inteira (~36 mil linhas) em várias consultas; a busca, a cada letra.
+- **Decisão:** `scripts/catalog.py` gera `public/data/catalog.json` (~1,3 MB compactado) a partir do D1 local; `public/hh-api.js` responde às rotas `/api/*` no navegador (mesma lógica do snapshot do celular). O Worker só serve arquivos. Capas também são assets (`public/covers/`, até 20 mil arquivos por versão).
+- **Consequência:** zero leitura no D1 em produção; atualizar dados = scanner → `catalog.py` → `wrangler deploy`. O D1 remoto deixa de ser necessário (fica como está por enquanto).
+
 ## 2026-10-08 — Visual de dashboard + fotos dos consoles
 
 - **Layout:** menu lateral no desktop (topo no celular), faixa de indicadores (inclui espaço livre somado), cards com capa, gráficos "Onde estão os arquivos" (barra empilhada) e "Sistemas com mais cópias" (barras), atalhos de saúde.

@@ -226,7 +226,7 @@ const coverImg = (g) => g.cover ? `<img src="covers/${esc(g.cover)}" alt="" load
 const copyChip = (c) => {
   const d = deviceOf(c.device_id);
   const bad = c.status === "corrupted";
-  return `<span class="${bad ? "bad" : ""}" ${dev(c.device_id)} title="${esc(c.rel_path)} · ${fmtB(c.size)}"><i class="dot"></i>${esc(copyLabel(d, c.location_id))}${bad ? " · corrompido" : ""}</span>`;
+  return `<span class="${bad ? "bad" : ""}" ${dev(c.device_id)} title="${fmtB(c.size)}"><i class="dot"></i>${esc(copyLabel(d, c.location_id))}${bad ? " · corrompido" : ""}</span>`;
 };
 
 // Exibição em grade ou lista (fica salva neste navegador).
