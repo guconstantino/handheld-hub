@@ -5,7 +5,7 @@ Serve para ver no celular sem subir o Worker (ex.: página privada no claude.ai)
 public/app.js roda nos dois casos; aqui window.HH_API responde às rotas /api/* em memória.
   python3 scripts/build_static.py
 """
-import json, os, re, subprocess
+import base64, json, os, re, subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -92,6 +92,10 @@ SHIM = r"""
 
 css = open(os.path.join(ROOT, "public", "styles.css")).read()
 js = open(os.path.join(ROOT, "public", "app.js")).read().replace("icons.svg#", "#")
+# Fotos de capa viram data URI (o snapshot é um arquivo só).
+for name in os.listdir(os.path.join(ROOT, "public", "img")):
+    b64 = base64.b64encode(open(os.path.join(ROOT, "public", "img", name), "rb").read()).decode()
+    js = js.replace(f'"img/{name}"', f'"data:image/webp;base64,{b64}"')
 sprite = open(os.path.join(ROOT, "public", "icons.svg")).read()
 html = open(os.path.join(ROOT, "public", "index.html")).read()
 body = re.search(r"<body>(.*)</body>", html, re.S).group(1)

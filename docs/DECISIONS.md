@@ -17,6 +17,12 @@ Formato ADR curto. Mais recente no topo. Data AAAA-MM-DD.
 - **Decisão:** SQL + wrangler. O Worker só tem GETs.
 - **Motivo:** nenhum segredo de escrita no Worker e menos código; o wrangler já autentica na conta Cloudflare.
 
+## 2026-10-08 — Visual de dashboard + fotos dos consoles
+
+- **Layout:** menu lateral no desktop (topo no celular), faixa de indicadores (inclui espaço livre somado), cards com capa, gráficos "Onde estão os arquivos" (barra empilhada) e "Sistemas com mais cópias" (barras), atalhos de saúde.
+- **Cores dos consoles:** saem do CSS (`data-dev`), não do D1: paleta categórica validada com o script da skill dataviz nos dois temas; ordem fixa Switch → S20 → Drive → Miyoo (vermelho e âmbar nunca lado a lado, separação CVD ≥ 8). Números sempre escritos na legenda ou na linha (o âmbar e o verde ficam abaixo de 3:1 no claro).
+- **Fotos:** Switch OLED (PantheraLeo1359531) e Galaxy S20 FE (GadgetsGuy), Wikimedia Commons, CC BY 4.0, crédito no rodapé; Miyoo Mini Plus do site oficial (lomiyoo.com), provisória até o Gustavo mandar fotos próprias. WebP com fundo transparente em `public/img/`; no snapshot estático viram data URI.
+
 ## 2026-10-08 — Acessibilidade: WCAG 2.2 AA + APCA como piso
 
 - **Contexto:** auditoria do portal. Passava no WCAG 2 com o cinza secundário do tema escuro (6,7:1), mas o APCA dava Lc 48 — fraco para texto de 13–14px. Textos em `--faint` e bordas de campos ficavam abaixo de 3:1.

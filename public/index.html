@@ -9,66 +9,99 @@
 </head>
 <body>
   <button class="skip" id="skip">Pular para o conteúdo</button>
-  <header class="top">
-    <div class="wrap">
-      <a class="brand" href="#overview">Handheld Hub</a>
-      <nav class="nav" aria-label="Seções">
-        <a href="#overview" data-view="overview">Visão geral</a>
-        <a href="#games" data-view="games">Jogos</a>
-        <a href="#health" data-view="health">Saúde</a>
-      </nav>
+
+  <header class="side">
+    <a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true"><svg class="ic sm"><use href="icons.svg#i-gamepad-2"/></svg></span>Handheld Hub</a>
+    <nav class="nav" aria-label="Seções">
+      <a href="#overview" data-view="overview"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-layers"/></svg><span>Visão geral</span></a>
+      <a href="#games" data-view="games"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-gamepad-2"/></svg><span>Jogos</span></a>
+      <a href="#health" data-view="health"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-shield-check"/></svg><span>Saúde</span></a>
+    </nav>
+    <div class="side-foot">
+      <p class="scan" id="scan"></p>
       <button id="themeToggle" class="icon-btn" title="Alternar tema" aria-label="Alternar tema">
         <svg class="ic" aria-hidden="true"><use href="icons.svg#i-sun-moon"/></svg>
       </button>
     </div>
   </header>
 
-  <main class="wrap" id="main">
-    <section class="view" id="view-overview">
-      <div>
-        <h1 tabindex="-1">Consoles</h1>
-        <p class="lead">Onde estão os jogos, quanto espaço sobra e o que precisa de atenção.</p>
-      </div>
-      <div class="stats" id="stats" role="list" aria-label="Totais"></div>
-      <div class="devices" id="devices"></div>
-    </section>
+  <div class="content">
+    <main id="main">
+      <section class="view" id="view-overview">
+        <div class="page-head">
+          <div>
+            <h1 tabindex="-1">Visão geral</h1>
+            <p class="lead">Onde estão os jogos, quanto espaço sobra e o que precisa de atenção.</p>
+          </div>
+        </div>
+        <div class="kpis" id="stats" role="list" aria-label="Totais"></div>
+        <div>
+          <h2>Consoles</h2>
+          <div class="devices" id="devices"></div>
+        </div>
+        <div class="grid-2">
+          <section class="panel" aria-labelledby="t-where">
+            <h2 id="t-where">Onde estão os arquivos</h2>
+            <div id="where"></div>
+          </section>
+          <section class="panel" aria-labelledby="t-sys">
+            <h2 id="t-sys">Sistemas com mais cópias</h2>
+            <div id="topSystems"></div>
+          </section>
+        </div>
+        <div>
+          <h2>Saúde do acervo</h2>
+          <div class="health-tiles" id="healthTiles"></div>
+        </div>
+      </section>
 
-    <section class="view hidden" id="view-device"></section>
+      <section class="view hidden" id="view-device"></section>
 
-    <section class="view hidden" id="view-games">
-      <div>
-        <h1 tabindex="-1">Jogos</h1>
-        <p class="lead" id="gamesCount" aria-live="polite">&nbsp;</p>
-      </div>
-      <div class="filters">
-        <label class="search"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-search"/></svg><input type="search" id="q" placeholder="Buscar jogo" autocomplete="off" aria-label="Buscar jogo"></label>
-        <select id="fDevice" aria-label="Lugar"><option value="">Todos os lugares</option></select>
-        <select id="fSystem" aria-label="Sistema"><option value="">Todos os sistemas</option></select>
-        <select id="fStatus" aria-label="Estado">
-          <option value="">Qualquer estado</option>
-          <option value="ok">OK</option>
-          <option value="corrupted">Corrompido</option>
-          <option value="unknown">Não verificado</option>
-        </select>
-      </div>
-      <table class="table" id="gamesTable">
-        <caption class="sr-only">Jogos e onde está cada cópia</caption>
-        <thead><tr><th scope="col">Jogo</th><th scope="col">Sistema</th><th scope="col">Onde está</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <button class="btn hidden" id="more">Carregar mais</button>
-    </section>
+      <section class="view hidden" id="view-games">
+        <div class="page-head">
+          <div>
+            <h1 tabindex="-1">Jogos</h1>
+            <p class="lead" id="gamesCount" aria-live="polite">&nbsp;</p>
+          </div>
+        </div>
+        <div class="filters">
+          <label class="search"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-search"/></svg><input type="search" id="q" placeholder="Buscar jogo" autocomplete="off" aria-label="Buscar jogo"></label>
+          <select id="fDevice" aria-label="Lugar"><option value="">Todos os lugares</option></select>
+          <select id="fSystem" aria-label="Sistema"><option value="">Todos os sistemas</option></select>
+          <select id="fStatus" aria-label="Estado">
+            <option value="">Qualquer estado</option>
+            <option value="ok">OK</option>
+            <option value="corrupted">Corrompido</option>
+            <option value="unknown">Não verificado</option>
+          </select>
+        </div>
+        <div class="panel table-wrap">
+          <table class="table" id="gamesTable">
+            <caption class="sr-only">Jogos e onde está cada cópia</caption>
+            <thead><tr><th scope="col">Jogo</th><th scope="col">Sistema</th><th scope="col">Onde está</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button class="btn hidden" id="more">Carregar mais</button>
+      </section>
 
-    <section class="view hidden" id="view-health">
-      <div>
-        <h1 tabindex="-1">Saúde do acervo</h1>
-        <p class="lead">Arquivos com problema e jogos sem cópia de segurança.</p>
-      </div>
-      <div id="health" class="sections"></div>
-    </section>
-  </main>
+      <section class="view hidden" id="view-health">
+        <div class="page-head">
+          <div>
+            <h1 tabindex="-1">Saúde do acervo</h1>
+            <p class="lead">Arquivos com problema e jogos sem cópia de segurança.</p>
+          </div>
+        </div>
+        <div id="health" class="sections"></div>
+      </section>
+    </main>
 
-  <footer><div class="wrap" id="footer" role="status">Carregando…</div></footer>
+    <footer>
+      <div id="footer" role="status">Carregando…</div>
+      <p class="credits">Fotos: Switch OLED por PantheraLeo1359531 e Galaxy S20 FE por GadgetsGuy (Wikimedia Commons, CC BY 4.0); Miyoo Mini Plus do site oficial da Miyoo.</p>
+    </footer>
+  </div>
+  <div class="tip hidden" id="tip" aria-hidden="true"></div>
   <script src="app.js"></script>
 </body>
 </html>
