@@ -30,6 +30,7 @@ data/
 .dev.vars
 dist/
 public/covers/
-public/data/
+public/data/*
+!public/data/ports-radar.json
 __pycache__/
 public/themes/

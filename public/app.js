@@ -186,7 +186,7 @@ document.addEventListener("mousemove", (e) => {
 function route(moveFocus = false) {
   curView = null;                                   // a troca de tela muda a altura: não gravar essa rolagem
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
-  const target = ["overview", "device", "platforms", "platform", "game", "games", "lists", "compare", "health", "settings", "admin"].includes(view) ? view : "overview";
+  const target = ["overview", "device", "platforms", "platform", "game", "games", "ports", "lists", "compare", "health", "settings", "admin"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => {
     const on = a.dataset.view === ({ device: "overview", platform: "platforms", game: "games" }[target] || target);
     a.classList.toggle("active", on);
@@ -197,6 +197,7 @@ function route(moveFocus = false) {
   if (target === "platforms" && !state.loaded.platforms) { state.loaded.platforms = true; loadPlatforms(); }
   const pending = target === "platform" ? renderPlatform(arg) : target === "game" ? renderGame(decodeURIComponent(arg || "")) : null;
   if (target === "games" && !state.loaded.games) { state.loaded.games = true; loadGames(); }
+  if (target === "ports") renderPorts();
   if (target === "overview" && state.loaded.mine) loadMine();
   if (target === "overview") state.loaded.mine = true;
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
@@ -214,7 +215,7 @@ function route(moveFocus = false) {
   if (moveFocus) (pending || Promise.resolve()).then(focusHeading);
   return pending;
 }
-const KEEP_SCROLL = new Set(["overview", "games", "platforms", "lists", "health", "compare"]);
+const KEEP_SCROLL = new Set(["overview", "games", "platforms", "ports", "lists", "health", "compare"]);
 const scrollMem = {};
 let curView = null;
 addEventListener("scroll", () => {
@@ -1695,6 +1696,112 @@ $("#themeList").onclick = (e) => {
   };
   dlg.addEventListener("close", () => { pending = null; });
 })();
+
+let portsCache = null, portsFilter = "all";
+async function renderPorts() {
+  const el = $("#portsBody");
+  if (!el) return;
+  try {
+    if (!portsCache) {
+      const r = await fetch("data/ports-radar.json");
+      if (!r.ok) throw new Error("ports-radar.json não encontrado");
+      portsCache = await r.json();
+    }
+    const c = portsCache.counts || {};
+    const all = portsCache.ports || [];
+    const list = portsFilter === "all" ? all : all.filter((p) => p.category === portsFilter);
+
+    const statusBadge = (p) => {
+      if (p.updateStatus === "up-to-date")
+        return `<span class="badge ok">Instalado · v${esc(p.installedVersion || "—")}</span>`;
+      if (p.updateStatus === "update-available")
+        return `<span class="badge warn" title="Instalado: v${esc(p.installedVersion || "")}">Update · ${esc(p.latestTag || "novo")}</span>`;
+      if (p.updateStatus === "ready-to-install")
+        return `<span class="badge">APK Android · ${esc(p.latestTag || "pronto")}</span>`;
+      return `<span class="badge muted">Mac/PC · ${esc(p.latestTag || "N64Recomp")}</span>`;
+    };
+
+    const romBadges = (rom) => {
+      if (!rom) return `<span class="muted small">—</span>`;
+      const parts = [];
+      if (rom.s20Sd) parts.push(`<span class="badge ok" title="${esc(rom.bestPath || "")}">S20 SD</span>`);
+      if (rom.gdrive) parts.push(`<span class="badge" title="${esc(rom.bestPath || "")}">Google Drive</span>`);
+      return parts.length ? parts.join(" ") : `<span class="muted small">Não exigida / Externa</span>`;
+    };
+
+    el.innerHTML = `
+      <div class="kpis" role="list" aria-label="Resumo de Ports e Decompilações">
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("gamepad-2", "sm")}Instalados no S20 FE</span><span class="kpi-value">${fmtN(c.installed || 0)}</span><span class="kpi-sub">60 fps · Widescreen 20:9</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("shield-check", "sm")}Traduzidos PT-BR</span><span class="kpi-value">${fmtN(c.ptbr || 0)}</span><span class="kpi-sub">Mods .o2r, Lua e patches binários</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("layers", "sm")}Prontos p/ Android</span><span class="kpi-value">${fmtN(c.androidReady || 0)}</span><span class="kpi-sub">Com APK oficial no GitHub</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("wrench", "sm")}Radar N64Recomp</span><span class="kpi-value">${fmtN(c.desktopRecomp || 0)}</span><span class="kpi-sub">Catálogo SirDiabo/GithubLauncher</span></div>
+      </div>
+
+      <div class="tile">
+        <div class="tile-head" style="flex-wrap:wrap;gap:12px">
+          <div class="seg tabs" role="group" aria-label="Filtrar categoria de port" id="portsTabs">
+            <button type="button" data-pcat="all" aria-pressed="${portsFilter === "all"}">Todos (${all.length})</button>
+            <button type="button" data-pcat="installed" aria-pressed="${portsFilter === "installed"}">No S20 FE (${c.installed || 0})</button>
+            <button type="button" data-pcat="android-ready" aria-pressed="${portsFilter === "android-ready"}">Candidatos Android (${c.androidReady || 0})</button>
+            <button type="button" data-pcat="n64recomp-desktop" aria-pressed="${portsFilter === "n64recomp-desktop"}">Radar N64Recomp (${c.desktopRecomp || 0})</button>
+          </div>
+          <span class="muted small">Sincronizado via <code>rom-tool check-ports</code></span>
+        </div>
+        <div class="table-wrap" style="margin-top:12px">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Port / Jogo</th>
+                <th scope="col">Engine / Base</th>
+                <th scope="col">Status & Versão</th>
+                <th scope="col">Tradução PT-BR & Recursos</th>
+                <th scope="col">ROM no Acervo</th>
+                <th scope="col">GitHub</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map((p) => `
+                <tr>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      ${p.iconUrl ? `<img src="${esc(p.iconUrl)}" alt="" width="32" height="32" loading="lazy" style="border-radius:6px;object-fit:cover;background:var(--surface-2)">` : `<span class="brand-mark" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px">${icon("gamepad-2", "sm")}</span>`}
+                      <div>
+                        <b>${esc(p.name)}</b>
+                        ${p.packageName ? `<div class="muted small"><code>${esc(p.packageName)}</code></div>` : ""}
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge">${esc((p.system || "").toUpperCase())}</span>
+                    <div class="muted small" style="margin-top:4px">${esc(p.engine || "")}</div>
+                  </td>
+                  <td>${statusBadge(p)}</td>
+                  <td>
+                    <div>${esc(p.ptbr || "—")}</div>
+                    <div class="muted small" style="margin-top:4px">${(p.features || []).map((f) => esc(f)).join(" · ")}</div>
+                  </td>
+                  <td>${romBadges(p.rom)}</td>
+                  <td>
+                    <a href="${esc(p.releaseUrl || `https://github.com/${p.repository}`)}" target="_blank" rel="noopener" class="btn small">${esc(p.repository)}</a>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    el.querySelectorAll("#portsTabs button").forEach((btn) => {
+      btn.onclick = () => {
+        portsFilter = btn.dataset.pcat;
+        renderPorts();
+      };
+    });
+  } catch (e) {
+    el.innerHTML = `<p class="muted">Erro ao carregar radar de ports: ${esc(e.message)}</p>`;
+  }
+}
 
 (async () => {
   try {

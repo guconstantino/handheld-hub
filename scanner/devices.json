@@ -8,7 +8,7 @@
       "notes": "Android como console portátil: Daijishō de front-end, GameSir X5 Lite, tudo gerenciado via adb.",
       "specs": {
         "source": "s20fe-gamesirx5lite",
-        "snapshot": "2026-10-10",
+        "snapshot": "2026-10-11",
         "facts": {
           "Modelo": "SM-G780G",
           "SoC / GPU": "Snapdragon 865 / Adreno 650",
@@ -36,6 +36,8 @@
               "Ship of Harkinian (OoT PT-BR)",
               "2Ship2Harkinian (Majora's Mask PT-BR)",
               "Dusklight (Twilight Princess PT-BR)",
+              "Moon Pearl (Zelda ALTTP PT-BR)",
+              "Starship (Star Fox 64 PT-BR)",
               "SM64CoopDX (Super Mario 64 PT-BR)",
               "SpaghettiKart (Mario Kart 64)",
               "DriftDroid + Retro Rewind (MKWii)",
@@ -48,7 +50,7 @@
           {
             "title": "Ajustes",
             "items": [
-              "25 jogos na aba PORTS (100% capas)",
+              "27 jogos na aba PORTS (100% capas)",
               "Bordas 20:9 por sistema",
               "Widescreen GC/Wii e PS2",
               "RetroAchievements (hardcore off)",
