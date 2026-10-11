@@ -198,6 +198,7 @@ function route(moveFocus = false) {
   const pending = target === "platform" ? renderPlatform(arg) : target === "game" ? renderGame(decodeURIComponent(arg || "")) : null;
   if (target === "games" && !state.loaded.games) { state.loaded.games = true; loadGames(); }
   if (target === "ports") renderPorts();
+  if (target === "epic") renderEpic();
   if (target === "overview" && state.loaded.mine) loadMine();
   if (target === "overview") state.loaded.mine = true;
   if (target === "health" && !state.loaded.health) { state.loaded.health = true; loadHealth(); }
@@ -1800,6 +1801,172 @@ async function renderPorts() {
     });
   } catch (e) {
     el.innerHTML = `<p class="muted">Erro ao carregar radar de ports: ${esc(e.message)}</p>`;
+  }
+}
+
+let epicCache = null, epicFilter = "all", epicQuery = "", epicSort = "compat";
+async function renderEpic() {
+  const el = $("#epicBody");
+  if (!el) return;
+  try {
+    if (!epicCache) {
+      const r = await fetch("data/epic-library.json");
+      if (!r.ok) throw new Error("epic-library.json não encontrado");
+      epicCache = await r.json();
+    }
+    const c = epicCache.counts || {};
+    const all = epicCache.games || [];
+
+    const filtered = all.filter((g) => {
+      if (epicFilter === "installed" && !g.installedS20) return false;
+      if (epicFilter !== "all" && epicFilter !== "installed" && g.category !== epicFilter) return false;
+      if (epicQuery) {
+        const q = epicQuery.toLowerCase();
+        const hay = `${g.title || ""} ${g.developer || ""} ${g.engine || ""} ${g.appName || ""} ${g.compatLabel || ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    filtered.sort((a, b) => {
+      if (epicSort === "size-asc") {
+        const sa = a.diskBytes || Number.MAX_SAFE_INTEGER;
+        const sb = b.diskBytes || Number.MAX_SAFE_INTEGER;
+        return sa - sb || a.title.localeCompare(b.title);
+      }
+      if (epicSort === "size-desc") {
+        return (b.diskBytes || 0) - (a.diskBytes || 0) || a.title.localeCompare(b.title);
+      }
+      if (epicSort === "title") {
+        return a.title.localeCompare(b.title);
+      }
+      // default: compat
+      if (a.tier !== b.tier) return a.tier - b.tier;
+      if (b.score !== a.score) return b.score - a.score;
+      return (a.diskBytes || Number.MAX_SAFE_INTEGER) - (b.diskBytes || Number.MAX_SAFE_INTEGER);
+    });
+
+    const compatBadge = (g) => {
+      let cls = "badge muted";
+      if (g.score >= 90) cls = "badge ok";
+      else if (g.score >= 75) cls = "badge";
+      else if (g.score >= 60) cls = "badge warn";
+      return `
+        <div><span class="${cls}">${esc(g.compatLabel || "")}</span></div>
+        <div class="muted small" style="margin-top:4px">${esc(g.compatDetail || "")}</div>
+      `;
+    };
+
+    const syncDate = epicCache.updatedAt
+      ? new Date(epicCache.updatedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
+      : "—";
+
+    el.innerHTML = `
+      <div class="kpis" role="list" aria-label="Resumo da Biblioteca Epic Games">
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("layers", "sm")}Total na Conta Epic</span><span class="kpi-value">${fmtN(c.total || 0)}</span><span class="kpi-sub">Conta @${esc(epicCache.account || "guconstantino")} · Sync ${esc(syncDate)}</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("gamepad-2", "sm")}Instalados no S20 FE</span><span class="kpi-value">${fmtN(c.installed || 0)}</span><span class="kpi-sub">Sonic Mania · Horizon · Dandara · SMB · Gungeon</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("sparkles", "sm")}Ótimos no S20 FE (90–100%)</span><span class="kpi-value">${fmtN((c.nativeOrPort || 0) + (c.greatLight || 0))}</span><span class="kpi-sub">${fmtN(c.nativeOrPort || 0)} Nativos/Ports + ${fmtN(c.greatLight || 0)} Leves 60 FPS</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("shield-check", "sm")}DRM-Free / Offline</span><span class="kpi-value">${fmtN(c.drmFree || 0)}</span><span class="kpi-sub">Rodam direto via GameHub Proton ARM64X</span></div>
+      </div>
+
+      <div class="tile">
+        <div class="tile-head" style="flex-wrap:wrap;gap:12px">
+          <div class="seg tabs" role="group" aria-label="Filtrar biblioteca Epic Games" id="epicTabs">
+            <button type="button" data-ecat="all" aria-pressed="${epicFilter === "all"}">Todos (${all.length})</button>
+            <button type="button" data-ecat="installed" aria-pressed="${epicFilter === "installed"}">No S20 FE (${c.installed || 0})</button>
+            <button type="button" data-ecat="native-or-port" aria-pressed="${epicFilter === "native-or-port"}">Nativo / Port Android (${c.nativeOrPort || 0})</button>
+            <button type="button" data-ecat="great-light" aria-pressed="${epicFilter === "great-light"}">Leves 60 FPS &lt;1.8 GB (${c.greatLight || 0})</button>
+            <button type="button" data-ecat="playable-mid" aria-pressed="${epicFilter === "playable-mid"}">Médios 1.8–14 GB (${c.playableMid || 0})</button>
+            <button type="button" data-ecat="heavy-or-incompat" aria-pressed="${epicFilter === "heavy-or-incompat"}">Pesados / Incompatíveis (${c.heavyOrIncompat || 0})</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto">
+            <input type="search" id="epicSearchInput" value="${esc(epicQuery)}" placeholder="Buscar jogo, engine ou estúdio..." style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);min-width:220px">
+            <select id="epicSortSelect" aria-label="Ordenar por" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg)">
+              <option value="compat" ${epicSort === "compat" ? "selected" : ""}>Maior compatibilidade S20 FE</option>
+              <option value="size-asc" ${epicSort === "size-asc" ? "selected" : ""}>Menor tamanho em disco</option>
+              <option value="size-desc" ${epicSort === "size-desc" ? "selected" : ""}>Maior tamanho em disco</option>
+              <option value="title" ${epicSort === "title" ? "selected" : ""}>Ordem alfabética (A–Z)</option>
+            </select>
+          </div>
+        </div>
+        <div class="muted small" style="margin-top:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <span>Exibindo <b>${filtered.length}</b> de ${all.length} títulos da conta Epic Games</span>
+          <span>Auto-sync diário via <code>scripts/epic_sync.py</code> (Legendary + Secure Enclave DPoP)</span>
+        </div>
+        <div class="table-wrap" style="margin-top:12px">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Nome do Jogo</th>
+                <th scope="col">Tamanho (Instalado / DL)</th>
+                <th scope="col">Engine & DRM</th>
+                <th scope="col">Compatibilidade S20 FE</th>
+                <th scope="col">Status / App ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered.map((g) => `
+                <tr>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      ${g.cover ? `<img src="${esc(g.cover)}" alt="" width="34" height="45" loading="lazy" style="border-radius:5px;object-fit:cover;background:var(--surface-2);flex-shrink:0">` : `<span class="brand-mark" style="width:34px;height:45px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;flex-shrink:0">${icon("layers", "sm")}</span>`}
+                      <div>
+                        <b>${esc(g.title)}</b>
+                        <div class="muted small">${esc(g.developer || "—")}${g.exe ? ` · <code>${esc(g.exe)}</code>` : ""}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="white-space:nowrap">
+                    <b>${esc(g.diskHuman || "—")}</b>
+                    ${g.dlHuman && g.dlHuman !== "—" ? `<div class="muted small">DL: ${esc(g.dlHuman)}</div>` : ""}
+                  </td>
+                  <td>
+                    <span class="badge">${esc(g.engine || "Windows")}</span>
+                    <div class="muted small" style="margin-top:4px">${g.offline ? "DRM-Free / Offline" : "Requer Token Online"} · ${esc((g.platforms || []).join(", "))}</div>
+                  </td>
+                  <td>${compatBadge(g)}</td>
+                  <td>
+                    ${g.installedS20
+                      ? `<span class="badge ok">Instalado no S20 FE</span><div class="muted small" style="margin-top:4px"><code>${esc(g.appName)}</code></div>`
+                      : `<code class="small" title="legendary install ${esc(g.appName)}">${esc(g.appName)}</code>`}
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    el.querySelectorAll("#epicTabs button").forEach((btn) => {
+      btn.onclick = () => {
+        epicFilter = btn.dataset.ecat;
+        renderEpic();
+      };
+    });
+    const searchInput = el.querySelector("#epicSearchInput");
+    if (searchInput) {
+      searchInput.oninput = (ev) => {
+        epicQuery = ev.target.value;
+        const pos = searchInput.selectionStart;
+        renderEpic().then(() => {
+          const next = $("#epicSearchInput");
+          if (next) {
+            next.focus();
+            try { next.setSelectionRange(pos, pos); } catch {}
+          }
+        });
+      };
+    }
+    const sortSel = el.querySelector("#epicSortSelect");
+    if (sortSel) {
+      sortSel.onchange = (ev) => {
+        epicSort = ev.target.value;
+        renderEpic();
+      };
+    }
+  } catch (e) {
+    el.innerHTML = `<p class="muted">Erro ao carregar biblioteca Epic Games: ${esc(e.message)}</p>`;
   }
 }
 

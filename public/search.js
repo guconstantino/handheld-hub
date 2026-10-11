@@ -33,6 +33,8 @@
     { label: "Visão geral", sub: "Tela", icon: "layers", run: go("#overview"), keys: "g v" },
     { label: "Plataformas", sub: "Tela", icon: "layout-grid", run: go("#platforms"), keys: "g p" },
     { label: "Jogos", sub: "Tela", icon: "gamepad-2", run: go("#games"), keys: "g j" },
+    { label: "Ports & Decompilações", sub: "Tela", icon: "wrench", run: go("#ports") },
+    { label: "Biblioteca Epic Games", sub: "Tela", icon: "hard-drive", run: go("#epic"), keys: "g e" },
     { label: "Saúde do acervo", sub: "Tela", icon: "shield-check", run: go("#health"), keys: "g s" },
     { label: "Configurações", sub: "Tela", icon: "settings", run: go("#settings") },
     { label: "Admin", sub: "Tela", icon: "wrench", run: go("#admin"), admin: true },   // só aparece para admin

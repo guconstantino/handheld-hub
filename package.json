@@ -15,7 +15,8 @@
     "catalog": "python3 scripts/catalog.py",
     "serve": "node scripts/serve.mjs",
     "r2": "python3 scripts/r2_sync.py",
-    "ra": "python3 scripts/ra_catalog.py"
+    "ra": "python3 scripts/ra_catalog.py",
+    "scan:epic": "python3 scripts/epic_sync.py"
   },
   "devDependencies": {
     "@observablehq/plot": "0.6.17",
