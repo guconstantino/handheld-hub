@@ -198,6 +198,7 @@ def onion(vol):
 
 DAIJI_MAP = os.path.join(ROOT, "data", "covers-daijisho.json")
 DAIJI_ROOT = "/storage/6847-D042/Rom"           # mesmo root do local s20-sd (scanner/devices.json)
+DAIJI_ROOTS = ["/storage/6847-D042/Rom", "/storage/4320-18EC/1-Jogos", "/sdcard/3-Jogos"]
 
 
 def daijisho():
@@ -206,13 +207,14 @@ def daijisho():
     import tempfile
     from PIL import Image
     adb = ["adb"] + (["-s", os.environ["ANDROID_SERIAL"]] if os.environ.get("ANDROID_SERIAL") else [])
-    listing = subprocess.run(adb + ["shell", f'cd "{DAIJI_ROOT}" && find . -path "*/media/box/*" -type f'],
-                             capture_output=True, text=True, check=True).stdout.splitlines()
     boxes = {}
-    for line in listing:
-        parts = line[2:].split("/")                        # ./<pasta>/media/box/<nome>.<ext>
-        if len(parts) == 4:
-            boxes[(parts[0], parts[3].rsplit(".", 1)[0])] = line[2:]
+    for root in DAIJI_ROOTS:
+        res = subprocess.run(adb + ["shell", f'[ -d "{root}" ] && cd "{root}" && find . -path "*/media/box/*" -type f'],
+                             capture_output=True, text=True)
+        for line in res.stdout.splitlines():
+            parts = line[2:].split("/")                    # ./<pasta>/media/box/<nome>.<ext>
+            if len(parts) == 4:
+                boxes[(parts[0], parts[3].rsplit(".", 1)[0])] = f"{root}/{line[2:]}"
     plan, _ = match(sorted(LIBRETRO))
     have = set(plan) | set(json.load(open(ONION_MAP)) if os.path.exists(ONION_MAP) else {})
     done = json.load(open(DAIJI_MAP)) if os.path.exists(DAIJI_MAP) else {}
@@ -233,7 +235,7 @@ def daijisho():
     with tempfile.TemporaryDirectory() as tmp:
         for i in range(0, len(keys), 100):
             batch = keys[i:i + 100]
-            subprocess.run(adb + ["pull"] + [f"{DAIJI_ROOT}/{want[k]}" for k in batch] + [tmp],
+            subprocess.run(adb + ["pull"] + [want[k] for k in batch] + [tmp],
                            capture_output=True, text=True)
             for k in batch:
                 src = os.path.join(tmp, want[k].rsplit("/", 1)[-1])
