@@ -186,7 +186,7 @@ document.addEventListener("mousemove", (e) => {
 function route(moveFocus = false) {
   curView = null;                                   // a troca de tela muda a altura: não gravar essa rolagem
   const [view, arg] = (location.hash.slice(1) || "overview").split(/[/-](.*)/);
-  const target = ["overview", "device", "platforms", "platform", "game", "games", "ports", "lists", "compare", "health", "settings", "admin"].includes(view) ? view : "overview";
+  const target = ["overview", "device", "platforms", "platform", "game", "games", "ports", "epic", "lists", "compare", "health", "settings", "admin"].includes(view) ? view : "overview";
   document.querySelectorAll(".nav a").forEach((a) => {
     const on = a.dataset.view === ({ device: "overview", platform: "platforms", game: "games" }[target] || target);
     a.classList.toggle("active", on);
@@ -216,7 +216,7 @@ function route(moveFocus = false) {
   if (moveFocus) (pending || Promise.resolve()).then(focusHeading);
   return pending;
 }
-const KEEP_SCROLL = new Set(["overview", "games", "platforms", "ports", "lists", "health", "compare"]);
+const KEEP_SCROLL = new Set(["overview", "games", "platforms", "ports", "epic", "lists", "health", "compare"]);
 const scrollMem = {};
 let curView = null;
 addEventListener("scroll", () => {
