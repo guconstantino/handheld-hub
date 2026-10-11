@@ -14,8 +14,12 @@ npm install
 npm run db:migrate          # cria o D1 local
 npm run scan:s20            # S20 FE via adb (~18 min; ANDROID_SERIAL se houver mais de um device)
 npm run scan:drive          # pasta do Drive no Mac (~6 min)
+npm run scan:ports          # atualiza public/data/ports-radar.json via rom-tool check-ports
+npm run scan:epic           # sincroniza public/data/epic-library.json (376 jogos da Epic + S20 FE)
+npm run scan:epic -- --deploy  # sincroniza Epic Games e faz deploy no Cloudflare Workers
 npm run dev                 # http://localhost:8787
 ```
+- **Auto-sync diário da Epic Games:** `~/Library/LaunchAgents/com.gustavo.handheld-hub.epic-sync.plist` roda `scripts/epic_sync.py --deploy` todos os dias às 13h30.
 
 ## Regras (como trabalhamos)
 1. **Planejar antes de codar.** Mudança não trivial: plano primeiro, implementar após "go".
