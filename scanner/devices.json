@@ -8,7 +8,7 @@
       "notes": "Android como console portátil: Daijishō de front-end, GameSir X5 Lite, tudo gerenciado via adb.",
       "specs": {
         "source": "s20fe-gamesirx5lite",
-        "snapshot": "2026-10-07",
+        "snapshot": "2026-10-10",
         "facts": {
           "Modelo": "SM-G780G",
           "SoC / GPU": "Snapdragon 865 / Adreno 650",
@@ -31,17 +31,24 @@
             ]
           },
           {
-            "title": "Ports nativos",
+            "title": "Ports nativos (decomp/recomp)",
             "items": [
-              "Ship of Harkinian (OoT)",
-              "Dusklight (Twilight Princess)",
-              "DriftDroid (Mario Kart Wii)",
-              "Retro Rewind"
+              "Ship of Harkinian (OoT PT-BR)",
+              "2Ship2Harkinian (Majora's Mask PT-BR)",
+              "Dusklight (Twilight Princess PT-BR)",
+              "SM64CoopDX (Super Mario 64 PT-BR)",
+              "SpaghettiKart (Mario Kart 64)",
+              "DriftDroid + Retro Rewind (MKWii)",
+              "Party Board (Mario Party 4)",
+              "Sonic 3 A.I.R. (PT-BR)",
+              "Super Mario World (snesrev PT-BR)",
+              "Super Metroid (snesrev PT-BR)"
             ]
           },
           {
             "title": "Ajustes",
             "items": [
+              "25 jogos na aba PORTS (100% capas)",
               "Bordas 20:9 por sistema",
               "Widescreen GC/Wii e PS2",
               "RetroAchievements (hardcore off)",
@@ -51,7 +58,7 @@
           {
             "title": "Atenção",
             "items": [
-              "284 ROMs corrompidas (cópia nova necessária)",
+              "194 ROMs corrompidas (90 já consertadas)",
               "Limite térmico: bateria > 42 °C corta a CPU"
             ]
           }

@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Estado atual
-Fase 1 pronta localmente: S20 FE (SD + interno) e Drive indexados; portal com visão geral, busca de jogos e saúde do acervo em `wrangler dev`. Fase 2 concluída: os 3 consoles e o Drive no catálogo. **Fase 3 no ar (2026-10-08):** https://gamehub.gustavoconstantino.com atrás do Cloudflare Access. Login: conta Cloudflare (Outlook) ou One-time PIN (Gmail). Depois vieram capas (15.229, no R2), catálogo estático, plataformas, RA, busca global, listas sincronizadas e uma página por jogo. Próximo: lista completa do Switch.
+Fase 1 pronta localmente: S20 FE (SD + interno) e Drive indexados; portal com visão geral, busca de jogos e saúde do acervo em `wrangler dev`. Fase 2 concluída: os 3 consoles e o Drive no catálogo. **Fase 3 no ar (2026-10-08):** https://gamehub.gustavoconstantino.com atrás do Cloudflare Access. Login: conta Cloudflare (Outlook) ou One-time PIN (Gmail). Depois vieram capas (15.254, no R2), catálogo estático, plataformas, RA, busca global, listas sincronizadas, os 25 ports do S20 FE e uma página por jogo. Próximo: lista completa do Switch.
 
 ## Onde paramos (2026-10-07)
 Handoff completo (portal + console) em `s20fe-gamesirx5lite/docs/STATE.md`, seção "Onde paramos". Próximo: o Gustavo escolhe entre lista completa do Switch (DBI), produção (só com ok) ou voltar aos problemas do console.
