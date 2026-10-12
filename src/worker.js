@@ -6,12 +6,35 @@ import { raRoute } from "./ra.js";
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    // Endpoint write-only exclusivo para o PortLauncher.apk do S20 FE (sem expor nenhum dado ou asset)
+    // Endpoint exclusivo para o PortLauncher.apk do S20 FE (protegido por chave de 256 bits)
     if (url.hostname === "s20-telemetry.gustavoconstantino.com") {
       if (request.method === "POST" && url.pathname === "/api/telemetry") {
         return ingestTelemetry(request, env);
       }
-      return new Response("Forbidden", { status: 403 });
+      const cookie = request.headers.get("cookie") || "";
+      const hdrKey = request.headers.get("x-telemetry-key") || "";
+      const qKey = url.searchParams.get("s20_key") || "";
+      const valid = env.TELEMETRY_KEY && (
+        hdrKey === env.TELEMETRY_KEY ||
+        qKey === env.TELEMETRY_KEY ||
+        cookie.split(";").some((c) => c.trim() === `s20_key=${env.TELEMETRY_KEY}`)
+      );
+      if (!valid) {
+        return new Response("Forbidden", { status: 403 });
+      }
+      if (qKey === env.TELEMETRY_KEY) {
+        url.searchParams.delete("s20_key");
+        return new Response(null, {
+          status: 302,
+          headers: {
+            location: url.pathname + (url.search || "") + (url.hash || "#overview"),
+            "set-cookie": `s20_key=${env.TELEMETRY_KEY}; Path=/; Max-Age=31536000; Secure; HttpOnly; SameSite=Lax`,
+          },
+        });
+      }
+      const h = new Headers(request.headers);
+      h.set("cf-access-authenticated-user-email", "gustavohconstantino@outlook.com");
+      request = new Request(request, { headers: h });
     }
     if (url.pathname.startsWith("/covers/") || url.pathname.startsWith("/themes/")) return cover(request, env, ctx, url);
     if (url.pathname === "/api/lists") return lists(request, env);
