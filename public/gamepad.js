@@ -21,19 +21,25 @@
     ".seg button",
     ".filters input",
     ".filters select",
+    "#epicSearchInput",
+    "#epicSortSelect",
     ".btn:not([hidden]):not(.fmore-btn):not(#customize):not(#toTop)",
     ".drive-btn",
     ".listbtn",
     ".stepbtn",
+    ".linkbtn",
+    ".copy",
     "#portsTable tbody tr",
     "#epicTable tbody tr",
     "#gamesTable tbody tr",
+    ".copies-table tbody tr",
   ].join(", ");
 
   // Ordem estrita de prioridade para o foco inicial de cada tela
   const PRIMARY_PRIORITY = [
     ".device",
     "#devGames",
+    ".listbtn[data-list='playing']",
     ".ptile",
     ".gcard",
     "#portsTable tbody tr",
@@ -42,14 +48,15 @@
     ".htile",
   ];
 
-  const WRAP_GRID_SELECTORS = ".device, .ptile, .gcard, .live-col, .relcard, .htile, .chip, .seg button";
+  const WRAP_GRID_SELECTORS = ".device, .ptile, .gcard, .live-col, .relcard, .htile, .chip, .seg button, .listbtn";
   const DIALOG_SELECTORS = ".pal-item, .palette input, .palette button, .palette select, .theme-opt";
-  const TABS = ["overview", "platforms", "games", "ports", "epic", "lists", "health"];
+  const DEFAULT_TABS = ["overview", "platforms", "games", "ports", "epic", "lists", "compare", "health"];
 
   let curEl = null;
   let gpMode = false;
   let userMoved = false;
   let hudEl = null;
+  let pendingFocusSelector = null;
 
   function blurNativeFocus() {
     const skip = document.getElementById("skip");
@@ -76,10 +83,11 @@
     hudEl.className = "gp-hud";
     hudEl.setAttribute("aria-hidden", "true");
     hudEl.innerHTML = `
-      <span><kbd>L1</kbd><kbd>R1</kbd> Abas</span>
+      <span><kbd>L1/R1</kbd> Abas</span>
+      <span><kbd>L2/R2</kbd> Filtro</span>
       <span><kbd>A</kbd> Abrir</span>
       <span><kbd>B</kbd> Voltar</span>
-      <span><kbd>Y</kbd> Buscar</span>
+      <span><kbd>Y</kbd> Busca</span>
       <span><kbd>X</kbd> Topo</span>
     `;
     document.body.appendChild(hudEl);
@@ -152,7 +160,7 @@
         const targetY = absTop - topPad - Math.max(0, (availH - Math.min(r.height, availH * 0.85)) / 2);
         window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
       }
-      const scroller = el.closest(".morerow, .chiprow, .pal-list, .theme-list");
+      const scroller = el.closest(".morerow, .chiprow, .chips-bar, .seg.tabs, .pal-list, .theme-list");
       if (scroller) {
         el.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
       }
@@ -174,6 +182,14 @@
   }
 
   function ensureValidFocus(forceBest = false) {
+    if (pendingFocusSelector) {
+      const target = document.querySelector(pendingFocusSelector);
+      if (target && isVisible(target)) {
+        pendingFocusSelector = null;
+        setFocus(target, false);
+        return target;
+      }
+    }
     const list = getCandidates();
     if (!list.length) return null;
     if (!forceBest && curEl && document.body.contains(curEl) && list.includes(curEl) && isVisible(curEl)) {
@@ -187,6 +203,10 @@
   // Observa carregamento assíncrono (ex.: #devices, #ports, #epic) para garantir que o 1º card receba o foco
   const domObserver = new MutationObserver(() => {
     if (!gpMode) return;
+    if (pendingFocusSelector) {
+      ensureValidFocus(false);
+      return;
+    }
     if (!userMoved) {
       ensureValidFocus(true);
       return;
@@ -203,6 +223,7 @@
   function move(dir) {
     enableGpMode();
     userMoved = true;
+    pendingFocusSelector = null;
     const list = getCandidates();
     if (!list.length) return;
     if (!curEl || !document.body.contains(curEl) || !list.includes(curEl) || !isVisible(curEl)) {
@@ -301,6 +322,15 @@
     el.classList.add("gp-press");
     setTimeout(() => el.classList.remove("gp-press"), 150);
 
+    // Preserva o foco em botões de filtro que re-renderizam seu container (#portsTabs, #epicTabs, #listTabs)
+    if (el.dataset.pcat) {
+      pendingFocusSelector = `#portsTabs button[data-pcat="${el.dataset.pcat}"]`;
+    } else if (el.dataset.ecat) {
+      pendingFocusSelector = `#epicTabs button[data-ecat="${el.dataset.ecat}"]`;
+    } else if (el.dataset.tab) {
+      pendingFocusSelector = `#listTabs button[data-tab="${el.dataset.tab}"]`;
+    }
+
     if (el.matches(".device")) {
       const link = el.querySelector("a.device-link, a");
       if (link) link.click();
@@ -345,6 +375,7 @@
 
   function back() {
     enableGpMode();
+    pendingFocusSelector = null;
     const openDlg = document.querySelector("dialog[open]");
     if (openDlg) {
       openDlg.close();
@@ -374,17 +405,25 @@
     return false;
   }
 
+  function getVisibleTabs() {
+    const links = [...document.querySelectorAll(".nav a[data-view]")].filter(isVisible);
+    const views = links.map((a) => a.dataset.view).filter(Boolean);
+    return views.length ? views : DEFAULT_TABS;
+  }
+
   function cycleTab(delta) {
     enableGpMode();
     userMoved = false;
+    pendingFocusSelector = null;
     const openDlg = document.querySelector("dialog[open]");
     if (openDlg) openDlg.close();
 
+    const tabs = getVisibleTabs();
     const activeLink = document.querySelector(".nav a.active");
     const curView = activeLink?.dataset.view || "overview";
-    const idx = Math.max(0, TABS.indexOf(curView));
-    const nextIdx = (idx + delta + TABS.length) % TABS.length;
-    const nextView = TABS[nextIdx];
+    const idx = Math.max(0, tabs.indexOf(curView));
+    const nextIdx = (idx + delta + tabs.length) % tabs.length;
+    const nextView = tabs[nextIdx];
     const targetLink = document.querySelector(`.nav a[data-view="${nextView}"]`);
     if (targetLink) {
       targetLink.click();
@@ -394,6 +433,50 @@
         ensureValidFocus(true);
       }, 140);
     }
+  }
+
+  // L2 / R2: alterna filtros internos da aba atual (ou jogo Anterior / Próximo na página do jogo)
+  function cycleSubFilter(delta) {
+    enableGpMode();
+    const activeView = document.querySelector("main .view:not(.hidden)");
+    if (!activeView) return false;
+
+    if (activeView.id === "view-game") {
+      const stepBtn = activeView.querySelector(`.stepbtn[data-step="${delta < 0 ? "prev" : "next"}"]`);
+      if (stepBtn) {
+        userMoved = false;
+        stepBtn.click();
+        return true;
+      }
+      return false;
+    }
+
+    const groups = [
+      "#portsTabs button",
+      "#epicTabs button",
+      "#listTabs button",
+      "#gChips .chip:not([hidden])",
+      "#cmpTabA, #cmpTabB",
+      "#platformSort .seg button",
+    ];
+    for (const sel of groups) {
+      const items = [...activeView.querySelectorAll(sel)].filter(isVisible);
+      if (items.length > 1) {
+        const curIdx = Math.max(0, items.findIndex((b) => b.getAttribute("aria-pressed") === "true" || b.classList.contains("active")));
+        const nextIdx = (curIdx + delta + items.length) % items.length;
+        const nextBtn = items[nextIdx];
+        if (nextBtn) {
+          userMoved = false;
+          nextBtn.click();
+          setTimeout(() => {
+            curEl = null;
+            ensureValidFocus(true);
+          }, 90);
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   function toggleSearch() {
@@ -411,12 +494,33 @@
     }
   }
 
-  function jumpTop() {
+  function handleX() {
     enableGpMode();
+    const activeView = document.querySelector("main .view:not(.hidden)");
+    if (activeView && activeView.id === "view-game") {
+      const favBtn = activeView.querySelector('.listbtn[data-list="fav"]');
+      if (favBtn) {
+        favBtn.click();
+        setFocus(favBtn, false);
+        return true;
+      }
+    }
     userMoved = false;
     window.scrollTo({ top: 0, behavior: "smooth" });
     curEl = null;
     ensureValidFocus(true);
+    return true;
+  }
+
+  function toggleSettings() {
+    enableGpMode();
+    userMoved = false;
+    if (location.hash === "#settings") {
+      history.back();
+    } else {
+      location.hash = "#settings";
+    }
+    return true;
   }
 
   function handleCommand(cmd) {
@@ -438,12 +542,17 @@
       case "r1":
         cycleTab(1);
         return true;
+      case "l2":
+        return cycleSubFilter(-1);
+      case "r2":
+        return cycleSubFilter(1);
       case "y":
         toggleSearch();
         return true;
       case "x":
-        jumpTop();
-        return true;
+        return handleX();
+      case "start":
+        return toggleSettings();
       default:
         return false;
     }
@@ -452,6 +561,7 @@
   window.addEventListener("hashchange", () => {
     if (!gpMode) return;
     userMoved = false;
+    pendingFocusSelector = null;
     setTimeout(() => {
       curEl = null;
       ensureValidFocus(true);
@@ -474,6 +584,8 @@
     else if ((e.key === "Enter" || e.key === " ") && gpMode && !inText) { e.preventDefault(); handleCommand("a"); }
     else if (e.key === "PageUp" && !inText) { e.preventDefault(); handleCommand("l1"); }
     else if (e.key === "PageDown" && !inText) { e.preventDefault(); handleCommand("r1"); }
+    else if (e.key === "[" && !inText) { e.preventDefault(); handleCommand("l2"); }
+    else if (e.key === "]" && !inText) { e.preventDefault(); handleCommand("r2"); }
   });
 
   let rafId = null;
@@ -505,7 +617,7 @@
     const gp = pads && (pads[0] || pads[1] || pads[2] || pads[3]);
     if (gp) {
       const now = performance.now();
-      const b = (i) => Boolean(gp.buttons[i] && gp.buttons[i].pressed);
+      const b = (i) => Boolean(gp.buttons[i] && (gp.buttons[i].pressed || gp.buttons[i].value > 0.6));
       const ax = (i) => (gp.axes && gp.axes[i]) || 0;
 
       const up = b(12) || ax(1) < -0.55;
@@ -521,9 +633,12 @@
       checkHold("a", b(0), now, () => handleCommand("a"));
       checkHold("b", b(1), now, () => handleCommand("b"));
       checkHold("x", b(2), now, () => handleCommand("x"));
-      checkHold("y", b(3), now, () => handleCommand("y"));
+      checkHold("y", b(3) || b(8), now, () => handleCommand("y"));
       checkHold("l1", b(4), now, () => handleCommand("l1"));
       checkHold("r1", b(5), now, () => handleCommand("r1"));
+      checkHold("l2", b(6), now, () => handleCommand("l2"));
+      checkHold("r2", b(7), now, () => handleCommand("r2"));
+      checkHold("start", b(9), now, () => handleCommand("start"));
 
       const ry = ax(3);
       if (Math.abs(ry) > 0.22) {

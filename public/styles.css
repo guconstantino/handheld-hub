@@ -789,8 +789,11 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
   h1 { font-size: 19px; }
   .page-head .lead { display: none; }
   #view-overview > .page-head,
-  #view-overview h2[data-part="consoles"] { display: none; }
-  .bento { gap: 10px; }
+  #view-overview h2[data-part="consoles"],
+  #view-games > .page-head,
+  #view-ports > .page-head,
+  #view-epic > .page-head { display: none; }
+  .bento, .view-stack { gap: 8px; }
   .b-full { margin: 2px 0 -6px; }
   .b-dev { grid-column: span 1; }
   .device .cover { aspect-ratio: auto; height: 114px; }
@@ -811,12 +814,34 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
   .detail-hero { grid-template-columns: minmax(0, 1fr) 250px; align-items: center; gap: 16px; margin-top: 4px; }
   .detail-hero .cover { order: 0; aspect-ratio: 16 / 9; height: 140px; border-radius: 12px; border: 1px solid var(--line); }
   .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
   .kpi:last-child:nth-child(odd) { grid-column: auto; }
-  .kpi { padding: 10px 12px; gap: 3px; }
-  .kpi-value { font-size: 18px; }
-  .kpi-sub { font-size: 11px; }
+  .kpi { padding: 6px 10px; gap: 1px; border-radius: 10px; }
+  .kpi-label { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi-value { font-size: 16px; line-height: 1.15; }
+  .kpi-sub { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #portsBody .tile, #epicBody .tile { padding: 8px 12px; }
+  #portsBody .tile-head, #epicBody .tile-head { gap: 8px !important; flex-wrap: nowrap !important; align-items: center !important; }
+  #portsBody .tile-head > div:last-child, #epicBody .tile-head > div:last-child { flex-wrap: nowrap !important; gap: 6px !important; flex-shrink: 0; }
+  #portsTabs, #epicTabs { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; padding: 2px; }
+  #portsTabs button, #epicTabs button { padding: 4px 8px; font-size: 11px; white-space: nowrap; }
+  #portsRefreshBtn, #epicRefreshBtn { white-space: nowrap; padding: 4px 8px; font-size: 11px; }
+  #epicSearchInput { min-width: 120px !important; width: 135px; padding: 4px 8px !important; font-size: 11px; }
+  #epicSortSelect { max-width: 135px; padding: 4px 6px !important; font-size: 11px; }
+  #epicBody .tile-head + .muted.small { display: none !important; }
+  #portsBody .table-wrap, #epicBody .table-wrap { margin-top: 4px !important; }
+  .table th { padding: 4px 8px; font-size: 10.5px; white-space: nowrap; }
+  .table td { padding: 4px 8px; font-size: 12px; vertical-align: middle; }
+  #portsTable td, #epicTable td { white-space: nowrap; }
+  #portsTable td .muted.small, #epicTable td .muted.small { max-width: 195px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #portsTable td img, #epicTable td img { width: 28px !important; height: 28px !important; }
   .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .ghero-in { padding: 12px 16px; gap: 8px; }
+  .ghero-grid { grid-template-columns: 108px minmax(0, 1fr); gap: 16px; align-items: center; }
+  .ghero-cover { width: 108px; }
+  .ghero h1 { font-size: 21px; }
+  .gactions { gap: 6px; }
+  .listbtn, .drive-btn { padding: 6px 10px; font-size: 12.5px; }
 }
 
 /* Lista recolhível (clampList): até 6 itens, o resto aparece com "Mostrar mais". */
@@ -1087,11 +1112,15 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
   color: var(--text);
   transform: translateX(3px);
 }
+tr[data-gp-focus="true"] {
+  outline: none !important;
+  box-shadow: none !important;
+}
 tr[data-gp-focus="true"] td {
-  background: color-mix(in srgb, var(--focus) 18%, var(--hover)) !important;
+  background: color-mix(in srgb, var(--focus) 22%, var(--surface)) !important;
 }
 tr[data-gp-focus="true"] td:first-child {
-  box-shadow: inset 4px 0 0 var(--focus);
+  box-shadow: inset 4px 0 0 var(--focus) !important;
 }
 .gp-press {
   transform: scale(0.97) !important;
@@ -1112,12 +1141,12 @@ tr[data-gp-focus="true"] td:first-child {
   border: 1px solid rgb(255 255 255 / .24); color: #fff;
 }
 @media (max-width: 900px) {
-  .gp-hud { bottom: calc(66px + env(safe-area-inset-bottom, 0px)); right: 12px; }
+  .gp-hud { bottom: calc(66px + env(safe-area-inset-bottom, 0px)); right: 12px; max-width: calc(100vw - 24px); overflow: hidden; }
 }
 @media (max-width: 960px) and (max-height: 520px) {
   .gp-hud {
-    top: 6px; right: 84px; bottom: auto;
-    padding: 3px 10px; font-size: 10.5px; gap: 9px;
+    top: 6px; right: 82px; bottom: auto;
+    padding: 3px 9px; font-size: 10px; gap: 7px;
     background: rgb(18 18 22 / .92); box-shadow: none;
   }
 }

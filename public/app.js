@@ -1867,7 +1867,7 @@ async function renderPorts(forceReload = false) {
           </div>
         </div>
         <div class="table-wrap" style="margin-top:12px">
-          <table class="table">
+          <table class="table" id="portsTable">
             <thead>
               <tr>
                 <th scope="col">Port / Jogo</th>
@@ -2018,7 +2018,7 @@ async function renderEpic(forceReload = false) {
           <span><span class="badge ok">Sync Inteligente (KV)</span> · Último sync: ${esc(syncDate)}</span>
         </div>
         <div class="table-wrap" style="margin-top:12px">
-          <table class="table">
+          <table class="table" id="epicTable">
             <thead>
               <tr>
                 <th scope="col">Nome do Jogo</th>
