@@ -58,8 +58,9 @@
           <button type="button" class="btn" id="customize"><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-wrench"/></svg>Personalizar</button>
         </div>
         <div class="bento">
-          <section class="tile b-12 cont" id="contBlock" aria-label="Continuar jogando" data-block="continuar" hidden></section>
-          <section class="tile b-12" id="s20LiveBlock" aria-labelledby="t-s20live" hidden></section>
+          <h2 class="b-full" data-part="consoles">Consoles</h2>
+          <div class="contents" id="devices" data-block="consoles"></div>
+          <section class="tile b-12" id="s20LiveBlock" aria-labelledby="t-s20live" data-block="s20live" hidden></section>
           <section class="tile b-12 rel" id="relBlock" aria-labelledby="t-rel" data-block="relacao">
             <div class="tile-head"><h2 id="t-rel">Entre os aparelhos</h2><span class="muted small">Onde cada jogo está e o que dá para levar para cada console</span></div>
             <div class="rel-grid">
@@ -83,8 +84,6 @@
           </section>
           <section class="tile b-hero" id="hero" aria-label="Acervo" data-block="hero"></section>
           <div class="contents" id="stats" data-block="stats"></div>
-          <h2 class="b-full" data-part="consoles">Consoles</h2>
-          <div class="contents" id="devices" data-block="consoles"></div>
           <section class="tile b-4" aria-labelledby="t-sys" data-block="plataformas">
             <div class="tile-head"><h2 id="t-sys">Jogos por plataforma</h2><div id="topSort"></div></div>
             <div id="topSystems"></div>

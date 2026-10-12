@@ -339,16 +339,17 @@ async function loadSummary() {
 }
 
 // ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
-// Ordem padrão: primeiro o que o acervo tem (resposta da tela), depois o pessoal (listas, conquistas).
-const BLOCKS = [["continuar", "Continuar jogando"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["consoles", "Consoles"], ["plataformas", "Jogos por plataforma"],
+// Ordem padrão: primeiro os consoles/devices no topo, seguido pela atividade ao vivo do S20 FE e resumo do acervo.
+const BLOCKS = [["consoles", "Consoles"], ["s20live", "Atividade ao Vivo · S20 FE"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["plataformas", "Jogos por plataforma"],
   ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
 const loadLayout = () => {
   let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
+  if (l?.v !== 2) l = null;
   const ids = BLOCKS.map(([id]) => id);
   const order = (l?.order || []).filter((id) => ids.includes(id));
   // Bloco novo (que não existia quando a ordem foi salva) entra na posição padrão, não no fim.
   ids.forEach((id, i) => { if (!order.includes(id)) order.splice(Math.min(i, order.length), 0, id); });
-  return { order, hidden: l?.hidden || [] };
+  return { v: 2, order, hidden: (l?.hidden || []).filter((id) => ids.includes(id)) };
 };
 let layout = loadLayout();
 function applyLayout() {
@@ -358,7 +359,7 @@ function applyLayout() {
     // Wrappers "display: contents" não aceitam order: aplica nos filhos (e no título dos consoles).
     const parts = el.classList.contains("contents") ? [...el.children] : [el];
     if (id === "consoles") parts.unshift(document.querySelector('#view-overview [data-part="consoles"]'));
-    for (const p of parts) { p.style.order = i * 10; p.classList.toggle("hidden", layout.hidden.includes(id)); }
+    for (const p of parts) { if (p) { p.style.order = i * 10; p.classList.toggle("hidden", layout.hidden.includes(id)); } }
   });
 }
 function drawLayoutList() {
@@ -368,9 +369,9 @@ function drawLayoutList() {
     <span><button type="button" class="icon-btn" data-up="${id}" ${i ? "" : "disabled"} aria-label="Subir ${esc(names[id])}">↑</button>
     <button type="button" class="icon-btn" data-down="${id}" ${i < layout.order.length - 1 ? "" : "disabled"} aria-label="Descer ${esc(names[id])}">↓</button></span></li>`).join("");
 }
-const saveLayout = () => { try { localStorage.setItem("hh_layout", JSON.stringify(layout)); } catch {} applyLayout(); drawLayoutList(); };
+const saveLayout = () => { layout.v = 2; try { localStorage.setItem("hh_layout", JSON.stringify(layout)); } catch {} applyLayout(); drawLayoutList(); };
 $("#customize").onclick = () => { drawLayoutList(); $("#layoutDlg").showModal(); };
-$("#layoutReset").onclick = () => { layout = { order: BLOCKS.map(([id]) => id), hidden: [] }; saveLayout(); };
+$("#layoutReset").onclick = () => { layout = { v: 2, order: BLOCKS.map(([id]) => id), hidden: [] }; saveLayout(); };
 $("#layoutList").addEventListener("change", (e) => {
   const id = e.target.dataset.show;
   if (!id) return;
@@ -2114,6 +2115,7 @@ async function loadS20Telemetry() {
     if (dev.sdFreeGb != null) devPills.push(`<span class="badge muted">SD: ${dev.sdFreeGb} GB livres</span>`);
 
     el.hidden = false;
+    applyLayout();
     el.innerHTML = `
       <div class="tile-head" style="flex-wrap:wrap;gap:10px">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
