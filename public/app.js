@@ -23,11 +23,23 @@ const logo = (d, cls = "") => {
   if (id.startsWith("i-")) return icon(id.slice(2), cls);
   return `<svg class="logo ${id === "b-samsung" ? "wide" : ""} ${cls}" aria-hidden="true"><use href="icons.svg#${id}"/></svg>`;
 };
-// Foto de capa de cada console (créditos no rodapé). Sem foto: o logo grande.
-const COVER = { s20fe: "img/s20fe.webp", miyoo: "img/miyoo.webp", switch: "img/switch.webp" };
-const cover = (d) => `<div class="cover">${COVER[d.id]
+// Foto de capa de estúdio de cada console. Sem foto: o logo grande.
+const COVER = { s20fe: "img/s20fe.webp?v=2", miyoo: "img/miyoo.webp?v=2", switch: "img/switch.webp?v=2", drive: "img/drive.webp?v=2" };
+const DEV_TAG = {
+  s20fe: "SM-G780G · X5 Lite",
+  miyoo: "OnionOS · RetroArch",
+  switch: "Atmosphère · emuMMC",
+  drive: "Cloud Vault · rclone",
+};
+const DEV_SUB = {
+  s20fe: "Snapdragon 865 · Daijishō · 25 Ports nativos",
+  miyoo: "SigmaStar · 3,5\" IPS 4:3 · 81 traduções PT-BR",
+  switch: "Mariko CFW 22.5 · hekate + JKSV · Offline",
+  drive: "Espelho mestre na nuvem · Games/Retrogame",
+};
+const cover = (d, badges = "") => `<div class="cover">${COVER[d.id]
   ? `<img src="${COVER[d.id]}" alt="" loading="lazy" decoding="async">`
-  : logo(d, "logo-big")}</div>`;
+  : logo(d, "logo-big")}${badges}</div>`;
 // Cor de cada console vem do CSS (paleta validada nos dois temas), pelo atributo data-dev.
 const dev = (id) => `data-dev="${esc(id)}"`;
 // Ordem fixa dos consoles nos gráficos (a cor segue o console, nunca a posição).
@@ -244,11 +256,23 @@ function storageOf(d) {
 }
 function storageHtml(s) {
   const used = s.total ? Math.round(((s.total - s.free) / s.total) * 100) : null;
-  const right = s.total ? `${fmtB(s.free)} livres de ${fmtB(s.total)} · ${used}% usado` : s.files != null ? `${fmtN(s.files)} itens` : "";
+  const right = s.total ? `${fmtB(s.free)} livres / ${fmtB(s.total)} · ${used}%` : s.files != null ? `${fmtN(s.files)} arquivos` : "";
   return `<div class="meter">
     <div class="meter-row"><span>${icon(s.cloud ? "cloud" : "hard-drive", "sm")}${esc(s.label)}</span><span>${right}</span></div>
     ${used !== null ? `<div class="bar"><i style="width:${used}%"></i></div>` : ""}
   </div>`;
+}
+
+function s20CoverLivePill(bad) {
+  const dev = s20Telemetry?.device;
+  if (dev && dev.batteryPct != null) {
+    const bat = `${dev.charging ? "⚡" : "🔋"} ${dev.batteryPct}%`;
+    const tmp = dev.tempC != null ? ` · ${dev.tempC.toFixed(1)}°C` : "";
+    return `<span class="cover-pill live" data-dev-live="s20fe">${bat}${tmp}</span>`;
+  }
+  return bad
+    ? `<span class="cover-pill warn" data-dev-live="s20fe">${fmtN(bad)} alertas</span>`
+    : `<span class="cover-pill live" data-dev-live="s20fe">✓ Íntegro</span>`;
 }
 
 // ---------- visão geral ----------
@@ -286,20 +310,34 @@ async function loadSummary() {
   $("#devices").innerHTML = s.devices.map((d) => {
     const st = (s.stats || {})[d.id] || { games: 0, systems: 0, covered: 0, noBackup: 0, driveOnly: 0 };
     const bad = s.locations.filter((l) => l.device_id === d.id).reduce((n, l) => n + (l.corrupted || 0), 0);
+    const lastScan = s.locations.filter((l) => l.device_id === d.id).map((l) => l.last_scan).filter(Boolean).sort().pop();
     const nums = [
       ["Jogos", fmtN(st.games)], ["Sistemas", fmtN(st.systems)],
-      ["Com capa", st.games ? fmtP((st.covered / st.games) * 100) : "—"],
-      d.id === "drive" ? ["Só no Drive", fmtN(st.driveOnly)] : ["Sem backup", fmtN(st.noBackup)],
+      ["Capas", st.games ? fmtP((st.covered / st.games) * 100) : "—"],
+      d.id === "drive" ? ["Só Drive", fmtN(st.driveOnly)] : ["S/ backup", fmtN(st.noBackup)],
     ];
+    const hwTag = DEV_TAG[d.id] || d.kind;
+    const statusPill = d.id === "s20fe"
+      ? s20CoverLivePill(bad)
+      : bad
+        ? `<span class="cover-pill warn">${fmtN(bad)} alertas</span>`
+        : `<span class="cover-pill live">✓ Íntegro</span>`;
+    const badgesHtml = `<div class="cover-badges"><span class="cover-pill">${esc(hwTag)}</span>${statusPill}</div>`;
     return `<article class="device b-dev" ${dev(d.id)}>
-      ${cover(d)}
+      ${cover(d, badgesHtml)}
       <div class="device-body">
-        <h3 class="device-name"><span class="dot"></span><a class="device-link" href="#device-${esc(d.id)}">${esc(d.name)}</a><span style="margin-left:auto;display:flex">${logo(d)}</span></h3>
-        <div class="chips">${bad ? `<span class="badge bad">${icon("triangle-alert", "sm")}${fmtN(bad)} corrompidos</span>` : `<span class="badge ok">${icon("shield-check", "sm")}Sem problemas</span>`}</div>
+        <div class="device-head">
+          <h3 class="device-name"><span class="dot"></span><a class="device-link" href="#device-${esc(d.id)}">${esc(d.name)}</a><span style="margin-left:auto;display:flex">${logo(d)}</span></h3>
+          <p class="device-sub">${esc(DEV_SUB[d.id] || d.notes || "")}</p>
+        </div>
         <dl class="nums">${nums.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>
-        <div>${storageOf(d).map(storageHtml).join("")}</div>
-        <p class="small muted">Varrido ${fmtDate(s.locations.filter((l) => l.device_id === d.id).map((l) => l.last_scan).filter(Boolean).sort().pop())}</p>
-        <span class="more" aria-hidden="true">Ver detalhes ${icon("chevron-right", "sm")}</span>
+        <div class="meters">${storageOf(d).map(storageHtml).join("")}</div>
+        <div class="device-foot">
+          <span class="scan-meta">${bad
+            ? `<span class="badge bad small">${icon("triangle-alert", "sm")}${fmtN(bad)} corrompidos</span>`
+            : `Varrido ${fmtDate(lastScan)}`}</span>
+          <span class="more" aria-hidden="true">Explorar ${icon("chevron-right", "sm")}</span>
+        </div>
       </div>
     </article>`;
   }).join("");
@@ -2092,85 +2130,102 @@ async function loadS20Telemetry() {
     s20Telemetry = data;
     drawContinue();
     if (curView === "ports") renderPorts(false);
-    if (!el) return;
 
     const dev = data.device || {};
+    const livePill = document.querySelector('[data-dev-live="s20fe"]');
+    if (livePill && dev.batteryPct != null) {
+      const bat = `${dev.charging ? "⚡" : "🔋"} ${dev.batteryPct}%`;
+      const tmp = dev.tempC != null ? ` · ${dev.tempC.toFixed(1)}°C` : "";
+      livePill.className = "cover-pill live";
+      livePill.textContent = `${bat}${tmp}`;
+    }
+
+    if (!el) return;
     const np = data.nowPlaying;
     const most = (data.mostPlayed || []).slice(0, 8);
     const recent = (data.recentOpened || []).slice(0, 8);
     const retro = (data.retroarchRecent || []).slice(0, 8);
+    const maxSec = Math.max(1, ...most.map((x) => x.totalSeconds || 0));
     const syncTime = data.receivedAt
       ? new Date(data.receivedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
       : "—";
 
     const kindBadge = (k) => {
-      const map = { decomp: "Decomp", port: "Port", pc: "PC/Epic", emu: "Emulador" };
-      return `<span class="badge small">${esc(map[k] || k || "App")}</span>`;
+      const map = { decomp: "Decomp", port: "Port", pc: "PC/Epic", emu: "Emu" };
+      const key = k || "app";
+      return `<span class="ktag" data-k="${esc(key)}">${esc(map[k] || k || "App")}</span>`;
     };
 
     const devPills = [];
-    if (dev.batteryPct != null) devPills.push(`<span class="badge ${dev.batteryPct <= 20 ? "warn" : "ok"}">${dev.charging ? "⚡" : "🔋"} ${dev.batteryPct}%</span>`);
-    if (dev.tempC != null) devPills.push(`<span class="badge ${dev.tempC >= 40 ? "warn" : ""}">${dev.tempC.toFixed(1)} °C</span>`);
-    if (dev.internalFreeGb != null) devPills.push(`<span class="badge muted">Interno: ${dev.internalFreeGb} GB livres</span>`);
-    if (dev.sdFreeGb != null) devPills.push(`<span class="badge muted">SD: ${dev.sdFreeGb} GB livres</span>`);
+    if (dev.batteryPct != null) devPills.push(`<span class="badge mono ${dev.batteryPct <= 20 ? "warn" : "ok"}">${dev.charging ? "⚡" : "🔋"} ${dev.batteryPct}%</span>`);
+    if (dev.tempC != null) devPills.push(`<span class="badge mono ${dev.tempC >= 40 ? "warn" : ""}">${dev.tempC.toFixed(1)} °C</span>`);
+    if (dev.internalFreeGb != null) devPills.push(`<span class="badge mono">Interno: ${dev.internalFreeGb} GB livres</span>`);
+    if (dev.sdFreeGb != null) devPills.push(`<span class="badge mono">SD: ${dev.sdFreeGb} GB livres</span>`);
 
+    el.classList.add("live-tile");
     el.hidden = false;
     applyLayout();
     el.innerHTML = `
-      <div class="tile-head" style="flex-wrap:wrap;gap:10px">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <h2 id="t-s20live">Atividade ao Vivo · Galaxy S20 FE</h2>
+      <div class="live-head">
+        <div class="live-title">
+          <span class="live-dot" aria-hidden="true"></span>
+          <h2 id="t-s20live">Telemetria ao Vivo · Galaxy S20 FE</h2>
           ${np && np.title
             ? `<span class="badge ok">Jogando agora: ${esc(np.title)}</span>`
-            : `<span class="badge">Sync direto do aparelho · ${esc(syncTime)}</span>`}
+            : `<span class="badge mono">Sync · ${esc(syncTime)}</span>`}
         </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto">
-          ${devPills.join(" ")}
+        <div class="live-pills">
+          ${devPills.join("")}
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:14px">
-        <div>
-          <h3 class="rel-h" style="margin-bottom:8px">${icon("trophy", "sm")} Mais jogados no S20 FE</h3>
-          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-            ${most.map((it, idx) => `
-              <li style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--surface-2)">
-                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                  <span class="muted small" style="margin-right:4px">${idx + 1}.</span>
-                  <b>${esc(it.title)}</b>
+      <div class="live-grid">
+        <div class="live-col">
+          <h3>${icon("trophy", "sm")} Mais jogados no S20 FE</h3>
+          <ul class="live-list">
+            ${most.map((it, idx) => {
+              const pct = Math.max(6, Math.round(((it.totalSeconds || 0) / maxSec) * 100));
+              return `
+              <li class="live-item">
+                <i class="live-fill" style="width:${pct}%"></i>
+                <div class="live-main">
+                  <span class="live-rank">${idx + 1}</span>
+                  <span class="live-name" title="${esc(it.title)}">${esc(it.title)}</span>
                 </div>
-                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                <div class="live-meta">
                   ${kindBadge(it.kind)}
-                  <span class="badge ok">${fmtDuration(it.totalSeconds)}</span>
+                  <span class="badge mono ok">${fmtDuration(it.totalSeconds)}</span>
                 </div>
-              </li>
-            `).join("") || `<li class="muted small">Sem dados ainda</li>`}
+              </li>`;
+            }).join("") || `<li class="muted small">Sem dados ainda</li>`}
           </ul>
         </div>
-        <div>
-          <h3 class="rel-h" style="margin-bottom:8px">${icon("clock", "sm")} Abertos recentemente</h3>
-          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+        <div class="live-col">
+          <h3>${icon("clock", "sm")} Abertos recentemente</h3>
+          <ul class="live-list">
             ${recent.map((it) => `
-              <li style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--surface-2)">
-                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                  <b>${esc(it.title)}</b>
+              <li class="live-item">
+                <div class="live-main">
+                  <span class="live-name" title="${esc(it.title)}">${esc(it.title)}</span>
                 </div>
-                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                <div class="live-meta">
                   ${kindBadge(it.kind)}
-                  <span class="muted small">${fmtRelative(it.lastPlayedAt)}</span>
+                  <span class="badge mono">${fmtRelative(it.lastPlayedAt)}</span>
                 </div>
               </li>
             `).join("") || `<li class="muted small">Sem dados ainda</li>`}
           </ul>
         </div>
-        <div>
-          <h3 class="rel-h" style="margin-bottom:8px">${icon("gamepad-2", "sm")} Últimos no RetroArch</h3>
-          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+        <div class="live-col">
+          <h3>${icon("gamepad-2", "sm")} Últimos no RetroArch</h3>
+          <ul class="live-list">
             ${retro.map((it) => `
-              <li style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--surface-2)">
-                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(it.core || "")}">
-                  <b>${esc(it.title)}</b>
+              <li class="live-item">
+                <div class="live-main" title="${esc(it.core || "")}">
+                  <span class="live-name">${esc(it.title)}</span>
                 </div>
-                <span class="badge">${esc((it.system || "retro").toUpperCase())}</span>
+                <div class="live-meta">
+                  <span class="badge mono">${esc((it.system || "retro").toUpperCase())}</span>
+                </div>
               </li>
             `).join("") || `<li class="muted small">Sem histórico no RetroArch</li>`}
           </ul>

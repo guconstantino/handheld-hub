@@ -27,8 +27,9 @@
   }
 
   function play(el, i) {
+    el.classList.add("in");
     animate(el, { opacity: [0, 1], transform: ["translateY(14px)", "translateY(0)"] }, { duration: 0.55, delay: Math.min(i, 12) * 0.045, ease: EASE })
-      .then(() => { el.classList.add("in"); el.style.transform = ""; });
+      .then(() => { el.style.transform = ""; });
     el.querySelectorAll(NUMBER).forEach(countUp);
     if (el.matches(NUMBER)) countUp(el);
     // Barras e anel enchem a partir do zero.
@@ -44,7 +45,7 @@
   const io = new IntersectionObserver((entries) => {
     const show = entries.filter((e) => e.isIntersecting).map((e) => e.target);
     show.forEach((el, i) => { io.unobserve(el); play(el, i); });
-  }, { rootMargin: "0px 0px -6% 0px" });
+  }, { rootMargin: "120px 0px 120px 0px" });
   const watch = (root) => {
     if (root.nodeType !== 1) return;
     if (root.matches(REVEAL) && !root.classList.contains("in")) io.observe(root);

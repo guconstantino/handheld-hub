@@ -14,11 +14,11 @@
   <title>Handheld Hub</title>
   <meta name="description" content="Consoles portáteis do Gustavo (S20 FE, Miyoo Mini Plus, Switch OLED) e o acervo de jogos.">
   <link rel="preload" href="fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
   <div class="boot" id="boot" role="progressbar" aria-label="Carregando o acervo"></div>
-  <button class="skip" id="skip">Pular para o conteúdo</button>
+  <button class="skip" id="skip" tabindex="-1">Pular para o conteúdo</button>
 
   <header class="side">
     <a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true"><svg class="ic sm"><use href="icons.svg#i-gamepad-2"/></svg></span>Handheld Hub</a>
@@ -389,10 +389,11 @@
   <script src="vendor/motion.js" defer></script>
   <script src="vendor/d3.min.js" defer></script>
   <script src="vendor/plot.umd.min.js" defer></script>
-  <script src="fx.js" defer></script>
+  <script src="fx.js?v=3" defer></script>
   <script src="charts.js" defer></script>
   <script src="hh-api.js" defer></script>
-  <script src="app.js" defer></script>
+  <script src="app.js?v=3" defer></script>
   <script src="search.js" defer></script>
+  <script src="gamepad.js?v=5" defer></script>
 </body>
 </html>
