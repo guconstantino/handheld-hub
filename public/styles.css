@@ -1149,4 +1149,51 @@ tr[data-gp-focus="true"] td:first-child {
     padding: 3px 9px; font-size: 10px; gap: 7px;
     background: rgb(18 18 22 / .92); box-shadow: none;
   }
+  .totop { display: none !important; }
+  .live-head { padding-bottom: 8px; }
+  .live-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px; margin-top: 8px; }
+  .live-col { padding: 8px 9px; gap: 5px; }
+  .live-col h3 { font-size: 10.5px; }
+  .live-item { padding: 4px 7px; font-size: 11.5px; gap: 5px; }
+  .live-item .ktag { display: none; }
+  .live-item .badge.mono { padding: 1px 5px; font-size: 10px; }
+  .live-item .live-rank { width: 17px; height: 17px; font-size: 10px; }
+  #portsTable th:nth-child(4), #portsTable td:nth-child(4),
+  #portsTable th:nth-child(5), #portsTable td:nth-child(5) { display: none; }
+  #portsTable td:nth-child(2) .muted.small { display: none; }
+  #portsTable td:nth-child(1) .muted.small { max-width: 145px; }
+  #epicTable th:nth-child(3), #epicTable td:nth-child(3) { display: none; }
+  #epicTable td:nth-child(4) .muted.small,
+  #epicTable td:nth-child(5) .muted.small { display: none; }
+  #epicTable td:nth-child(1) .muted.small { max-width: 155px; }
 }
+.gp-mode .totop { display: none !important; }
+
+/* ---------- botões de execução direta no S20 FE (▶ Jogar) ---------- */
+.play-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  background: color-mix(in srgb, #10b981 18%, var(--surface-2)) !important;
+  color: #34d399 !important;
+  border: 1px solid color-mix(in srgb, #10b981 45%, var(--line)) !important;
+  font-weight: 650 !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background .15s ease, transform .1s ease, border-color .15s ease;
+}
+.play-btn:hover {
+  background: color-mix(in srgb, #10b981 28%, var(--surface-2)) !important;
+  border-color: #34d399 !important;
+}
+.live-item[data-launch] {
+  cursor: pointer;
+}
+.live-item[data-launch] .play-btn {
+  padding: 2px 7px;
+  font-size: 10.5px;
+  border-radius: 6px;
+}
+.live-item[data-gp-focus="true"] {
+  border-color: var(--acc-s20fe, var(--focus)) !important;
+  background: color-mix(in srgb, var(--acc-s20fe, var(--focus)) 14%, var(--surface)) !important;
+}
+

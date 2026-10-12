@@ -2,7 +2,8 @@
 (() => {
   const SELECTORS = [
     ".device",
-    ".live-col",
+    ".live-item[data-launch]",
+    ".live-col:not(:has(.live-item[data-launch]))",
     ".b-hero",
     ".ptile",
     ".gcard",
@@ -23,7 +24,7 @@
     ".filters select",
     "#epicSearchInput",
     "#epicSortSelect",
-    ".btn:not([hidden]):not(.fmore-btn):not(#customize):not(#toTop)",
+    ".btn:not([hidden]):not(.fmore-btn):not(#customize):not(#toTop):not(tbody .btn):not(.live-item .btn)",
     ".drive-btn",
     ".listbtn",
     ".stepbtn",
@@ -346,8 +347,13 @@
       if (link) link.click();
       return;
     }
+    if (el.matches(".live-item[data-launch]")) {
+      const link = el.querySelector("a.play-btn");
+      if (link) link.click();
+      return;
+    }
     if (el.matches("tr")) {
-      const target = el.querySelector("a.tlink, a, button");
+      const target = el.querySelector("a.play-btn, a.tlink, a, button");
       if (target) target.click();
       return;
     }

@@ -1176,6 +1176,9 @@ async function renderGame(key) {
               ${Object.entries(LIST_LABEL).map(([l, [label, ic]]) => `<button type="button" class="listbtn" data-list="${l}" aria-pressed="${inList(l, g.game_key)}">${icon(ic, "sm")}${label}</button>`).join("")}
             </div>
             <div class="gactions">
+              ${isS20App() && g.copies.some((c) => c.device_id === "s20fe")
+                ? `<a class="drive-btn play-btn" href="${esc(launchHref(s20EmulatorFor(g.system), g.title.replace(/\s*[([].*$/, "")))}">▶ Jogar no S20 FE</a>`
+                : ""}
               ${driveBtn(g, "Abrir no Drive")}
               <a class="drive-btn" href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">${icon("search", "sm")}Buscar dicas</a>
             </div>
@@ -1835,10 +1838,15 @@ async function renderPorts(forceReload = false) {
     };
 
     const sourceCell = (p) => {
-      if (!p.repository) return `<span class="badge muted">APK Nativo</span>`;
+      const canPlay = isS20App() && p.category === "installed" && (p.packageName || p.name);
+      const playBtn = canPlay
+        ? `<a href="${esc(launchHref(p.packageName, p.name))}" class="btn small play-btn" title="Iniciar ${esc(p.name)} no S20 FE" style="white-space:nowrap">▶ Jogar</a>`
+        : "";
+      if (!p.repository) return playBtn || `<span class="badge muted">APK Nativo</span>`;
       const shortRepo = p.repository.split("/")[1] || p.repository;
       const href = p.releaseUrl || `https://github.com/${p.repository}`;
-      return `<a href="${esc(href)}" target="_blank" rel="noopener" class="btn small" title="${esc(p.repository)}" style="white-space:nowrap">${esc(shortRepo)}</a>`;
+      const ghBtn = `<a href="${esc(href)}" target="_blank" rel="noopener" class="btn small" title="${esc(p.repository)}" style="white-space:nowrap">${esc(shortRepo)}</a>`;
+      return playBtn ? `<div style="display:flex;gap:6px;align-items:center">${playBtn}${ghBtn}</div>` : ghBtn;
     };
 
     const syncDate = portsCache.updatedAt
@@ -2051,7 +2059,11 @@ async function renderEpic(forceReload = false) {
                   <td>${compatBadge(g)}</td>
                   <td>
                     ${g.installedS20
-                      ? `<span class="badge ok">Instalado no S20 FE</span><div class="muted small" style="margin-top:4px"><code>${esc(g.appName)}</code></div>`
+                      ? `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                          ${isS20App() ? `<a href="${esc(launchHref("com.xiaoji.egggame", g.title))}" class="btn small play-btn" style="white-space:nowrap">▶ Jogar</a>` : ""}
+                          <span class="badge ok">Instalado no S20 FE</span>
+                        </div>
+                        <div class="muted small" style="margin-top:4px"><code>${esc(g.appName)}</code></div>`
                       : `<code class="small" title="legendary install ${esc(g.appName)}">${esc(g.appName)}</code>`}
                   </td>
                 </tr>
@@ -2099,6 +2111,35 @@ async function renderEpic(forceReload = false) {
   } catch (e) {
     el.innerHTML = `<p class="muted">Erro ao carregar biblioteca Epic Games: ${esc(e.message)}</p>`;
   }
+}
+
+function isS20App() {
+  try {
+    if (window.HH_IS_S20_APP || new URLSearchParams(location.search).has("app")) {
+      sessionStorage.setItem("hh_s20_app", "1");
+      return true;
+    }
+    return sessionStorage.getItem("hh_s20_app") === "1";
+  } catch {
+    return Boolean(window.HH_IS_S20_APP);
+  }
+}
+function launchHref(pkg, title) {
+  return `handheld://launch?pkg=${encodeURIComponent(pkg || "")}&title=${encodeURIComponent(title || "")}`;
+}
+function s20EmulatorFor(system) {
+  const map = {
+    ports: "",
+    psp: "org.ppsspp.ppsspp",
+    nds: "me.magnum.melonds",
+    "3ds": "org.azahar_emu.azahar",
+    ps2: "xyz.aethersx2.android",
+    gamecube: "org.dolphinemu.dolphinemu",
+    wii: "org.dolphinemu.dolphinemu",
+    psx: "com.github.stenzek.duckstation",
+    dreamcast: "io.recompiled.redream",
+  };
+  return system in map ? map[system] : "com.retroarch";
 }
 
 let s20Telemetry = null;
@@ -2149,6 +2190,7 @@ async function loadS20Telemetry() {
     const syncTime = data.receivedAt
       ? new Date(data.receivedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
       : "—";
+    const inApp = isS20App();
 
     const kindBadge = (k) => {
       const map = { decomp: "Decomp", port: "Port", pc: "PC/Epic", emu: "Emu" };
@@ -2184,8 +2226,9 @@ async function loadS20Telemetry() {
           <ul class="live-list">
             ${most.map((it, idx) => {
               const pct = Math.max(6, Math.round(((it.totalSeconds || 0) / maxSec) * 100));
+              const href = inApp && (it.pkg || it.title) ? launchHref(it.pkg, it.title) : "";
               return `
-              <li class="live-item">
+              <li class="live-item"${href ? ` data-launch="${esc(href)}"` : ""}>
                 <i class="live-fill" style="width:${pct}%"></i>
                 <div class="live-main">
                   <span class="live-rank">${idx + 1}</span>
@@ -2194,6 +2237,7 @@ async function loadS20Telemetry() {
                 <div class="live-meta">
                   ${kindBadge(it.kind)}
                   <span class="badge mono ok">${fmtDuration(it.totalSeconds)}</span>
+                  ${href ? `<a class="play-btn badge ok" href="${esc(href)}" title="Jogar ${esc(it.title)}">▶</a>` : ""}
                 </div>
               </li>`;
             }).join("") || `<li class="muted small">Sem dados ainda</li>`}
@@ -2202,38 +2246,52 @@ async function loadS20Telemetry() {
         <div class="live-col">
           <h3>${icon("clock", "sm")} Abertos recentemente</h3>
           <ul class="live-list">
-            ${recent.map((it) => `
-              <li class="live-item">
+            ${recent.map((it) => {
+              const href = inApp && (it.pkg || it.title) ? launchHref(it.pkg, it.title) : "";
+              return `
+              <li class="live-item"${href ? ` data-launch="${esc(href)}"` : ""}>
                 <div class="live-main">
                   <span class="live-name" title="${esc(it.title)}">${esc(it.title)}</span>
                 </div>
                 <div class="live-meta">
                   ${kindBadge(it.kind)}
                   <span class="badge mono">${fmtRelative(it.lastPlayedAt)}</span>
+                  ${href ? `<a class="play-btn badge ok" href="${esc(href)}" title="Jogar ${esc(it.title)}">▶</a>` : ""}
                 </div>
-              </li>
-            `).join("") || `<li class="muted small">Sem dados ainda</li>`}
+              </li>`;
+            }).join("") || `<li class="muted small">Sem dados ainda</li>`}
           </ul>
         </div>
         <div class="live-col">
           <h3>${icon("gamepad-2", "sm")} Últimos no RetroArch</h3>
           <ul class="live-list">
-            ${retro.map((it) => `
-              <li class="live-item">
+            ${retro.map((it) => {
+              const href = inApp ? launchHref("com.retroarch", it.title) : "";
+              return `
+              <li class="live-item"${href ? ` data-launch="${esc(href)}"` : ""}>
                 <div class="live-main" title="${esc(it.core || "")}">
                   <span class="live-name">${esc(it.title)}</span>
                 </div>
                 <div class="live-meta">
                   <span class="badge mono">${esc((it.system || "retro").toUpperCase())}</span>
+                  ${href ? `<a class="play-btn badge ok" href="${esc(href)}" title="Abrir no RetroArch">▶</a>` : ""}
                 </div>
-              </li>
-            `).join("") || `<li class="muted small">Sem histórico no RetroArch</li>`}
+              </li>`;
+            }).join("") || `<li class="muted small">Sem histórico no RetroArch</li>`}
           </ul>
         </div>
       </div>
     `;
   } catch {}
 }
+window.HH_REFRESH_LIVE = () => loadS20Telemetry();
+document.addEventListener("click", (e) => {
+  if (e.target.closest("a.play-btn")) return;
+  const item = e.target.closest(".live-item[data-launch]");
+  if (!item) return;
+  const btn = item.querySelector("a.play-btn");
+  if (btn) btn.click();
+});
 
 async function pollLiveStatus() {
   if (document.visibilityState === "hidden") return;
