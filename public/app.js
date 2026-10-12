@@ -1698,25 +1698,42 @@ $("#themeList").onclick = (e) => {
   dlg.addEventListener("close", () => { pending = null; });
 })();
 
-let portsCache = null, portsFilter = "all";
-async function renderPorts() {
+let portsCache = null, portsFilter = "all", liveHashes = { epicHash: null, portsHash: null };
+async function fetchLiveOrStatic(liveUrl, staticUrl) {
+  try {
+    const r = await fetch(liveUrl, { cache: "no-store" });
+    if (r.ok) return await r.json();
+  } catch {}
+  const r2 = await fetch(staticUrl, { cache: "no-store" });
+  if (!r2.ok) throw new Error(`${staticUrl} não encontrado`);
+  return await r2.json();
+}
+
+async function renderPorts(forceReload = false) {
   const el = $("#portsBody");
   if (!el) return;
   try {
-    if (!portsCache) {
-      const r = await fetch("data/ports-radar.json");
-      if (!r.ok) throw new Error("ports-radar.json não encontrado");
-      portsCache = await r.json();
+    if (!portsCache || forceReload) {
+      portsCache = await fetchLiveOrStatic("/api/live/ports", "data/ports-radar.json");
     }
     const c = portsCache.counts || {};
     const all = portsCache.ports || [];
     const list = portsFilter === "all" ? all : all.filter((p) => p.category === portsFilter);
 
+    const pkgStats = {};
+    if (s20Telemetry && Array.isArray(s20Telemetry.mostPlayed)) {
+      s20Telemetry.mostPlayed.forEach((it) => { if (it.pkg) pkgStats[it.pkg] = it; });
+    }
+
     const statusBadge = (p) => {
+      const st = p.packageName ? pkgStats[p.packageName] : null;
+      const usageLine = st && st.totalSeconds > 0
+        ? `<div class="muted small" style="margin-top:4px">Jogado: <b>${fmtDuration(st.totalSeconds)}</b> · ${fmtRelative(st.lastPlayedAt)}</div>`
+        : "";
       if (p.updateStatus === "up-to-date")
-        return `<span class="badge ok">Instalado · v${esc(p.installedVersion || "—")}</span>`;
+        return `<span class="badge ok">Instalado · v${esc(p.installedVersion || "—")}</span>${usageLine}`;
       if (p.updateStatus === "update-available")
-        return `<span class="badge warn" title="Instalado: v${esc(p.installedVersion || "")}">Update · ${esc(p.latestTag || "novo")}</span>`;
+        return `<span class="badge warn" title="Instalado: v${esc(p.installedVersion || "")}">Update · ${esc(p.latestTag || "novo")}</span>${usageLine}`;
       if (p.updateStatus === "ready-to-install")
         return `<span class="badge">APK Android · ${esc(p.latestTag || "pronto")}</span>`;
       return `<span class="badge muted">Mac/PC · ${esc(p.latestTag || "N64Recomp")}</span>`;
@@ -1729,6 +1746,10 @@ async function renderPorts() {
       if (rom.gdrive) parts.push(`<span class="badge" title="${esc(rom.bestPath || "")}">Google Drive</span>`);
       return parts.length ? parts.join(" ") : `<span class="muted small">Não exigida / Externa</span>`;
     };
+
+    const syncDate = portsCache.updatedAt
+      ? new Date(portsCache.updatedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
+      : "—";
 
     el.innerHTML = `
       <div class="kpis" role="list" aria-label="Resumo de Ports e Decompilações">
@@ -1746,7 +1767,10 @@ async function renderPorts() {
             <button type="button" data-pcat="android-ready" aria-pressed="${portsFilter === "android-ready"}">Candidatos Android (${c.androidReady || 0})</button>
             <button type="button" data-pcat="n64recomp-desktop" aria-pressed="${portsFilter === "n64recomp-desktop"}">Radar N64Recomp (${c.desktopRecomp || 0})</button>
           </div>
-          <span class="muted small">Sincronizado via <code>rom-tool check-ports</code></span>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+            <span class="badge ok" title="Verifica atualizações no Cloudflare KV a cada 30s">Ao vivo · ${esc(syncDate)}</span>
+            <button type="button" class="btn small" id="portsRefreshBtn">Atualizar agora</button>
+          </div>
         </div>
         <div class="table-wrap" style="margin-top:12px">
           <table class="table">
@@ -1799,20 +1823,25 @@ async function renderPorts() {
         renderPorts();
       };
     });
+    const rBtn = el.querySelector("#portsRefreshBtn");
+    if (rBtn) {
+      rBtn.onclick = () => {
+        rBtn.textContent = "Atualizando...";
+        renderPorts(true);
+      };
+    }
   } catch (e) {
     el.innerHTML = `<p class="muted">Erro ao carregar radar de ports: ${esc(e.message)}</p>`;
   }
 }
 
 let epicCache = null, epicFilter = "all", epicQuery = "", epicSort = "compat";
-async function renderEpic() {
+async function renderEpic(forceReload = false) {
   const el = $("#epicBody");
   if (!el) return;
   try {
-    if (!epicCache) {
-      const r = await fetch("data/epic-library.json");
-      if (!r.ok) throw new Error("epic-library.json não encontrado");
-      epicCache = await r.json();
+    if (!epicCache || forceReload) {
+      epicCache = await fetchLiveOrStatic("/api/live/epic", "data/epic-library.json");
     }
     const c = epicCache.counts || {};
     const all = epicCache.games || [];
@@ -1861,10 +1890,12 @@ async function renderEpic() {
       ? new Date(epicCache.updatedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
       : "—";
 
+    const installedNames = all.filter((g) => g.installedS20).map((g) => g.title).join(" · ") || "Nenhum detectado";
+
     el.innerHTML = `
       <div class="kpis" role="list" aria-label="Resumo da Biblioteca Epic Games">
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("layers", "sm")}Total na Conta Epic</span><span class="kpi-value">${fmtN(c.total || 0)}</span><span class="kpi-sub">Conta @${esc(epicCache.account || "guconstantino")} · Sync ${esc(syncDate)}</span></div>
-        <div class="kpi" role="listitem"><span class="kpi-label">${icon("gamepad-2", "sm")}Instalados no S20 FE</span><span class="kpi-value">${fmtN(c.installed || 0)}</span><span class="kpi-sub">Sonic Mania · Horizon · Dandara · SMB · Gungeon</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("gamepad-2", "sm")}Instalados no S20 FE</span><span class="kpi-value">${fmtN(c.installed || 0)}</span><span class="kpi-sub" title="${esc(installedNames)}">${esc(installedNames)}</span></div>
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("sparkles", "sm")}Ótimos no S20 FE (90–100%)</span><span class="kpi-value">${fmtN((c.nativeOrPort || 0) + (c.greatLight || 0))}</span><span class="kpi-sub">${fmtN(c.nativeOrPort || 0)} Nativos/Ports + ${fmtN(c.greatLight || 0)} Leves 60 FPS</span></div>
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("shield-check", "sm")}DRM-Free / Offline</span><span class="kpi-value">${fmtN(c.drmFree || 0)}</span><span class="kpi-sub">Rodam direto via GameHub Proton ARM64X</span></div>
       </div>
@@ -1887,11 +1918,12 @@ async function renderEpic() {
               <option value="size-desc" ${epicSort === "size-desc" ? "selected" : ""}>Maior tamanho em disco</option>
               <option value="title" ${epicSort === "title" ? "selected" : ""}>Ordem alfabética (A–Z)</option>
             </select>
+            <button type="button" class="btn small" id="epicRefreshBtn">Atualizar agora</button>
           </div>
         </div>
         <div class="muted small" style="margin-top:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
           <span>Exibindo <b>${filtered.length}</b> de ${all.length} títulos da conta Epic Games</span>
-          <span>Auto-sync diário via <code>scripts/epic_sync.py</code> (Legendary + Secure Enclave DPoP)</span>
+          <span><span class="badge ok">Sync Inteligente (KV)</span> · Último sync: ${esc(syncDate)}</span>
         </div>
         <div class="table-wrap" style="margin-top:12px">
           <table class="table">
@@ -1965,10 +1997,164 @@ async function renderEpic() {
         renderEpic();
       };
     }
+    const rBtn = el.querySelector("#epicRefreshBtn");
+    if (rBtn) {
+      rBtn.onclick = () => {
+        rBtn.textContent = "Atualizando...";
+        renderEpic(true);
+      };
+    }
   } catch (e) {
     el.innerHTML = `<p class="muted">Erro ao carregar biblioteca Epic Games: ${esc(e.message)}</p>`;
   }
 }
+
+let s20Telemetry = null;
+function fmtDuration(sec) {
+  if (!sec || sec < 60) return `${Math.max(1, Math.round(sec || 0))}s`;
+  const m = Math.round(sec / 60);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60), rm = m % 60;
+  return rm > 0 ? `${h}h ${rm}m` : `${h}h`;
+}
+function fmtRelative(ms) {
+  if (!ms) return "—";
+  const diffMin = Math.round((Date.now() - ms) / 60000);
+  if (diffMin < 1) return "agora mesmo";
+  if (diffMin < 60) return `há ${diffMin} min`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `há ${diffH}h`;
+  const d = new Date(ms);
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+async function loadS20Telemetry() {
+  const el = $("#s20LiveBlock");
+  try {
+    const r = await fetch("/api/live/telemetry", { cache: "no-store" });
+    if (!r.ok) return;
+    const data = await r.json();
+    if (!data || data.empty) return;
+    s20Telemetry = data;
+    if (!el) return;
+
+    const dev = data.device || {};
+    const np = data.nowPlaying;
+    const most = (data.mostPlayed || []).slice(0, 8);
+    const recent = (data.recentOpened || []).slice(0, 8);
+    const retro = (data.retroarchRecent || []).slice(0, 8);
+    const syncTime = data.receivedAt
+      ? new Date(data.receivedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
+      : "—";
+
+    const kindBadge = (k) => {
+      const map = { decomp: "Decomp", port: "Port", pc: "PC/Epic", emu: "Emulador" };
+      return `<span class="badge small">${esc(map[k] || k || "App")}</span>`;
+    };
+
+    const devPills = [];
+    if (dev.batteryPct != null) devPills.push(`<span class="badge ${dev.batteryPct <= 20 ? "warn" : "ok"}">${dev.charging ? "⚡" : "🔋"} ${dev.batteryPct}%</span>`);
+    if (dev.tempC != null) devPills.push(`<span class="badge ${dev.tempC >= 40 ? "warn" : ""}">${dev.tempC.toFixed(1)} °C</span>`);
+    if (dev.internalFreeGb != null) devPills.push(`<span class="badge muted">Interno: ${dev.internalFreeGb} GB livres</span>`);
+    if (dev.sdFreeGb != null) devPills.push(`<span class="badge muted">SD: ${dev.sdFreeGb} GB livres</span>`);
+
+    el.hidden = false;
+    el.innerHTML = `
+      <div class="tile-head" style="flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 id="t-s20live">Atividade ao Vivo · Galaxy S20 FE</h2>
+          ${np && np.title
+            ? `<span class="badge ok">Jogando agora: ${esc(np.title)}</span>`
+            : `<span class="badge">Sync direto do aparelho · ${esc(syncTime)}</span>`}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto">
+          ${devPills.join(" ")}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:14px">
+        <div>
+          <h3 class="rel-h" style="margin-bottom:8px">${icon("sparkles", "sm")} Mais jogados no S20 FE</h3>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+            ${most.map((it, idx) => `
+              <li style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--surface-2)">
+                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                  <span class="muted small" style="margin-right:4px">${idx + 1}.</span>
+                  <b>${esc(it.title)}</b>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                  ${kindBadge(it.kind)}
+                  <span class="badge ok">${fmtDuration(it.totalSeconds)}</span>
+                </div>
+              </li>
+            `).join("") || `<li class="muted small">Sem dados ainda</li>`}
+          </ul>
+        </div>
+        <div>
+          <h3 class="rel-h" style="margin-bottom:8px">${icon("clock", "sm")} Abertos recentemente</h3>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+            ${recent.map((it) => `
+              <li style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--surface-2)">
+                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                  <b>${esc(it.title)}</b>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                  ${kindBadge(it.kind)}
+                  <span class="muted small">${fmtRelative(it.lastPlayedAt)}</span>
+                </div>
+              </li>
+            `).join("") || `<li class="muted small">Sem dados ainda</li>`}
+          </ul>
+        </div>
+        <div>
+          <h3 class="rel-h" style="margin-bottom:8px">${icon("gamepad-2", "sm")} Últimos no RetroArch</h3>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+            ${retro.map((it) => `
+              <li style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--surface-2)">
+                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(it.core || "")}">
+                  <b>${esc(it.title)}</b>
+                </div>
+                <span class="badge">${esc((it.system || "retro").toUpperCase())}</span>
+              </li>
+            `).join("") || `<li class="muted small">Sem histórico no RetroArch</li>`}
+          </ul>
+        </div>
+      </div>
+    `;
+  } catch {}
+}
+
+async function pollLiveStatus() {
+  if (document.visibilityState === "hidden") return;
+  try {
+    const r = await fetch("/api/live/status", { cache: "no-store" });
+    if (!r.ok) return;
+    const st = await r.json();
+    if (st.telemetryAt && st.telemetryAt !== liveHashes.telemetryAt) {
+      const hadPrev = !!liveHashes.telemetryAt;
+      liveHashes.telemetryAt = st.telemetryAt;
+      if (hadPrev) loadS20Telemetry();
+    }
+    if (st.epicHash && st.epicHash !== liveHashes.epicHash) {
+      const hadPrev = !!liveHashes.epicHash;
+      liveHashes.epicHash = st.epicHash;
+      if (hadPrev) {
+        epicCache = null;
+        if (curView === "epic") renderEpic(true);
+      }
+    }
+    if (st.portsHash && st.portsHash !== liveHashes.portsHash) {
+      const hadPrev = !!liveHashes.portsHash;
+      liveHashes.portsHash = st.portsHash;
+      if (hadPrev) {
+        portsCache = null;
+        if (curView === "ports") renderPorts(true);
+      }
+    }
+  } catch {}
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") pollLiveStatus();
+});
 
 (async () => {
   try {
@@ -1981,6 +2167,7 @@ async function renderEpic() {
     loadMosaic();
     loadMine();
     loadRelation();
+    loadS20Telemetry();
     RA.ready = loadRA();
     RA.ready.then(drawContinue);
     loadHealthTiles();

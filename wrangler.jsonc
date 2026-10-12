@@ -17,9 +17,12 @@
       "migrations_dir": "migrations"
     }
   ],
-  // Só o domínio próprio, que fica atrás do Cloudflare Access (só o e-mail do Gustavo).
-  // workers.dev e preview URLs desligados para não haver caminho sem login.
-  "routes": [{ "pattern": "gamehub.gustavoconstantino.com", "custom_domain": true }],
+  // Só o domínio próprio, que fica atrás do Cloudflare Access (só o e-mail do Gustavo),
+  // mais o endpoint write-only s20-telemetry (que só aceita POST /api/telemetry com X-Telemetry-Key).
+  "routes": [
+    { "pattern": "gamehub.gustavoconstantino.com", "custom_domain": true },
+    { "pattern": "s20-telemetry.gustavoconstantino.com", "custom_domain": true }
+  ],
   "workers_dev": false,
   "preview_urls": false
 }

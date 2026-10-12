@@ -114,9 +114,19 @@ print(pub.base64EncodedString() + "|" + sig.base64EncodedString())
         return False
 
 
-def get_s20_installed():
-    """Retorna conjunto de nomes normalizados instalados no S20 FE (ou último estado conhecido)."""
-    installed = {"supermeatboy", "enterthegungeon", "evoland", "evoland2", "evolandlegendaryedition", "limbo", "fallguys"}
+def get_s20_installed(allow_adb=True):
+    """Retorna conjunto de nomes normalizados instalados no S20 FE (sem acordar o S20 FE em background)."""
+    installed = {"supermeatboy", "enterthegungeon", "evoland", "evoland2", "evolandlegendaryedition", "limbo", "fallguys", "sonicmania", "horizonchaseturbo", "dandara"}
+    if OUT_JSON.exists():
+        try:
+            old = json.loads(OUT_JSON.read_text())
+            for g in old.get("games", []):
+                if g.get("installedS20"):
+                    installed.add(re.sub(r"[^a-z0-9]", "", g.get("title", "").lower()))
+        except Exception:
+            pass
+    if not allow_adb:
+        return installed
     try:
         out = subprocess.check_output(
             ["adb", "shell", "ls -1 /sdcard/3-Jogos/PC 2>/dev/null; ls -1 /sdcard/3-Jogos/Ports/Shortcuts/*.port 2>/dev/null"],
@@ -438,7 +448,8 @@ def main():
         },
     ])
 
-    s20_installed = get_s20_installed()
+    allow_adb = ("--live" not in sys.argv) or ("--scan-s20" in sys.argv)
+    s20_installed = get_s20_installed(allow_adb=allow_adb)
     enriched = []
     for g in scanned:
         c = classify_game(g, s20_installed)
@@ -477,8 +488,14 @@ def main():
         "drmFree": sum(1 for x in enriched if x["offline"] and x["score"] >= 65),
     }
 
+    now_iso = datetime.now(timezone.utc).isoformat()
+    epic_hash = hashlib.sha256(
+        json.dumps({"counts": counts, "games": enriched}, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()[:16]
+
     payload = {
-        "updatedAt": datetime.now(timezone.utc).isoformat(),
+        "updatedAt": now_iso,
+        "hash": epic_hash,
         "account": core.lgd.userdata.get("displayName", "guconstantino"),
         "counts": counts,
         "games": enriched,
@@ -486,7 +503,74 @@ def main():
 
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(payload, ensure_ascii=False, indent=2))
-    print(f"[epic_sync] Gravado {OUT_JSON} ({counts['total']} jogos, {counts['installed']} no S20 FE).")
+    print(f"[epic_sync] Gravado {OUT_JSON} ({counts['total']} jogos, {counts['installed']} no S20 FE, hash={epic_hash}).")
+
+    if "--live" in sys.argv or "--force-kv" in sys.argv:
+        state_file = Path("/tmp/handheld-hub-live-state.json")
+        prev_state = {}
+        if state_file.exists():
+            try:
+                prev_state = json.loads(state_file.read_text())
+            except Exception:
+                pass
+
+        ports_json_path = ROOT / "public" / "data" / "ports-radar.json"
+        s20_ports_sig = sorted(x for x in s20_installed if x)
+        last_ports_ts = prev_state.get("lastPortsCheckTs", 0)
+        now_ts = datetime.now(timezone.utc).timestamp()
+        if allow_adb and (s20_ports_sig != prev_state.get("s20Sig") or (now_ts - last_ports_ts > 3600)):
+            rom_tool = Path("/Users/gustavoconstantino/Documents/Github Repositories/s20fe-gamesirx5lite/scripts/rom-tool")
+            if rom_tool.exists():
+                subprocess.run([str(rom_tool), "check-ports", "--out", str(ports_json_path)], check=False)
+                last_ports_ts = now_ts
+
+        ports_hash = "none"
+        if ports_json_path.exists():
+            try:
+                pdata = json.loads(ports_json_path.read_text())
+                ports_hash = hashlib.sha256(
+                    json.dumps({"counts": pdata.get("counts"), "ports": pdata.get("ports")}, sort_keys=True, ensure_ascii=False).encode("utf-8")
+                ).hexdigest()[:16]
+            except Exception:
+                pass
+
+        force = "--force-kv" in sys.argv
+        epic_changed = force or (epic_hash != prev_state.get("epicHash"))
+        ports_changed = force or (ports_hash != prev_state.get("portsHash"))
+        wrangler = str(ROOT / "node_modules" / ".bin" / "wrangler")
+
+        if epic_changed:
+            print(f"[epic_sync] Subindo live:epic para Cloudflare KV (hash={epic_hash})...")
+            subprocess.run(
+                [wrangler, "kv", "key", "put", "--remote", "--binding", "LISTS", "live:epic", "--path", str(OUT_JSON)],
+                cwd=str(ROOT),
+                check=True,
+            )
+        if ports_changed and ports_json_path.exists():
+            print(f"[epic_sync] Subindo live:ports para Cloudflare KV (hash={ports_hash})...")
+            subprocess.run(
+                [wrangler, "kv", "key", "put", "--remote", "--binding", "LISTS", "live:ports", "--path", str(ports_json_path)],
+                cwd=str(ROOT),
+                check=True,
+            )
+        if epic_changed or ports_changed:
+            status_obj = {"epicHash": epic_hash, "portsHash": ports_hash, "updatedAt": now_iso}
+            subprocess.run(
+                [wrangler, "kv", "key", "put", "--remote", "--binding", "LISTS", "live:status", json.dumps(status_obj)],
+                cwd=str(ROOT),
+                check=True,
+            )
+            print("[epic_sync] live:status atualizado no Cloudflare KV!")
+        else:
+            print("[epic_sync] Nenhuma alteração detectada (KV já está em dia).")
+
+        state_file.write_text(json.dumps({
+            "epicHash": epic_hash,
+            "portsHash": ports_hash,
+            "s20Sig": s20_ports_sig,
+            "lastPortsCheckTs": last_ports_ts,
+            "updatedAt": now_iso,
+        }, indent=2))
 
     if "--deploy" in sys.argv:
         subprocess.run([str(ROOT / "node_modules" / ".bin" / "wrangler"), "deploy"], cwd=str(ROOT), check=True)
@@ -494,3 +578,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

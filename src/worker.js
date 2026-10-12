@@ -6,15 +6,70 @@ import { raRoute } from "./ra.js";
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Endpoint write-only exclusivo para o PortLauncher.apk do S20 FE (sem expor nenhum dado ou asset)
+    if (url.hostname === "s20-telemetry.gustavoconstantino.com") {
+      if (request.method === "POST" && url.pathname === "/api/telemetry") {
+        return ingestTelemetry(request, env);
+      }
+      return new Response("Forbidden", { status: 403 });
+    }
     if (url.pathname.startsWith("/covers/") || url.pathname.startsWith("/themes/")) return cover(request, env, ctx, url);
     if (url.pathname === "/api/lists") return lists(request, env);
     if (url.pathname === "/api/prefs") return prefs(request, env);
     if (url.pathname.startsWith("/api/ra/")) return ra(request, env, ctx, url);
     if (url.pathname === "/api/me") return me(request, env);
     if (url.pathname.startsWith("/api/admin/")) return admin(request, env, url);
+    if (url.pathname.startsWith("/api/live/")) return live(request, env, url);
     return env.ASSETS.fetch(request);
   },
 };
+
+async function ingestTelemetry(request, env) {
+  const key = request.headers.get("x-telemetry-key") || "";
+  if (!env.TELEMETRY_KEY || key !== env.TELEMETRY_KEY) {
+    return Response.json({ error: "unauthorized" }, { status: 401 });
+  }
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return Response.json({ error: "invalid json" }, { status: 400 });
+  }
+  body.receivedAt = new Date().toISOString();
+  const raw = JSON.stringify(body);
+  if (raw.length > 200000) {
+    return Response.json({ error: "payload too large" }, { status: 413 });
+  }
+  await env.LISTS.put("live:telemetry", raw, { metadata: { at: Date.now() } });
+  const prevStatus = (await env.LISTS.get("live:status", "json")) || {};
+  prevStatus.telemetryAt = body.receivedAt;
+  prevStatus.updatedAt = body.receivedAt;
+  await env.LISTS.put("live:status", JSON.stringify(prevStatus));
+  return Response.json({ ok: true, receivedAt: body.receivedAt });
+}
+
+// Dados ao vivo (Telemetria do S20 FE, Epic Games e Radar de Ports) gravados no KV,
+// permitindo atualizar o portal em segundos sem precisar fazer redeploy de 19 mil assets do Worker.
+async function live(request, env, url) {
+  const headers = { "cache-control": "no-store" };
+  if (url.pathname === "/api/live/status") {
+    const st = (await env.LISTS.get("live:status", "json")) || { epicHash: null, portsHash: null, telemetryAt: null, updatedAt: null };
+    return Response.json(st, { headers });
+  }
+  if (url.pathname === "/api/live/telemetry") {
+    const data = (await env.LISTS.get("live:telemetry", "json")) || null;
+    return Response.json(data || { empty: true }, { headers });
+  }
+  if (url.pathname === "/api/live/epic") {
+    const data = await env.LISTS.get("live:epic", "json");
+    if (data) return Response.json(data, { headers });
+    return env.ASSETS.fetch(new Request(new URL("/data/epic-library.json", request.url)));
+  }
+  if (url.pathname === "/api/live/ports") {
+    const data = await env.LISTS.get("live:ports", "json");
+    if (data) return Response.json(data, { headers });
+    return env.ASSETS.fetch(new Request(new URL("/data/ports-radar.json", request.url)));
+  }
+  return Response.json({ error: "não encontrado" }, { status: 404, headers });
+}
 
 // Capas: nome com hash, nunca mudam → cache longo no navegador e na borda (menos leituras no R2).
 async function cover(request, env, ctx, url) {
