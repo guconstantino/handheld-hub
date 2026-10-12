@@ -948,8 +948,34 @@ async function loadRA() {
 // o primeiro da lista "Jogando agora".
 async function drawContinue() {
   const el = $("#contBlock");
+  if (!el) return;
   const ra = RA.data?.recent?.find((g) => g.key);
-  const key = ra?.key || [...LISTS.playing][0];
+  const raMs = ra?.last ? new Date(ra.last.replace(" ", "T") + "Z").getTime() : 0;
+
+  // Verifica se há jogo mais recente na telemetria ao vivo do S20 FE
+  let s20Hit = null;
+  if (s20Telemetry) {
+    try {
+      const idx = keyIndex(await api("/api/index"));
+      const candidates = [];
+      if (s20Telemetry.nowPlaying?.title) {
+        candidates.push({ ...s20Telemetry.nowPlaying, lastPlayedAt: Date.now(), isNow: true });
+      }
+      for (const it of s20Telemetry.recentOpened || []) {
+        if (it.kind === "decomp" || it.kind === "port") candidates.push(it);
+      }
+      for (const c of candidates) {
+        if ((c.lastPlayedAt || 0) <= raMs && !c.isNow) continue;
+        const k = idx.get(`ports|${normTitle(c.title)}`);
+        if (k) {
+          s20Hit = { key: k, item: c };
+          break;
+        }
+      }
+    } catch {}
+  }
+
+  const key = s20Hit?.key || ra?.key || [...LISTS.playing][0];
   if (!key) return;
   const g = await api(`/api/game?key=${encodeURIComponent(key)}`).catch(() => null);
   if (!g?.game_key) return;
@@ -959,14 +985,24 @@ async function drawContinue() {
     return d < 1 ? "hoje" : d < 30 ? f.format(-Math.round(d), "day") : f.format(-Math.round(d / 30), "month");
   };
   const img = g.cover ? `covers/${esc(g.cover)}` : platImg(g.system);
-  const pct = ra?.total ? (ra.earned / ra.total) * 100 : null;
+  const useRa = !s20Hit && ra && ra.key === key;
+  const pct = useRa && ra?.total ? (ra.earned / ra.total) * 100 : null;
+  const eyebrow = s20Hit
+    ? (s20Hit.item.isNow
+        ? `Jogando agora no S20 FE`
+        : `Jogado por último no S20 FE · ${fmtRelative(s20Hit.item.lastPlayedAt)}`)
+    : (useRa ? `Jogado por último · ${rel(ra.last)}` : "Jogando agora");
+  const subText = s20Hit
+    ? `${esc(sysName(g.system))}${s20Hit.item.totalSeconds ? ` · ${fmtDuration(s20Hit.item.totalSeconds)} jogados no S20 FE` : ""}`
+    : `${esc(sysName(g.system))}${useRa && ra?.total ? ` · ${fmtN(ra.earned)} de ${fmtN(ra.total)} conquistas` : ""}`;
+
   el.innerHTML = `<img class="cont-bg" src="${img}" alt="">
     <a class="cont-in" href="${gameHref(g)}">
       <span class="cont-cover">${g.cover ? `<img src="covers/${esc(g.cover)}" alt="">` : `<img class="gplat" src="${platImg(g.system)}" alt="">`}</span>
       <span class="cont-text">
-        <span class="cont-eyebrow">${icon("gamepad-2", "sm")}${ra ? `Jogado por último · ${rel(ra.last)}` : "Jogando agora"}</span>
+        <span class="cont-eyebrow">${icon("gamepad-2", "sm")}${esc(eyebrow)}</span>
         <b class="cont-title">${esc(g.title.replace(/\s*\([^)]*\)/g, ""))}</b>
-        <span class="cont-sub">${esc(sysName(g.system))}${ra?.total ? ` · ${fmtN(ra.earned)} de ${fmtN(ra.total)} conquistas` : ""}</span>
+        <span class="cont-sub">${subText}</span>
         ${pct !== null ? `<span class="bar"><i style="width:${pct}%"></i></span>` : ""}
       </span>
       <span class="cont-go" aria-hidden="true">${icon("chevron-right")}</span>
@@ -1718,12 +1754,24 @@ async function renderPorts(forceReload = false) {
     }
     const c = portsCache.counts || {};
     const all = portsCache.ports || [];
-    const list = portsFilter === "all" ? all : all.filter((p) => p.category === portsFilter);
-
     const pkgStats = {};
-    if (s20Telemetry && Array.isArray(s20Telemetry.mostPlayed)) {
-      s20Telemetry.mostPlayed.forEach((it) => { if (it.pkg) pkgStats[it.pkg] = it; });
+    if (s20Telemetry) {
+      for (const arr of [s20Telemetry.mostPlayed, s20Telemetry.recentOpened]) {
+        if (Array.isArray(arr)) {
+          arr.forEach((it) => { if (it.pkg && !pkgStats[it.pkg]) pkgStats[it.pkg] = it; });
+        }
+      }
     }
+
+    const catOrder = { installed: 0, "android-ready": 1, "n64recomp-desktop": 2 };
+    const list = [...(portsFilter === "all" ? all : all.filter((p) => p.category === portsFilter))].sort((a, b) => {
+      const ca = catOrder[a.category] ?? 9, cb = catOrder[b.category] ?? 9;
+      if (ca !== cb) return ca - cb;
+      const sa = (a.packageName && pkgStats[a.packageName]?.totalSeconds) || 0;
+      const sb = (b.packageName && pkgStats[b.packageName]?.totalSeconds) || 0;
+      if (sb !== sa) return sb - sa;
+      return (a.name || "").localeCompare(b.name || "", "pt-BR");
+    });
 
     const statusBadge = (p) => {
       const st = p.packageName ? pkgStats[p.packageName] : null;
@@ -1744,7 +1792,14 @@ async function renderPorts(forceReload = false) {
       const parts = [];
       if (rom.s20Sd) parts.push(`<span class="badge ok" title="${esc(rom.bestPath || "")}">S20 SD</span>`);
       if (rom.gdrive) parts.push(`<span class="badge" title="${esc(rom.bestPath || "")}">Google Drive</span>`);
-      return parts.length ? parts.join(" ") : `<span class="muted small">Não exigida / Externa</span>`;
+      return parts.length ? parts.join(" ") : `<span class="muted small">Não exigida / Integrada</span>`;
+    };
+
+    const sourceCell = (p) => {
+      if (!p.repository) return `<span class="badge muted">APK Nativo</span>`;
+      const shortRepo = p.repository.split("/")[1] || p.repository;
+      const href = p.releaseUrl || `https://github.com/${p.repository}`;
+      return `<a href="${esc(href)}" target="_blank" rel="noopener" class="btn small" title="${esc(p.repository)}" style="white-space:nowrap">${esc(shortRepo)}</a>`;
     };
 
     const syncDate = portsCache.updatedAt
@@ -1754,7 +1809,7 @@ async function renderPorts(forceReload = false) {
     el.innerHTML = `
       <div class="kpis" role="list" aria-label="Resumo de Ports e Decompilações">
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("gamepad-2", "sm")}Instalados no S20 FE</span><span class="kpi-value">${fmtN(c.installed || 0)}</span><span class="kpi-sub">60 fps · Widescreen 20:9</span></div>
-        <div class="kpi" role="listitem"><span class="kpi-label">${icon("shield-check", "sm")}Traduzidos PT-BR</span><span class="kpi-value">${fmtN(c.ptbr || 0)}</span><span class="kpi-sub">Mods .o2r, Lua e patches binários</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("shield-check", "sm")}Traduzidos PT-BR</span><span class="kpi-value">${fmtN(c.ptbr || 0)}</span><span class="kpi-sub">Mods .o2r, Lua e nativos</span></div>
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("layers", "sm")}Prontos p/ Android</span><span class="kpi-value">${fmtN(c.androidReady || 0)}</span><span class="kpi-sub">Com APK oficial no GitHub</span></div>
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("wrench", "sm")}Radar N64Recomp</span><span class="kpi-value">${fmtN(c.desktopRecomp || 0)}</span><span class="kpi-sub">Catálogo SirDiabo/GithubLauncher</span></div>
       </div>
@@ -1768,7 +1823,7 @@ async function renderPorts(forceReload = false) {
             <button type="button" data-pcat="n64recomp-desktop" aria-pressed="${portsFilter === "n64recomp-desktop"}">Radar N64Recomp (${c.desktopRecomp || 0})</button>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-            <span class="badge ok" title="Verifica atualizações no Cloudflare KV a cada 30s">Ao vivo · ${esc(syncDate)}</span>
+            <span class="badge ok" title="Sincronizado com o S20 FE e Cloudflare KV">Ao vivo · ${esc(syncDate)}</span>
             <button type="button" class="btn small" id="portsRefreshBtn">Atualizar agora</button>
           </div>
         </div>
@@ -1778,10 +1833,10 @@ async function renderPorts(forceReload = false) {
               <tr>
                 <th scope="col">Port / Jogo</th>
                 <th scope="col">Engine / Base</th>
-                <th scope="col">Status & Versão</th>
+                <th scope="col">Status & Tempo Jogado</th>
                 <th scope="col">Tradução PT-BR & Recursos</th>
                 <th scope="col">ROM no Acervo</th>
-                <th scope="col">GitHub</th>
+                <th scope="col">Fonte / GitHub</th>
               </tr>
             </thead>
             <tbody>
@@ -1789,7 +1844,7 @@ async function renderPorts(forceReload = false) {
                 <tr>
                   <td>
                     <div style="display:flex;align-items:center;gap:10px">
-                      ${p.iconUrl ? `<img src="${esc(p.iconUrl)}" alt="" width="32" height="32" loading="lazy" style="border-radius:6px;object-fit:cover;background:var(--surface-2)">` : `<span class="brand-mark" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px">${icon("gamepad-2", "sm")}</span>`}
+                      ${p.iconUrl ? `<img src="${esc(p.iconUrl)}" alt="" width="34" height="34" loading="lazy" style="border-radius:6px;object-fit:cover;background:var(--surface-2);flex-shrink:0">` : `<span class="brand-mark" style="width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0">${icon("gamepad-2", "sm")}</span>`}
                       <div>
                         <b>${esc(p.name)}</b>
                         ${p.packageName ? `<div class="muted small"><code>${esc(p.packageName)}</code></div>` : ""}
@@ -1806,9 +1861,7 @@ async function renderPorts(forceReload = false) {
                     <div class="muted small" style="margin-top:4px">${(p.features || []).map((f) => esc(f)).join(" · ")}</div>
                   </td>
                   <td>${romBadges(p.rom)}</td>
-                  <td>
-                    <a href="${esc(p.releaseUrl || `https://github.com/${p.repository}`)}" target="_blank" rel="noopener" class="btn small">${esc(p.repository)}</a>
-                  </td>
+                  <td>${sourceCell(p)}</td>
                 </tr>
               `).join("")}
             </tbody>
@@ -1896,7 +1949,7 @@ async function renderEpic(forceReload = false) {
       <div class="kpis" role="list" aria-label="Resumo da Biblioteca Epic Games">
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("layers", "sm")}Total na Conta Epic</span><span class="kpi-value">${fmtN(c.total || 0)}</span><span class="kpi-sub">Conta @${esc(epicCache.account || "guconstantino")} · Sync ${esc(syncDate)}</span></div>
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("gamepad-2", "sm")}Instalados no S20 FE</span><span class="kpi-value">${fmtN(c.installed || 0)}</span><span class="kpi-sub" title="${esc(installedNames)}">${esc(installedNames)}</span></div>
-        <div class="kpi" role="listitem"><span class="kpi-label">${icon("sparkles", "sm")}Ótimos no S20 FE (90–100%)</span><span class="kpi-value">${fmtN((c.nativeOrPort || 0) + (c.greatLight || 0))}</span><span class="kpi-sub">${fmtN(c.nativeOrPort || 0)} Nativos/Ports + ${fmtN(c.greatLight || 0)} Leves 60 FPS</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("star", "sm")}Ótimos no S20 FE (90–100%)</span><span class="kpi-value">${fmtN((c.nativeOrPort || 0) + (c.greatLight || 0))}</span><span class="kpi-sub">${fmtN(c.nativeOrPort || 0)} Nativos/Ports + ${fmtN(c.greatLight || 0)} Leves 60 FPS</span></div>
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("shield-check", "sm")}DRM-Free / Offline</span><span class="kpi-value">${fmtN(c.drmFree || 0)}</span><span class="kpi-sub">Rodam direto via GameHub Proton ARM64X</span></div>
       </div>
 
@@ -2036,6 +2089,8 @@ async function loadS20Telemetry() {
     const data = await r.json();
     if (!data || data.empty) return;
     s20Telemetry = data;
+    drawContinue();
+    if (curView === "ports") renderPorts(false);
     if (!el) return;
 
     const dev = data.device || {};
@@ -2073,7 +2128,7 @@ async function loadS20Telemetry() {
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:14px">
         <div>
-          <h3 class="rel-h" style="margin-bottom:8px">${icon("sparkles", "sm")} Mais jogados no S20 FE</h3>
+          <h3 class="rel-h" style="margin-bottom:8px">${icon("trophy", "sm")} Mais jogados no S20 FE</h3>
           <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
             ${most.map((it, idx) => `
               <li style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--surface-2)">

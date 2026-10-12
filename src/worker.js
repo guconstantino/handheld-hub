@@ -38,7 +38,7 @@ async function ingestTelemetry(request, env) {
   if (raw.length > 200000) {
     return Response.json({ error: "payload too large" }, { status: 413 });
   }
-  await env.LISTS.put("live:telemetry", raw, { metadata: { at: Date.now() } });
+  await env.LISTS.put("live:telemetry", raw, { metadata: { at: body.receivedAt } });
   const prevStatus = (await env.LISTS.get("live:status", "json")) || {};
   prevStatus.telemetryAt = body.receivedAt;
   prevStatus.updatedAt = body.receivedAt;
@@ -51,8 +51,13 @@ async function ingestTelemetry(request, env) {
 async function live(request, env, url) {
   const headers = { "cache-control": "no-store" };
   if (url.pathname === "/api/live/status") {
-    const st = (await env.LISTS.get("live:status", "json")) || { epicHash: null, portsHash: null, telemetryAt: null, updatedAt: null };
-    return Response.json(st, { headers });
+    const [st, tel] = await Promise.all([
+      env.LISTS.get("live:status", "json"),
+      env.LISTS.getWithMetadata("live:telemetry", "text"),
+    ]);
+    const base = st || { epicHash: null, portsHash: null, telemetryAt: null, updatedAt: null };
+    if (tel?.metadata?.at) base.telemetryAt = tel.metadata.at;
+    return Response.json(base, { headers });
   }
   if (url.pathname === "/api/live/telemetry") {
     const data = (await env.LISTS.get("live:telemetry", "json")) || null;

@@ -1,12 +1,12 @@
 {
-  "updatedAt": "2026-10-11T17:33:24Z",
+  "updatedAt": "2026-10-12T02:58:09Z",
   "source": "SirDiabo/GithubLauncher (v1.70 N64RecompLauncher) + S20 FE Decompiled Ports",
   "counts": {
-    "total": 23,
-    "installed": 11,
+    "total": 37,
+    "installed": 25,
     "androidReady": 3,
     "desktopRecomp": 9,
-    "ptbr": 11
+    "ptbr": 20
   },
   "ports": [
     {
@@ -207,71 +207,6 @@
       "updateStatus": "up-to-date"
     },
     {
-      "id": "smw",
-      "name": "Super Mario World (snesrev/smw)",
-      "shortName": "SMW Decomp",
-      "system": "snes",
-      "engine": "snesrev",
-      "category": "installed",
-      "repository": "snesrev/smw",
-      "upstreamRepo": "snesrev/smw",
-      "packageName": "net.freyta.smw",
-      "installedVersion": "1.0.1",
-      "ptbr": "Sim (ROM híbrida build_ptbr_sfc.py c/ 18 caixas PT-BR)",
-      "features": [
-        "60 FPS",
-        "20:9 Widescreen",
-        "Save States",
-        "PT-BR"
-      ],
-      "iconUrl": null,
-      "romQuery": "Super Mario World",
-      "latestTag": "v0.1",
-      "publishedAt": "2023-08-16",
-      "releaseUrl": "https://github.com/snesrev/smw/releases/tag/v0.1",
-      "apkName": null,
-      "apkUrl": null,
-      "apkSize": null,
-      "rom": {
-        "s20Sd": true,
-        "gdrive": true,
-        "bestPath": "snes/Super Mario World (USA).zip"
-      },
-      "updateStatus": "up-to-date"
-    },
-    {
-      "id": "supermetroid",
-      "name": "Super Metroid (snesrev/sm)",
-      "shortName": "Super Metroid Decomp",
-      "system": "snes",
-      "engine": "snesrev",
-      "category": "installed",
-      "repository": "snesrev/sm",
-      "upstreamRepo": "snesrev/sm",
-      "packageName": "com.raekwon.supermetroid",
-      "installedVersion": "0.1",
-      "ptbr": "Sim (libmain.so patcheado p/ ROM PT-BR)",
-      "features": [
-        "60 FPS",
-        "20:9 Widescreen",
-        "Binary Patch PT-BR"
-      ],
-      "iconUrl": null,
-      "romQuery": "Super Metroid",
-      "latestTag": null,
-      "publishedAt": null,
-      "releaseUrl": "https://github.com/snesrev/sm",
-      "apkName": null,
-      "apkUrl": null,
-      "apkSize": null,
-      "rom": {
-        "s20Sd": true,
-        "gdrive": true,
-        "bestPath": "snes/Super Metroid.zip"
-      },
-      "updateStatus": "up-to-date"
-    },
-    {
       "id": "dusklight",
       "name": "Zelda: Twilight Princess (Dusklight)",
       "shortName": "Dusklight",
@@ -288,7 +223,7 @@
         "OpenGL ES",
         "PT-BR"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/d-25b44c481ee82a35.webp",
       "romQuery": "Twilight Princess",
       "latestTag": "v2.0.3",
       "publishedAt": "2026-09-30",
@@ -321,7 +256,7 @@
         "Remastered Audio",
         "PT-BR"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/d-349eebb52660876f.webp",
       "romQuery": "Sonic & Knuckles",
       "latestTag": "v26.03.28.0-stable",
       "publishedAt": "2026-03-28",
@@ -350,9 +285,10 @@
       "ptbr": "Não",
       "features": [
         "60 FPS",
-        "Widescreen"
+        "Widescreen",
+        "Sem áudio no v0.1.0 (HuAud* stub no upstream)"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/d-3e50135d5f8735ed.webp",
       "romQuery": "Mario Party 4",
       "latestTag": "partyboard_0.2.0",
       "publishedAt": "2026-05-08",
@@ -366,6 +302,524 @@
         "bestPath": null
       },
       "updateStatus": "update-available"
+    },
+    {
+      "id": "driftdroid",
+      "name": "Mario Kart Wii (DriftDroid / Recomp)",
+      "shortName": "Mario Kart Wii",
+      "system": "wii",
+      "engine": "DriftDroid (Wii Recomp)",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.driftdroid.android",
+      "installedVersion": "1.2.0",
+      "ptbr": "Não (Menus originais)",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo"
+      ],
+      "iconUrl": "covers/d-54b32cfa6db17d70.webp",
+      "romQuery": "Mario Kart Wii",
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": true,
+        "bestPath": "Wii/Mario Kart Wii.ciso"
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "spacecadetpinball",
+      "name": "3D Pinball: Space Cadet (Decomp Android)",
+      "shortName": "Space Cadet Pinball",
+      "system": "pc",
+      "engine": "SpaceCadetPinball Decomp",
+      "category": "installed",
+      "repository": "fexed/Pinball-on-Android",
+      "upstreamRepo": "k4zmu2a/SpaceCadetPinball",
+      "packageName": "com.fexed.spacecadetpinball",
+      "installedVersion": "1.2",
+      "ptbr": "Sim",
+      "features": [
+        "60 FPS",
+        "Decomp Open Source",
+        "Gamepad"
+      ],
+      "iconUrl": "covers/d-b0fe96022b6ca923.webp",
+      "romQuery": null,
+      "latestTag": "2.5",
+      "publishedAt": "2023-10-08",
+      "releaseUrl": "https://github.com/fexed/Pinball-on-Android/releases/tag/2.5",
+      "apkName": "pinball-v2.5.apk",
+      "apkUrl": "https://github.com/fexed/Pinball-on-Android/releases/download/2.5/pinball-v2.5.apk",
+      "apkSize": 31713160,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "update-available"
+    },
+    {
+      "id": "hollowknight",
+      "name": "Hollow Knight (Port Android)",
+      "shortName": "Hollow Knight",
+      "system": "pc",
+      "engine": "Unity (Dan's Palace Port)",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.TeamCherry.HollowKnight",
+      "installedVersion": "1.0",
+      "ptbr": "Sim (Tradução PT-BR)",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo",
+        "PT-BR"
+      ],
+      "iconUrl": "covers/d-55551388d8a74516.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "cuphead",
+      "name": "Cuphead (Port Android)",
+      "shortName": "Cuphead",
+      "system": "pc",
+      "engine": "Unity (SpanishFreddy Port)",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.SpanishFreddy.Cuphead",
+      "installedVersion": "1.60",
+      "ptbr": "Sim (Nativo PT-BR)",
+      "features": [
+        "60 FPS",
+        "Widescreen",
+        "Gamepad Nativo",
+        "PT-BR"
+      ],
+      "iconUrl": "covers/d-e7ae37f243f3bf67.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "deadcells",
+      "name": "Dead Cells (Android Nativo)",
+      "shortName": "Dead Cells",
+      "system": "android",
+      "engine": "Heaps / Playdigious",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.playdigious.deadcells.mobile",
+      "installedVersion": "3.5.6",
+      "ptbr": "Sim (Nativo PT-BR)",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Todos DLCs",
+        "PT-BR"
+      ],
+      "iconUrl": "covers/d-3b0771bbea153f6b.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "stardewvalley",
+      "name": "Stardew Valley (Android Nativo)",
+      "shortName": "Stardew Valley",
+      "system": "android",
+      "engine": "MonoGame",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.chucklefish.stardewvalley",
+      "installedVersion": "1.6.15.3",
+      "ptbr": "Sim (Nativo PT-BR)",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo",
+        "PT-BR"
+      ],
+      "iconUrl": "covers/d-40c62fade7fd4a07.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "gtasa",
+      "name": "GTA: San Andreas – Definitive Edition",
+      "shortName": "GTA: San Andreas",
+      "system": "android",
+      "engine": "Unreal Engine 4 (Netflix)",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.netflix.NGP.GTASanAndreasDefinitiveEdition",
+      "installedVersion": "1.86.44544238",
+      "ptbr": "Sim (Nativo PT-BR)",
+      "features": [
+        "20:9 Widescreen",
+        "Gamepad Nativo",
+        "PT-BR"
+      ],
+      "iconUrl": "covers/d-72ebf2d435339b95.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "limbo",
+      "name": "LIMBO (Android Nativo)",
+      "shortName": "LIMBO",
+      "system": "android",
+      "engine": "Box2D / Playdead",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.playdead.limbo.full",
+      "installedVersion": "1.27",
+      "ptbr": "Sim (Nativo PT-BR)",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo",
+        "PT-BR"
+      ],
+      "iconUrl": "covers/d-7127a79fcbec1f8a.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "evoland",
+      "name": "Evoland (Android Nativo)",
+      "shortName": "Evoland",
+      "system": "android",
+      "engine": "Heaps / Shiro Games",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "air.com.shirogames.evoland12",
+      "installedVersion": "2.0.4",
+      "ptbr": "Não",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo"
+      ],
+      "iconUrl": "covers/d-aa656a3ccd45dc53.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "evoland2",
+      "name": "Evoland 2 (Android Nativo)",
+      "shortName": "Evoland 2",
+      "system": "android",
+      "engine": "Heaps / Playdigious",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.playdigious.evoland2",
+      "installedVersion": "2.3.3",
+      "ptbr": "Não",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo"
+      ],
+      "iconUrl": "covers/d-2a3a08bc165692f1.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "fallguys",
+      "name": "Fall Guys (Epic Games Android)",
+      "shortName": "Fall Guys",
+      "system": "android",
+      "engine": "Unity / Epic Games",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.Mediatonic.FallGuys_client",
+      "installedVersion": "19.0.0",
+      "ptbr": "Sim (Nativo PT-BR)",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Cross-Play Epic",
+        "PT-BR"
+      ],
+      "iconUrl": "covers/d-45267c85145936ea.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "haak",
+      "name": "HAAK (Android Nativo)",
+      "shortName": "HAAK",
+      "system": "android",
+      "engine": "Unity / Blingame",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.blingame.haaktestb",
+      "installedVersion": "1.4.3",
+      "ptbr": "Sim",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo"
+      ],
+      "iconUrl": "covers/d-62a7e358a0d3f33f.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "dadish3",
+      "name": "Dadish 3 (Android Nativo)",
+      "shortName": "Dadish 3",
+      "system": "android",
+      "engine": "Thomas K. Young",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.thomasyoung.dadish3",
+      "installedVersion": "1.0.70",
+      "ptbr": "Sim (Nativo PT-BR)",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo"
+      ],
+      "iconUrl": "covers/d-bf0b85b63a3d8684.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "dailydadish",
+      "name": "Daily Dadish (Android Nativo)",
+      "shortName": "Daily Dadish",
+      "system": "android",
+      "engine": "Thomas K. Young",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.thomasyoung.dailydadish",
+      "installedVersion": "1.0.41",
+      "ptbr": "Não",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo"
+      ],
+      "iconUrl": "covers/d-e968608cadbda7d4.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "tinydd",
+      "name": "Tiny Dangerous Dungeons",
+      "shortName": "Tiny Dangerous Dungeons",
+      "system": "android",
+      "engine": "Adventure Islands",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.adventureislands.tinydd",
+      "installedVersion": "1.3.2",
+      "ptbr": "Não",
+      "features": [
+        "60 FPS",
+        "Gamepad Nativo"
+      ],
+      "iconUrl": "covers/d-b25dd028841caadc.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "snakeio",
+      "name": "Snake.io (Netflix Edition)",
+      "shortName": "Snake.io",
+      "system": "android",
+      "engine": "Kooapps / Netflix",
+      "category": "installed",
+      "repository": null,
+      "upstreamRepo": null,
+      "packageName": "com.netflix.NGP.Snakeio",
+      "installedVersion": "1.0.8",
+      "ptbr": "Sim (Nativo PT-BR)",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo",
+        "PT-BR"
+      ],
+      "iconUrl": "covers/d-1da28c938bb27b82.webp",
+      "romQuery": null,
+      "latestTag": null,
+      "publishedAt": null,
+      "releaseUrl": null,
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
     },
     {
       "id": "perfect_dark",

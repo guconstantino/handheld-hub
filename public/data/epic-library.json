@@ -1,14 +1,15 @@
 {
-  "updatedAt": "2026-10-11T23:10:37.415159+00:00",
+  "updatedAt": "2026-10-12T02:58:05.343391+00:00",
+  "hash": "3b24c744d19b4ae9",
   "account": "guconstantino",
   "counts": {
     "total": 376,
-    "installed": 5,
+    "installed": 8,
     "nativeOrPort": 30,
-    "greatLight": 92,
-    "playableMid": 138,
-    "heavyOrIncompat": 116,
-    "drmFree": 260
+    "greatLight": 93,
+    "playableMid": 142,
+    "heavyOrIncompat": 111,
+    "drmFree": 264
   },
   "games": [
     {
@@ -32,6 +33,28 @@
       "installedS20": true,
       "compatLabel": "95% · Super Leve 60 FPS (Custom / C++)",
       "compatDetail": "Roda a 60 FPS cravados no GameHub (Custom / C++, DRM-Free)"
+    },
+    {
+      "appName": "818447bb519b46d48d365d5753362796",
+      "title": "Sonic Mania",
+      "developer": "Sega of America",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Custom / C++",
+      "exe": "SonicMania.exe",
+      "offline": true,
+      "diskBytes": 221438524,
+      "dlBytes": 209304961,
+      "diskHuman": "211 MB",
+      "dlHuman": "200 MB",
+      "cover": "https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_SonicMania_Lab42_S6-510x680-b83646998d6a711b6997e076e091c015_510x680-b83646998d6a711b6997e076e091c015?h=256&resize=1",
+      "tier": 0,
+      "score": 100,
+      "category": "installed",
+      "installedS20": true,
+      "compatLabel": "100% · Port Nativo / Decomp",
+      "compatDetail": "Port Nativo Android (Decomp RSDKv5 60fps Widescreen) + GameHub"
     },
     {
       "appName": "67042b70b5964ebd8f1976a82f76c5c7",
@@ -122,6 +145,50 @@
       "compatDetail": "Ótima performance no GameHub (Custom / C++, DRM-Free)"
     },
     {
+      "appName": "bb406082b69a47208489d3616b22b5c2",
+      "title": "Horizon Chase Turbo",
+      "developer": "AQUIRIS",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Unity",
+      "exe": "HorizonChase.exe",
+      "offline": true,
+      "diskBytes": 1373092264,
+      "dlBytes": 579000316,
+      "diskHuman": "1.28 GB",
+      "dlHuman": "552 MB",
+      "cover": "https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_HorizonChaseTurbo_AQUIRIS_S2_1200x1600-7b51e6b8f8cf6ebd50f5fb77be96ad9d?h=256&resize=1",
+      "tier": 0,
+      "score": 98,
+      "category": "installed",
+      "installedS20": true,
+      "compatLabel": "98% · Excelente (Unity)",
+      "compatDetail": "60 FPS no GameHub (Unity, DRM-Free) + possui edição Android"
+    },
+    {
+      "appName": "0a2d9f6403244d12969e11da6713137b",
+      "title": "Fall Guys",
+      "developer": "EGFG LLC",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Unity",
+      "exe": "RunFallGuys.exe",
+      "offline": true,
+      "diskBytes": 7939842485,
+      "dlBytes": 7041158399,
+      "diskHuman": "7.39 GB",
+      "dlHuman": "6.56 GB",
+      "cover": "https://cdn1.epicgames.com/item/50118b7f954e450f8823df1614b24e80/FGSS04_KeyArt_OfferImagePortrait_1200x1600_1200x1600-4bd46574e78464352e1f2c55714701f7?h=256&resize=1",
+      "tier": 0,
+      "score": 65,
+      "category": "installed",
+      "installedS20": true,
+      "compatLabel": "65% · Jogável em 720p (Unity)",
+      "compatDetail": "25–45 FPS em 720p no GameHub (Unity)"
+    },
+    {
       "appName": "21a5a535433b436b8a9ee0877924aa6f",
       "title": "Out There: Omega Edition (Android)",
       "developer": "Mi-Clos Studio",
@@ -186,28 +253,6 @@
       "installedS20": false,
       "compatLabel": "100% · Port Nativo / Decomp",
       "compatDetail": "Port Nativo Android (Doom64EX+ c/ DOOM64.WAD) + GameHub"
-    },
-    {
-      "appName": "818447bb519b46d48d365d5753362796",
-      "title": "Sonic Mania",
-      "developer": "Sega of America",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Custom / C++",
-      "exe": "SonicMania.exe",
-      "offline": true,
-      "diskBytes": 221438524,
-      "dlBytes": 209304961,
-      "diskHuman": "211 MB",
-      "dlHuman": "200 MB",
-      "cover": "https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_SonicMania_Lab42_S6-510x680-b83646998d6a711b6997e076e091c015_510x680-b83646998d6a711b6997e076e091c015?h=256&resize=1",
-      "tier": 2,
-      "score": 100,
-      "category": "native-port",
-      "installedS20": false,
-      "compatLabel": "100% · Port Nativo / Decomp",
-      "compatDetail": "Port Nativo Android (Decomp RSDKv5 60fps Widescreen) + GameHub"
     },
     {
       "appName": "74034e8449f2470d9f45115f3a49f9aa",
@@ -686,28 +731,6 @@
       "diskHuman": "1.16 GB",
       "dlHuman": "767 MB",
       "cover": "https://cdn1.epicgames.com/spt-assets/6091b3f3943e4a7aa25fcac13de15cd1/vampire-survivors-1jbti.jpg?h=256&resize=1",
-      "tier": 3,
-      "score": 98,
-      "category": "native-port",
-      "installedS20": false,
-      "compatLabel": "98% · Excelente (Unity)",
-      "compatDetail": "60 FPS no GameHub (Unity, DRM-Free) + possui edição Android"
-    },
-    {
-      "appName": "bb406082b69a47208489d3616b22b5c2",
-      "title": "Horizon Chase Turbo",
-      "developer": "AQUIRIS",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Unity",
-      "exe": "HorizonChase.exe",
-      "offline": true,
-      "diskBytes": 1373092264,
-      "dlBytes": 579000316,
-      "diskHuman": "1.28 GB",
-      "dlHuman": "552 MB",
-      "cover": "https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_HorizonChaseTurbo_AQUIRIS_S2_1200x1600-7b51e6b8f8cf6ebd50f5fb77be96ad9d?h=256&resize=1",
       "tier": 3,
       "score": 98,
       "category": "native-port",
@@ -2556,6 +2579,28 @@
       "diskHuman": "1.60 GB",
       "dlHuman": "975 MB",
       "cover": "https://cdn1.epicgames.com/spt-assets/2b593b82aea84695b1608d74d3850ceb/download-foretales-offer-176hs.jpg?h=256&resize=1",
+      "tier": 5,
+      "score": 90,
+      "category": "great-light",
+      "installedS20": false,
+      "compatLabel": "90% · Leve 60 FPS (Unity)",
+      "compatDetail": "Ótima performance no GameHub (Unity, DRM-Free)"
+    },
+    {
+      "appName": "0e70be0cea0446599acb4c26d2e925f9",
+      "title": "Hell is Others",
+      "developer": "A List Games",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Unity",
+      "exe": "Run_HellIsOthers.bat",
+      "offline": true,
+      "diskBytes": 1755599070,
+      "dlBytes": 665947800,
+      "diskHuman": "1.64 GB",
+      "dlHuman": "635 MB",
+      "cover": "https://cdn1.epicgames.com/spt-assets/0de2d0d8870f457eaf7c6bf8c64f7f9e/hell-is-others-9gl9d.png?h=256&resize=1",
       "tier": 5,
       "score": 90,
       "category": "great-light",
@@ -4544,6 +4589,28 @@
       "compatDetail": "25–45 FPS em 720p no GameHub (Unity)"
     },
     {
+      "appName": "6fd5e6a8632c499fa2657cf650c96b14",
+      "title": "Wild Card Football",
+      "developer": "Saber Interactive",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Custom / C++",
+      "exe": "WildCardFootball.exe",
+      "offline": true,
+      "diskBytes": 7145682750,
+      "dlBytes": 6862364204,
+      "diskHuman": "6.65 GB",
+      "dlHuman": "6.39 GB",
+      "cover": "https://cdn1.epicgames.com/item/3072dbe471f84dac8b2e9ba8af253ee2/EGS_WildCardFootball_SaberInteractive_S2_1200x1600-a5e01b328b18fd5a5c54704b0c47a983?h=256&resize=1",
+      "tier": 7,
+      "score": 65,
+      "category": "playable-mid",
+      "installedS20": false,
+      "compatLabel": "65% · Jogável em 720p (Custom / C++)",
+      "compatDetail": "25–45 FPS em 720p no GameHub (Custom / C++)"
+    },
+    {
       "appName": "5b41454974be4d5883056ba298e53675",
       "title": "Shadowrun: Dragonfall - Director’s Cut",
       "developer": "Paradox Interactive",
@@ -4784,6 +4851,28 @@
       "installedS20": false,
       "compatLabel": "65% · Jogável em 720p (Unreal)",
       "compatDetail": "25–45 FPS em 720p no GameHub (Unreal)"
+    },
+    {
+      "appName": "373a4372c20540aca7fdd880d27fa49a",
+      "title": "Jurassic World Evolution",
+      "developer": "Frontier Developments",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Custom / C++",
+      "exe": "JWE.exe",
+      "offline": false,
+      "diskBytes": 8040963792,
+      "dlBytes": 7733184058,
+      "diskHuman": "7.49 GB",
+      "dlHuman": "7.20 GB",
+      "cover": "https://cdn1.epicgames.com/047392e91d5e4cfdb19e2767440ab206/item/EGS_JurassicWorldEvolution_FrontierDevelopments_S2-1200x1600-d132a04130d2fad11948e182046f50dc.jpg?h=256&resize=1",
+      "tier": 7,
+      "score": 65,
+      "category": "playable-mid",
+      "installedS20": false,
+      "compatLabel": "65% · Jogável em 720p (Custom / C++)",
+      "compatDetail": "25–45 FPS em 720p no GameHub (Custom / C++)"
     },
     {
       "appName": "178c9c2b209a409e88a729ddb9aba7d2",
@@ -5600,6 +5689,28 @@
       "compatDetail": "25–45 FPS em 720p no GameHub (Unreal)"
     },
     {
+      "appName": "0ad0ed7b851c46378f9fcac07b72b548",
+      "title": "Wildgate",
+      "developer": "Dreamhaven, Inc.",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Unreal",
+      "exe": "NebulaLauncher.exe",
+      "offline": true,
+      "diskBytes": 13726342206,
+      "dlBytes": 10808479069,
+      "diskHuman": "12.78 GB",
+      "dlHuman": "10.07 GB",
+      "cover": "https://cdn1.epicgames.com/spt-assets/66d8f537f1aa4636985ff868d51651eb/wildgate-5ctcs.png?h=256&resize=1",
+      "tier": 7,
+      "score": 65,
+      "category": "playable-mid",
+      "installedS20": false,
+      "compatLabel": "65% · Jogável em 720p (Unreal)",
+      "compatDetail": "25–45 FPS em 720p no GameHub (Unreal)"
+    },
+    {
       "appName": "5ffb49b9c01c44c6adb03fd5430e9b03",
       "title": "Priest Simulator: Vampire Show",
       "developer": "Asmodev",
@@ -5730,28 +5841,6 @@
       "installedS20": false,
       "compatLabel": "65% · Jogável em 720p (Unity)",
       "compatDetail": "25–45 FPS em 720p no GameHub (Unity)"
-    },
-    {
-      "appName": "373a4372c20540aca7fdd880d27fa49a",
-      "title": "Jurassic World Evolution",
-      "developer": "Frontier Developments",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Custom / C++",
-      "exe": "JWE.exe",
-      "offline": false,
-      "diskBytes": 8040963792,
-      "dlBytes": 7733184058,
-      "diskHuman": "7.49 GB",
-      "dlHuman": "7.20 GB",
-      "cover": "https://cdn1.epicgames.com/047392e91d5e4cfdb19e2767440ab206/item/EGS_JurassicWorldEvolution_FrontierDevelopments_S2-1200x1600-d132a04130d2fad11948e182046f50dc.jpg?h=256&resize=1",
-      "tier": 8,
-      "score": 30,
-      "category": "heavy",
-      "installedS20": false,
-      "compatLabel": "30% · Exige Login Online EOS (Custom / C++)",
-      "compatDetail": "Requer autenticação EOS ativa (Custom / C++)"
     },
     {
       "appName": "0055e45ce7654c55aade646467349e83",
@@ -6986,6 +7075,28 @@
       "compatDetail": "Acima de 14 GB ou pesado p/ Adreno 650 (Unreal) — melhor via Streaming"
     },
     {
+      "appName": "Sugar",
+      "title": "Rocket League®",
+      "developer": "Psyonix LLC",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Custom / C++",
+      "exe": "Binaries/Win64/Launcher.exe",
+      "offline": true,
+      "diskBytes": 43679198548,
+      "dlBytes": 40231316112,
+      "diskHuman": "40.68 GB",
+      "dlHuman": "37.47 GB",
+      "cover": "https://cdn1.epicgames.com/item/9773aa1aa54f4f7b80e44bef04986cea/RocketTall_1200x1600-fab62ea387aa4da2a1e67835db3bb300?h=256&resize=1",
+      "tier": 8,
+      "score": 35,
+      "category": "heavy",
+      "installedS20": false,
+      "compatLabel": "35% · Pesado / >14 GB (Custom / C++)",
+      "compatDetail": "Acima de 14 GB ou pesado p/ Adreno 650 (Custom / C++) — melhor via Streaming"
+    },
+    {
       "appName": "52d88e9a6df248da913c8e99f1e4c526",
       "title": "PREY",
       "developer": "Bethesda Softworks LLC",
@@ -7272,6 +7383,28 @@
       "compatDetail": "Acima de 14 GB ou pesado p/ Adreno 650 (Unreal) — melhor via Streaming"
     },
     {
+      "appName": "Tern",
+      "title": "Rising Storm 2: Vietnam",
+      "developer": "Tripwire Interactive",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Custom / C++",
+      "exe": "Binaries/Win64/RS2.exe",
+      "offline": true,
+      "diskBytes": 62255994781,
+      "dlBytes": 22166911471,
+      "diskHuman": "57.98 GB",
+      "dlHuman": "20.64 GB",
+      "cover": "https://cdn1.epicgames.com/3542a1df211e492bb2abecb7c734f7f9/item/EGS_RisingStorm2Vietnam_AntimatterGamesTripwireInteractive_S4-1200x1600-5e3b2f8107e17cc008237e52761d67e5.jpg?h=256&resize=1",
+      "tier": 8,
+      "score": 35,
+      "category": "heavy",
+      "installedS20": false,
+      "compatLabel": "35% · Pesado / >14 GB (Custom / C++)",
+      "compatDetail": "Acima de 14 GB ou pesado p/ Adreno 650 (Custom / C++) — melhor via Streaming"
+    },
+    {
       "appName": "769f2fee68e9477180da900ccccbbcf0",
       "title": "Total War: THREE KINGDOMS",
       "developer": "SEGA of Europe",
@@ -7309,11 +7442,11 @@
       "dlHuman": "56.47 GB",
       "cover": "https://cdn1.epicgames.com/spt-assets/88801317bf794eaba96d893fa7d0c5c3/kingdom-come-deliverance-fehxv.jpg?h=256&resize=1",
       "tier": 8,
-      "score": 30,
+      "score": 35,
       "category": "heavy",
       "installedS20": false,
-      "compatLabel": "30% · Exige Login Online EOS (Unreal)",
-      "compatDetail": "Requer autenticação EOS ativa (Unreal)"
+      "compatLabel": "35% · Pesado / >14 GB (Unreal)",
+      "compatDetail": "Acima de 14 GB ou pesado p/ Adreno 650 (Unreal) — melhor via Streaming"
     },
     {
       "appName": "Sparrow",
@@ -7558,6 +7691,50 @@
       "compatDetail": "Acima de 14 GB ou pesado p/ Adreno 650 (Custom / C++) — melhor via Streaming"
     },
     {
+      "appName": "8769e24080ea413b8ebca3f1b8c50951",
+      "title": "Grand Theft Auto V Enhanced",
+      "developer": "Rockstar Games",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Custom / C++",
+      "exe": "PlayGTAV.exe",
+      "offline": true,
+      "diskBytes": 103346842651,
+      "dlBytes": 101320759024,
+      "diskHuman": "96.25 GB",
+      "dlHuman": "94.36 GB",
+      "cover": "https://cdn1.epicgames.com/item/b0cd075465c44f87be3b505ac04a2e46/GTAV_CHARM_Epic_FirstParty_PortraitFOB_1200x1600_R02_1200x1600-a5528b33df876e64f5dee728830c80a3?h=256&resize=1",
+      "tier": 8,
+      "score": 35,
+      "category": "heavy",
+      "installedS20": false,
+      "compatLabel": "35% · Pesado / >14 GB (Custom / C++)",
+      "compatDetail": "Acima de 14 GB ou pesado p/ Adreno 650 (Custom / C++) — melhor via Streaming"
+    },
+    {
+      "appName": "9d2d0eb64d5c44529cece33fe2a46482",
+      "title": "Grand Theft Auto V",
+      "developer": "Rockstar Games",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Custom / C++",
+      "exe": "PlayGTAV.exe",
+      "offline": false,
+      "diskBytes": 129185525417,
+      "dlBytes": 125983340897,
+      "diskHuman": "120.31 GB",
+      "dlHuman": "117.33 GB",
+      "cover": "https://cdn1.epicgames.com/0584d2013f0149a791e7b9bad0eec102/item/GTAV_EGS_Artwork_1200x1600_Portrait Store Banner-1200x1600-382243057711adf80322ed2aeea42191.jpg?h=256&resize=1",
+      "tier": 8,
+      "score": 35,
+      "category": "heavy",
+      "installedS20": false,
+      "compatLabel": "35% · Pesado / >14 GB (Custom / C++)",
+      "compatDetail": "Acima de 14 GB ou pesado p/ Adreno 650 (Custom / C++) — melhor via Streaming"
+    },
+    {
       "appName": "3223ccf6ac9b4189bd4e144c047d33fb",
       "title": "KillingFloor2Beta",
       "developer": "Tripwire Interactive",
@@ -7668,28 +7845,6 @@
       "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
-      "appName": "0e70be0cea0446599acb4c26d2e925f9",
-      "title": "Hell is Others",
-      "developer": "A List Games",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Unity",
-      "exe": "Run_HellIsOthers.bat",
-      "offline": true,
-      "diskBytes": 1755599070,
-      "dlBytes": 665947800,
-      "diskHuman": "1.64 GB",
-      "dlHuman": "635 MB",
-      "cover": "https://cdn1.epicgames.com/spt-assets/0de2d0d8870f457eaf7c6bf8c64f7f9e/hell-is-others-9gl9d.png?h=256&resize=1",
-      "tier": 9,
-      "score": 0,
-      "category": "incompatible",
-      "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
-    },
-    {
       "appName": "40cb42e38c0b4a14a1bb133eb3291572",
       "title": "Idle Champions of the Forgotten Realms",
       "developer": "Codename Entertainment",
@@ -7752,30 +7907,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
-    },
-    {
-      "appName": "6fd5e6a8632c499fa2657cf650c96b14",
-      "title": "Wild Card Football",
-      "developer": "Saber Interactive",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Custom / C++",
-      "exe": "WildCardFootball.exe",
-      "offline": true,
-      "diskBytes": 7145682750,
-      "dlBytes": 6862364204,
-      "diskHuman": "6.65 GB",
-      "dlHuman": "6.39 GB",
-      "cover": "https://cdn1.epicgames.com/item/3072dbe471f84dac8b2e9ba8af253ee2/EGS_WildCardFootball_SaberInteractive_S2_1200x1600-a5e01b328b18fd5a5c54704b0c47a983?h=256&resize=1",
-      "tier": 9,
-      "score": 0,
-      "category": "incompatible",
-      "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "b0b94ccc68564c729568cd07f9cfb812",
@@ -7800,28 +7933,6 @@
       "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
-      "appName": "0a2d9f6403244d12969e11da6713137b",
-      "title": "Fall Guys",
-      "developer": "EGFG LLC",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Unity",
-      "exe": "RunFallGuys.exe",
-      "offline": true,
-      "diskBytes": 7939842485,
-      "dlBytes": 7041158399,
-      "diskHuman": "7.39 GB",
-      "dlHuman": "6.56 GB",
-      "cover": "https://cdn1.epicgames.com/item/50118b7f954e450f8823df1614b24e80/FGSS04_KeyArt_OfferImagePortrait_1200x1600_1200x1600-4bd46574e78464352e1f2c55714701f7?h=256&resize=1",
-      "tier": 9,
-      "score": 0,
-      "category": "incompatible",
-      "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
-    },
-    {
       "appName": "f0ac8218ef7d4b5aabec153e3f193db6",
       "title": "Mortal Shell Tech Beta",
       "developer": "Playstack",
@@ -7842,28 +7953,6 @@
       "installedS20": false,
       "compatLabel": "Incompatível (Online-Only / Extra)",
       "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
-    },
-    {
-      "appName": "0ad0ed7b851c46378f9fcac07b72b548",
-      "title": "Wildgate",
-      "developer": "Dreamhaven, Inc.",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Unreal",
-      "exe": "NebulaLauncher.exe",
-      "offline": true,
-      "diskBytes": 13726342206,
-      "dlBytes": 10808479069,
-      "diskHuman": "12.78 GB",
-      "dlHuman": "10.07 GB",
-      "cover": "https://cdn1.epicgames.com/spt-assets/66d8f537f1aa4636985ff868d51651eb/wildgate-5ctcs.png?h=256&resize=1",
-      "tier": 9,
-      "score": 0,
-      "category": "incompatible",
-      "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
     },
     {
       "appName": "0c942b2c920149ff986af1ed93c92ddf",
@@ -7906,8 +7995,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "5c147002780d4e6eb292f54edfe73fda",
@@ -7928,8 +8017,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "cccdbadd66124f609ba706a9c4c73756",
@@ -7950,8 +8039,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "ca02598c9a5c4d5491d6431ce8e8d6e7",
@@ -7972,8 +8061,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "Peppermint",
@@ -7994,30 +8083,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
-    },
-    {
-      "appName": "Sugar",
-      "title": "Rocket League®",
-      "developer": "Psyonix LLC",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Custom / C++",
-      "exe": "Binaries/Win64/Launcher.exe",
-      "offline": true,
-      "diskBytes": 43679198548,
-      "dlBytes": 40231316112,
-      "diskHuman": "40.68 GB",
-      "dlHuman": "37.47 GB",
-      "cover": "https://cdn1.epicgames.com/item/9773aa1aa54f4f7b80e44bef04986cea/RocketTall_1200x1600-fab62ea387aa4da2a1e67835db3bb300?h=256&resize=1",
-      "tier": 9,
-      "score": 0,
-      "category": "incompatible",
-      "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "098f5323a3994362b6c68503d8cf3d57",
@@ -8038,8 +8105,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "Boxfish",
@@ -8060,30 +8127,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
-    },
-    {
-      "appName": "Tern",
-      "title": "Rising Storm 2: Vietnam",
-      "developer": "Tripwire Interactive",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Custom / C++",
-      "exe": "Binaries/Win64/RS2.exe",
-      "offline": true,
-      "diskBytes": 62255994781,
-      "dlBytes": 22166911471,
-      "diskHuman": "57.98 GB",
-      "dlHuman": "20.64 GB",
-      "cover": "https://cdn1.epicgames.com/3542a1df211e492bb2abecb7c734f7f9/item/EGS_RisingStorm2Vietnam_AntimatterGamesTripwireInteractive_S4-1200x1600-5e3b2f8107e17cc008237e52761d67e5.jpg?h=256&resize=1",
-      "tier": 9,
-      "score": 0,
-      "category": "incompatible",
-      "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "Brill",
@@ -8104,8 +8149,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "3e02273b543f4ff0a1c24d3b534a9ac3",
@@ -8126,8 +8171,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "a79746038c6948558274065d24f3faa3",
@@ -8152,28 +8197,6 @@
       "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
-      "appName": "8769e24080ea413b8ebca3f1b8c50951",
-      "title": "Grand Theft Auto V Enhanced",
-      "developer": "Rockstar Games",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Custom / C++",
-      "exe": "PlayGTAV.exe",
-      "offline": true,
-      "diskBytes": 103346842651,
-      "dlBytes": 101320759024,
-      "diskHuman": "96.25 GB",
-      "dlHuman": "94.36 GB",
-      "cover": "https://cdn1.epicgames.com/item/b0cd075465c44f87be3b505ac04a2e46/GTAV_CHARM_Epic_FirstParty_PortraitFOB_1200x1600_R02_1200x1600-a5528b33df876e64f5dee728830c80a3?h=256&resize=1",
-      "tier": 9,
-      "score": 0,
-      "category": "incompatible",
-      "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
-    },
-    {
       "appName": "4f0c34d469bb47b2bcf5b377f47ccfe3",
       "title": "theHunter: Call of the Wild™",
       "developer": "Avalanche Studios Group AB",
@@ -8196,28 +8219,6 @@
       "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
-      "appName": "9d2d0eb64d5c44529cece33fe2a46482",
-      "title": "Grand Theft Auto V",
-      "developer": "Rockstar Games",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Custom / C++",
-      "exe": "PlayGTAV.exe",
-      "offline": false,
-      "diskBytes": 129185525417,
-      "dlBytes": 125983340897,
-      "diskHuman": "120.31 GB",
-      "dlHuman": "117.33 GB",
-      "cover": "https://cdn1.epicgames.com/0584d2013f0149a791e7b9bad0eec102/item/GTAV_EGS_Artwork_1200x1600_Portrait Store Banner-1200x1600-382243057711adf80322ed2aeea42191.jpg?h=256&resize=1",
-      "tier": 9,
-      "score": 0,
-      "category": "incompatible",
-      "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
-    },
-    {
       "appName": "Fortnite",
       "title": "Fortnite",
       "developer": "Epic Games",
@@ -8236,8 +8237,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "592c359fb0e0413fb46dee2d24448eb4",
@@ -8258,8 +8259,8 @@
       "score": 0,
       "category": "incompatible",
       "installedS20": false,
-      "compatLabel": "Incompatível (Anti-Cheat (EAC/BattlEye))",
-      "compatDetail": "Bloqueado localmente (Anti-Cheat (EAC/BattlEye)) — usar Streaming"
+      "compatLabel": "Incompatível (Online-Only / Extra)",
+      "compatDetail": "Bloqueado localmente (Online-Only / Extra) — usar Streaming"
     },
     {
       "appName": "vivaldi",

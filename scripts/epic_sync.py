@@ -7,6 +7,7 @@ Sincroniza a biblioteca Epic Games do Gustavo com o Handheld Hub (public/data/ep
 - Com --deploy, publica automaticamente no Cloudflare Workers se houver mudança.
 """
 import configparser
+import hashlib
 import json
 import os
 import re
@@ -521,7 +522,7 @@ def main():
         if allow_adb and (s20_ports_sig != prev_state.get("s20Sig") or (now_ts - last_ports_ts > 3600)):
             rom_tool = Path("/Users/gustavoconstantino/Documents/Github Repositories/s20fe-gamesirx5lite/scripts/rom-tool")
             if rom_tool.exists():
-                subprocess.run([str(rom_tool), "check-ports", "--out", str(ports_json_path)], check=False)
+                subprocess.run([str(rom_tool), "check-ports"], check=False)
                 last_ports_ts = now_ts
 
         ports_hash = "none"
