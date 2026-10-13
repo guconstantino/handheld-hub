@@ -42,15 +42,13 @@
               "SpaghettiKart (Mario Kart 64)",
               "DriftDroid + Retro Rewind (MKWii)",
               "Party Board (Mario Party 4)",
-              "Sonic 3 A.I.R. (PT-BR)",
-              "Super Mario World (snesrev PT-BR)",
-              "Super Metroid (snesrev PT-BR)"
+              "Sonic 3 A.I.R. (PT-BR)"
             ]
           },
           {
             "title": "Ajustes",
             "items": [
-              "27 jogos na aba PORTS (100% capas)",
+              "25 jogos na aba PORTS (100% capas)",
               "Bordas 20:9 por sistema",
               "Widescreen GC/Wii e PS2",
               "RetroAchievements (hardcore off)",
@@ -237,7 +235,7 @@
       "device_id": "s20fe",
       "label": "Interno",
       "method": "adb",
-      "root": "/sdcard/3-Jogos"
+      "root": "/sdcard/Rom"
     },
     {
       "id": "miyoo-sd",

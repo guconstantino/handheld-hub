@@ -198,7 +198,7 @@ def onion(vol):
 
 DAIJI_MAP = os.path.join(ROOT, "data", "covers-daijisho.json")
 DAIJI_ROOT = "/storage/6847-D042/Rom"           # mesmo root do local s20-sd (scanner/devices.json)
-DAIJI_ROOTS = ["/storage/6847-D042/Rom", "/storage/4320-18EC/1-Jogos", "/sdcard/3-Jogos"]
+DAIJI_ROOTS = ["/storage/6847-D042/Rom", "/sdcard/Rom"]
 
 
 def daijisho():

@@ -130,7 +130,7 @@ def get_s20_installed(allow_adb=True):
         return installed
     try:
         out = subprocess.check_output(
-            ["adb", "shell", "ls -1 /sdcard/3-Jogos/PC 2>/dev/null; ls -1 /sdcard/3-Jogos/Ports/Shortcuts/*.port 2>/dev/null"],
+            ["adb", "shell", "ls -1 /sdcard/Rom/PC 2>/dev/null; ls -1 /sdcard/Rom/Ports/Shortcuts/*.port 2>/dev/null"],
             timeout=4,
             stderr=subprocess.DEVNULL,
         ).decode("utf-8", errors="ignore")
