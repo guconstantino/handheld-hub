@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-10-12T02:58:09Z",
+  "updatedAt": "2026-10-13T02:03:35Z",
   "source": "SirDiabo/GithubLauncher (v1.70 N64RecompLauncher) + S20 FE Decompiled Ports",
   "counts": {
-    "total": 37,
-    "installed": 25,
-    "androidReady": 3,
+    "total": 38,
+    "installed": 28,
+    "androidReady": 1,
     "desktopRecomp": 9,
     "ptbr": 20
   },
@@ -136,7 +136,7 @@
       "rom": {
         "s20Sd": true,
         "gdrive": true,
-        "bestPath": "n64/Mario Kart 64.zip"
+        "bestPath": "n64/Mario Kart 64 (USA).zip"
       },
       "updateStatus": "up-to-date"
     },
@@ -169,7 +169,7 @@
       "rom": {
         "s20Sd": true,
         "gdrive": true,
-        "bestPath": "n64/Super Mario 64.zip"
+        "bestPath": "n64/Super Mario 64 (USA).zip"
       },
       "updateStatus": "up-to-date"
     },
@@ -827,18 +827,18 @@
       "shortName": "Perfect Dark",
       "system": "n64",
       "engine": "n64decomp",
-      "category": "android-ready",
+      "category": "installed",
       "repository": "izzy2lost/perfect_dark",
       "upstreamRepo": "fgsfdsfgs/perfect_dark",
-      "packageName": null,
-      "installedVersion": null,
+      "packageName": "com.perfectdark.port",
+      "installedVersion": "2.0.0",
       "ptbr": "Disponível via ROM/Textos",
       "features": [
         "60 FPS",
         "20:9 Widescreen",
         "Dual-Analog Nativo"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/64314c17210c549a854f1f1c7adce8b6/32/256x256.png",
+      "iconUrl": "covers/5b8ac61f517f7caf.webp",
       "romQuery": "Perfect Dark",
       "latestTag": "2.0.0",
       "publishedAt": "2026-08-27",
@@ -849,9 +849,75 @@
       "rom": {
         "s20Sd": true,
         "gdrive": true,
-        "bestPath": "n64/Perfect Dark.zip"
+        "bestPath": "n64/Perfect Dark (USA) (Rev A).zip"
       },
-      "updateStatus": "ready-to-install"
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "devilutionx",
+      "name": "Diablo + Hellfire (DevilutionX)",
+      "shortName": "DevilutionX",
+      "system": "pc",
+      "engine": "devilutionX",
+      "category": "installed",
+      "repository": "diasurgical/devilutionX",
+      "upstreamRepo": "diasurgical/devilutionX",
+      "packageName": "org.diasurgical.devilutionx",
+      "installedVersion": "1.5.5",
+      "ptbr": "Sim (Nativo oficial em Português do Brasil!)",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo",
+        "PT-BR Oficial"
+      ],
+      "iconUrl": "covers/o-c3ccebcc4a9cd1b9.webp",
+      "romQuery": "Diablo",
+      "latestTag": "1.5.5",
+      "publishedAt": "2025-10-30",
+      "releaseUrl": "https://github.com/diasurgical/DevilutionX/releases/tag/1.5.5",
+      "apkName": "devilutionx-android.apk",
+      "apkUrl": "https://github.com/diasurgical/DevilutionX/releases/download/1.5.5/devilutionx-android.apk",
+      "apkSize": 18840504,
+      "rom": {
+        "s20Sd": true,
+        "gdrive": true,
+        "bestPath": "colecovision/Diablo.zip"
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "openlara",
+      "name": "Tomb Raider 1 (OpenLara)",
+      "shortName": "OpenLara",
+      "system": "psx",
+      "engine": "OpenLara",
+      "category": "installed",
+      "repository": "XProger/OpenLara",
+      "upstreamRepo": "XProger/OpenLara",
+      "packageName": "com.xproger.openlara",
+      "installedVersion": "0.1",
+      "ptbr": "Não",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Gamepad Nativo",
+        "Iluminação Dinâmica"
+      ],
+      "iconUrl": "covers/704dd7c538a1b5db.webp",
+      "romQuery": "TOMBRAIDER",
+      "latestTag": "latest",
+      "publishedAt": "2019-01-11",
+      "releaseUrl": "https://github.com/XProger/OpenLara/releases/tag/latest",
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": true,
+        "bestPath": "psx/TOMBRAIDER.iso"
+      },
+      "updateStatus": "up-to-date"
     },
     {
       "id": "ghostship",
@@ -881,40 +947,7 @@
       "rom": {
         "s20Sd": true,
         "gdrive": true,
-        "bestPath": "n64/Super Mario 64.zip"
-      },
-      "updateStatus": "ready-to-install"
-    },
-    {
-      "id": "devilutionx",
-      "name": "Diablo + Hellfire (DevilutionX)",
-      "shortName": "DevilutionX",
-      "system": "pc",
-      "engine": "devilutionX",
-      "category": "android-ready",
-      "repository": "diasurgical/devilutionX",
-      "upstreamRepo": "diasurgical/devilutionX",
-      "packageName": "org.diasurgical.devilutionx",
-      "installedVersion": null,
-      "ptbr": "Sim (Nativo oficial em Português do Brasil!)",
-      "features": [
-        "60 FPS",
-        "20:9 Widescreen",
-        "Gamepad Nativo",
-        "PT-BR Oficial"
-      ],
-      "iconUrl": null,
-      "romQuery": "Diablo",
-      "latestTag": "1.5.5",
-      "publishedAt": "2025-10-30",
-      "releaseUrl": "https://github.com/diasurgical/DevilutionX/releases/tag/1.5.5",
-      "apkName": "devilutionx-android.apk",
-      "apkUrl": "https://github.com/diasurgical/DevilutionX/releases/download/1.5.5/devilutionx-android.apk",
-      "apkSize": 18840504,
-      "rom": {
-        "s20Sd": true,
-        "gdrive": true,
-        "bestPath": "colecovision/Diablo.zip"
+        "bestPath": "n64/Super Mario 64 (USA).zip"
       },
       "updateStatus": "ready-to-install"
     },
@@ -947,7 +980,7 @@
       "rom": {
         "s20Sd": true,
         "gdrive": true,
-        "bestPath": "n64/Banjo-Kazooie.zip"
+        "bestPath": "n64/Banjo-Kazooie (USA).zip"
       },
       "updateStatus": "desktop-recomp"
     },
@@ -1075,7 +1108,7 @@
       "rom": {
         "s20Sd": true,
         "gdrive": true,
-        "bestPath": "n64/Bomberman 64 - The Second Attack! (USA).zip"
+        "bestPath": "n64/Bomberman 64 (USA).zip"
       },
       "updateStatus": "desktop-recomp"
     },

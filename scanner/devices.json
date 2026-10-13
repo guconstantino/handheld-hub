@@ -40,6 +40,9 @@
               "Starship (Star Fox 64 PT-BR)",
               "SM64CoopDX (Super Mario 64 PT-BR)",
               "SpaghettiKart (Mario Kart 64)",
+              "Perfect Dark (N64 Decomp v2.0.0)",
+              "DevilutionX (Diablo v1.5.5 PT-BR)",
+              "OpenLara (Tomb Raider 1 60fps)",
               "DriftDroid + Retro Rewind (MKWii)",
               "Party Board (Mario Party 4)",
               "Sonic 3 A.I.R. (PT-BR)"
@@ -48,8 +51,9 @@
           {
             "title": "Ajustes",
             "items": [
-              "25 jogos na aba PORTS (100% capas)",
-              "Bordas 20:9 por sistema",
+              "28 jogos na aba PORTS (100% capas)",
+              "Bordas 20:9 + Shaders CRT zfast_crt (51 perfis)",
+              "Run-Ahead 1 frame (TV CRT + Portáteis)",
               "Widescreen GC/Wii e PS2",
               "RetroAchievements (hardcore off)",
               "BIOS FDS / Sega CD / 32X"
@@ -58,7 +62,7 @@
           {
             "title": "Atenção",
             "items": [
-              "194 ROMs corrompidas (90 já consertadas)",
+              "0 ROMs corrompidas (184 restauradas, 10 protótipos em _quarentena-roms)",
               "Limite térmico: bateria > 42 °C corta a CPU"
             ]
           }
