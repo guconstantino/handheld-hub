@@ -254,9 +254,9 @@
     {
       "id": "switch-jksv",
       "device_id": "switch",
-      "label": "Jogos com save (JKSV)",
+      "label": "Jogos instalados (DBI)",
       "method": "ftp",
-      "root": "ftp://192.168.0.105:5000/JKSV/"
+      "root": "ftp://192.168.0.105:5000"
     },
     {
       "id": "drive-plataform",

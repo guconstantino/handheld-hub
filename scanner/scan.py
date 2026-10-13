@@ -201,14 +201,40 @@ def scan_local(loc, root, detect=None, read_head=False, with_ids=False):
 
 
 def scan_ftp(loc, root):
-    """Switch (ftpd ou FTP do DBI): cada pasta em /JKSV/ é um jogo com save. curl é mais estável que ftplib."""
-    r = subprocess.run(["curl", "-s", "--max-time", "60", "--list-only", root], capture_output=True, text=True)
-    if r.returncode != 0:
-        sys.exit(f"{loc}: FTP não respondeu ({root}). O ftpd está aberto no Switch?")
-    # ftpd devolve só o nome; o FTP do DBI devolve o caminho inteiro (/JKSV/<jogo>).
-    names = [n.strip().rstrip("/").rsplit("/", 1)[-1] for n in r.stdout.splitlines() if n.strip()]
-    names = [n for n in names if n and not n.startswith(".")]
-    return [("switch/" + n, None, None, None) for n in names], (None, None)
+    """Switch: lê dbi.titles (jogos instalados pelo DBI) e /JKSV/ (saves) via FTP."""
+    base = root.rstrip("/")
+    games = {}
+
+    # 1. dbi.titles (jogos e ports instalados)
+    r_titles = subprocess.run(["curl", "-s", "--max-time", "15", f"{base}/switch/DBI/dbi.titles"],
+                              capture_output=True, text=True)
+    if r_titles.returncode == 0 and r_titles.stdout:
+        for line in r_titles.stdout.splitlines():
+            line = line.strip()
+            if not line or "=" not in line:
+                continue
+            tid, name = line.split("=", 1)
+            name = name.strip()
+            if name.lower() in ("cnx updater", "youtube", "fortnite para nintendo switch"):
+                continue
+            k = game_key("switch", name)
+            games[k] = name
+
+    # 2. /JKSV/ (jogos que têm save no console)
+    r_jksv = subprocess.run(["curl", "-s", "--max-time", "15", "--list-only", f"{base}/JKSV/"],
+                            capture_output=True, text=True)
+    if r_jksv.returncode == 0 and r_jksv.stdout:
+        for line in r_jksv.stdout.splitlines():
+            n = line.strip().rstrip("/").rsplit("/", 1)[-1]
+            if n and not n.startswith("."):
+                k = game_key("switch", n)
+                games.setdefault(k, n)
+
+    if not games:
+        sys.exit(f"{loc}: FTP não retornou jogos em {root}. O ftpd/DBI está aberto no Switch?")
+
+    rows = [("switch/" + name, None, None, None) for name in sorted(games.values(), key=lambda s: s.lower())]
+    return rows, (None, None)
 
 
 # ---------- gravação ----------
