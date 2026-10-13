@@ -21,6 +21,7 @@
           {
             "title": "Emuladores",
             "items": [
+              "Eden v0.2.1 Legacy + Turnip v26 R8 (Switch)",
               "RetroArch 1.21",
               "Dolphin 2609 + Turnip v26",
               "NetherSX2 v2.2b",
@@ -255,7 +256,7 @@
       "device_id": "switch",
       "label": "Jogos com save (JKSV)",
       "method": "ftp",
-      "root": "ftp://192.168.0.253:5000/JKSV/"
+      "root": "ftp://192.168.0.105:5000/JKSV/"
     },
     {
       "id": "drive-plataform",

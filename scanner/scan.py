@@ -48,6 +48,7 @@ def now():
 def game_key(system, title):
     title = re.sub(r"\.\d{2}$", "", title)                   # "Super Mario World (USA).00": cópia renomeada
     title = re.sub(r"(?i)[\s_-]*decrypted\b", "", title)     # "-decrypted" do 3DS: mesmo jogo
+    title = re.sub(r"(?i)\s+v\d+(?:\.\d+)+$", "", title)     # "Celeste v1.4.0.0": tira sufixo de versão
     title = re.sub(r"(?i)\s*-\s*(c[oó]pia|copy)(\s*\(\d+\))?$", "", title)   # "- Copia" do Windows
     t = re.sub(r"[\(\[][^\)\]]*[\)\]]", " ", title)        # tira (USA), [!], (Rev A)...
     t = re.sub(r"^(.*), (the|a|an)\b", r"\2 \1", t.strip(), flags=re.I)  # "Zelda, The" → "The Zelda"
@@ -74,7 +75,7 @@ def record(loc, rel, size, mtime, head=None):
         return None
     name = parts[-1]
     ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
-    if folder == "switch":                                # pasta de save do JKSV: o nome inteiro é o título
+    if folder == "switch" and ext not in {"nsp", "xci", "nsz", "nro"}:  # pasta de save do JKSV: o nome inteiro é o título
         ext = ""
     if folder.lower() == "ports" and (len(parts) < 3 or parts[1].lower() != "shortcuts" or ext != "port"):
         return None                                      # Miyoo: só os atalhos .port aparecem no menu
@@ -163,19 +164,27 @@ def scan_local(loc, root, detect=None, read_head=False, with_ids=False):
     rows, ids = [], {}
     for dirpath, dirnames, filenames in os.walk(base):
         dirnames[:] = [d for d in dirnames if not skip_dir(d) and not d.startswith(".")]
+        rel_dir = os.path.relpath(dirpath, base)
+        if rel_dir.lower().split(os.sep)[0] == "ports":
+            dirnames[:] = [d for d in dirnames if d.lower() == "shortcuts"]
         if with_ids:                                     # pastas de jogo (psx/<jogo>) também ganham link
             for d in dirnames:
                 rel = os.path.relpath(os.path.join(dirpath, d), base)
                 if rel.count(os.sep) == 1 and (i := drive_id(os.path.join(dirpath, d))):
                     ids[rel] = i
         for fn in filenames:
+            if fn.startswith("."):
+                continue
+            ext = fn.rsplit(".", 1)[-1].lower() if "." in fn else ""
+            if ext in SKIP_EXT:
+                continue
             full = os.path.join(dirpath, fn)
             try:
                 st = os.stat(full)                       # metadado só: não baixa o arquivo do Drive
             except OSError:
                 continue
             head = None
-            if read_head:                                # disco local (SD plugado): 8 bytes por arquivo é barato
+            if read_head and ext in SIGNED_EXT:          # só lê cabeçalho de formatos que têm assinatura
                 try:
                     with open(full, "rb") as fh:
                         head = fh.read(8).hex() or "0"
