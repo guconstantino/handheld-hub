@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-10-13T16:30:07.161382+00:00",
-  "hash": "3b24c744d19b4ae9",
+  "updatedAt": "2026-10-14T00:56:03.971247+00:00",
+  "hash": "97f5c1bd7ee44761",
   "account": "guconstantino",
   "counts": {
     "total": 376,
-    "installed": 8,
+    "installed": 9,
     "nativeOrPort": 30,
     "greatLight": 93,
     "playableMid": 142,
@@ -83,6 +83,7 @@
       "title": "Enter the Gungeon",
       "developer": "Devolver Digital, Inc.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -165,6 +166,28 @@
       "installedS20": true,
       "compatLabel": "98% · Excelente (Unity)",
       "compatDetail": "60 FPS no GameHub (Unity, DRM-Free) + possui edição Android"
+    },
+    {
+      "appName": "9b48cbb1a0cf4a73b87ccbf4cde04b26",
+      "title": "Sable",
+      "developer": "Raw Fury",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Unity",
+      "exe": "Sable.exe",
+      "offline": true,
+      "diskBytes": 2268366790,
+      "dlBytes": 1978704154,
+      "diskHuman": "2.11 GB",
+      "dlHuman": "1.84 GB",
+      "cover": "https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_Sable_Shedworks_S2_1200x1600_1200x1600-8c822a6ef6f9cb4f07651ea61f291391?h=256&resize=1",
+      "tier": 0,
+      "score": 80,
+      "category": "installed",
+      "installedS20": true,
+      "compatLabel": "80% · Muito Boa 30–60 FPS (Unity)",
+      "compatDetail": "Médio porte (Unity) — 30 a 60 FPS no Snapdragon 865"
     },
     {
       "appName": "0a2d9f6403244d12969e11da6713137b",
@@ -303,6 +326,7 @@
       "title": "Amnesia:  The Dark Descent",
       "developer": "Frictional Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -347,6 +371,7 @@
       "title": "Brotato",
       "developer": "Blobfish Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Godot",
@@ -435,6 +460,7 @@
       "title": "Scourgebringer",
       "developer": "Plug In Digital SAS",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -457,6 +483,7 @@
       "title": "Kingdom New Lands",
       "developer": "Raw Fury",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -523,6 +550,7 @@
       "title": "Guild of Dungeoneering",
       "developer": "Gambrinous",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -655,6 +683,7 @@
       "title": "2064: Read Only Memories",
       "developer": "MidBoss, LLC",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -699,6 +728,7 @@
       "title": "Costume Quest 2",
       "developer": "Majesco Games Corporation",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -721,6 +751,7 @@
       "title": "Vampire Survivors",
       "developer": "Poncle Limited",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -765,6 +796,7 @@
       "title": "Lovecraft's Untold Stories",
       "developer": "Fulqrum Publishing Ltd.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -809,6 +841,7 @@
       "title": "Garden Story",
       "developer": "Rose City Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "GameMaker",
@@ -853,6 +886,7 @@
       "title": "Geneforge 1: Mutagen",
       "developer": "Spiderweb Software, Inc.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -919,6 +953,7 @@
       "title": "Hell is other demons",
       "developer": "Kongregate",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -941,6 +976,7 @@
       "title": "Pikuniku",
       "developer": "Devolver Digital, Inc.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -963,6 +999,7 @@
       "title": "Bridge Constructor: The Walking Dead",
       "developer": "Headup Gmbh",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -985,6 +1022,7 @@
       "title": "Centipede Recharged",
       "developer": "Atari",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1007,6 +1045,7 @@
       "title": "Terraforming Mars",
       "developer": "TWIN SAILS INTERACTIVE",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1029,6 +1068,7 @@
       "title": "Snakebird Complete",
       "developer": "Noumenon Games AB",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1117,6 +1157,7 @@
       "title": "Absolute Drift",
       "developer": "Funselektor Labs INC",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1139,6 +1180,7 @@
       "title": "Black Widow: Recharged",
       "developer": "Atari",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1227,6 +1269,7 @@
       "title": "Backpack Hero",
       "developer": "Pretty Soon S.A.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1249,6 +1292,7 @@
       "title": "The Textorcist",
       "developer": "Headup Gmbh",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "GameMaker",
@@ -1293,6 +1337,7 @@
       "title": "The Fall",
       "developer": "Over the Moon Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1315,6 +1360,7 @@
       "title": "My Night Job",
       "developer": "Webcore Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1359,6 +1405,7 @@
       "title": "SKALD Against the Black Priory",
       "developer": "Raw Fury",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1535,6 +1582,7 @@
       "title": "TerraTech",
       "developer": "Mythwright",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1557,6 +1605,7 @@
       "title": "The World Next Door",
       "developer": "VIZ Media",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1689,6 +1738,7 @@
       "title": "while True: learn()",
       "developer": "Luden.io",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1711,6 +1761,7 @@
       "title": "The Ouroboros King",
       "developer": "Plug In Digital SAS",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1777,6 +1828,7 @@
       "title": "Fear the Spotlight",
       "developer": "Blumhouse Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1821,6 +1873,7 @@
       "title": "Sunless Sea",
       "developer": "Failbetter Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -1909,6 +1962,7 @@
       "title": "The Jackbox Party Pack 4",
       "developer": "Jackbox Games, Inc.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -2085,6 +2139,7 @@
       "title": "The Darkside Detective",
       "developer": "Akupara Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2129,6 +2184,7 @@
       "title": "Zoeti",
       "developer": "Akupara Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2239,6 +2295,7 @@
       "title": "Floppy Knights",
       "developer": "Rose City Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2349,6 +2406,7 @@
       "title": "The Captain",
       "developer": "Tomorrow Corporation",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2371,6 +2429,7 @@
       "title": "Cook, Serve, Delicious! 3?!",
       "developer": "Vertigo Gaming Inc.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "GameMaker",
@@ -2613,6 +2672,7 @@
       "title": "The Operator",
       "developer": "Bureau 81",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2635,6 +2695,7 @@
       "title": "Ogu and the Secret Forest",
       "developer": "Sinkhole Studio Inc.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2679,6 +2740,7 @@
       "title": "Turmoil",
       "developer": "Gamious",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2723,6 +2785,7 @@
       "title": "Godzilla Voxel Wars",
       "developer": "TOHO CO.,LTD.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2811,6 +2874,7 @@
       "title": "ToeJam & Earl: Back in the Groove!",
       "developer": "Humanature Studios",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2855,6 +2919,7 @@
       "title": "Hundred Days - Winemaking Simulator",
       "developer": "Broken Arms Games srls",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -2965,6 +3030,7 @@
       "title": "INSIDE",
       "developer": "Playdead",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3005,32 +3071,11 @@
       "compatDetail": "Médio porte (Custom / C++) — 30 a 60 FPS no Snapdragon 865"
     },
     {
-      "appName": "9b48cbb1a0cf4a73b87ccbf4cde04b26",
-      "title": "Sable",
-      "developer": "Raw Fury",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Unity",
-      "exe": "Sable.exe",
-      "offline": true,
-      "diskBytes": 2268366790,
-      "dlBytes": 1978704154,
-      "diskHuman": "2.11 GB",
-      "dlHuman": "1.84 GB",
-      "cover": "https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_Sable_Shedworks_S2_1200x1600_1200x1600-8c822a6ef6f9cb4f07651ea61f291391?h=256&resize=1",
-      "tier": 6,
-      "score": 80,
-      "category": "playable-mid",
-      "installedS20": false,
-      "compatLabel": "80% · Muito Boa 30–60 FPS (Unity)",
-      "compatDetail": "Médio porte (Unity) — 30 a 60 FPS no Snapdragon 865"
-    },
-    {
       "appName": "1d74dcbca79540efb52cab2ff026215f",
       "title": "Black Book",
       "developer": "Hypetrain Digital",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3053,6 +3098,7 @@
       "title": "Darkest Dungeon®",
       "developer": "Red Hook Studios",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -3075,6 +3121,7 @@
       "title": "Star Stuff",
       "developer": "Animo Games Studio LLC",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3119,6 +3166,7 @@
       "title": "The First Tree",
       "developer": "David Wehle, LLC",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3141,6 +3189,7 @@
       "title": "Legion TD 2",
       "developer": "Ninja Kiwi",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3163,6 +3212,7 @@
       "title": "Behind the Frame: The Finest Scenery",
       "developer": "Akupara Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3295,6 +3345,7 @@
       "title": "InnerSpace",
       "developer": "Aspyr Media, Inc.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3317,6 +3368,7 @@
       "title": "Songs of Conquest",
       "developer": "Coffee Stain Publishing",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3647,6 +3699,7 @@
       "title": "Sunless Skies: Sovereign Edition",
       "developer": "Failbetter Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3713,6 +3766,7 @@
       "title": "Iratus",
       "developer": "Daedalic Entertainment",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3823,6 +3877,7 @@
       "title": "The Long Dark",
       "developer": "Hinterland Studio",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3911,6 +3966,7 @@
       "title": "Among the Sleep - Enhanced Edition",
       "developer": "Krillbite Studios AS",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -3955,6 +4011,7 @@
       "title": "Jotun Valhalla Edition",
       "developer": "Thunder Lotus Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -4021,6 +4078,7 @@
       "title": "Hand of Fate 2",
       "developer": "Defiant Development PTY LTD",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -4087,6 +4145,7 @@
       "title": "Saturnalia",
       "developer": "Santa Ragione",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -4219,6 +4278,7 @@
       "title": "Darkwood",
       "developer": "Hooded Horse Inc",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -4307,6 +4367,7 @@
       "title": "Amnesia: A Machine for Pigs",
       "developer": "Frictional Games",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -4461,6 +4522,7 @@
       "title": "Night in the Woods",
       "developer": "Finji LLC",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -4637,6 +4699,7 @@
       "title": "Felix The Reaper",
       "developer": "Daedalic Entertainment",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -4703,6 +4766,7 @@
       "title": "Surviving Mars",
       "developer": "Paradox Interactive",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -4945,6 +5009,7 @@
       "title": "Arranger: A Role-Puzzling Adventure",
       "developer": "Furniture & Mattress LLC",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -5121,6 +5186,7 @@
       "title": "Tannenberg",
       "developer": "BlackMill Games B.V.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -5143,6 +5209,7 @@
       "title": "The Drone Racing League Simulator",
       "developer": "Drone Racing League",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -5187,6 +5254,7 @@
       "title": "Night Run",
       "developer": "Thousand Ant LLC",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -5253,6 +5321,7 @@
       "title": "Rival Stars Horse Racing : Desktop Edition",
       "developer": "Prodigy Design Ltd",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -5297,6 +5366,7 @@
       "title": "KID A MNESIA EXHIBITION",
       "developer": "Epic Games Publishing",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -5363,6 +5433,7 @@
       "title": "Disco Elysium - The Final Cut",
       "developer": "ZA/UM",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -6925,6 +6996,7 @@
       "title": "A Total War Saga: TROY",
       "developer": "SEGA of Europe",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
@@ -6947,6 +7019,7 @@
       "title": "HUMANKIND™",
       "developer": "AMPLITUDE Studios",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -7123,6 +7196,7 @@
       "title": "Kerbal Space Program",
       "developer": "The Kerbal Company",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
@@ -7475,6 +7549,7 @@
       "title": "Dead Island 2",
       "developer": "Plaion",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unreal",
@@ -7673,6 +7748,7 @@
       "title": "Borderlands 3",
       "developer": "2K Games, Inc.",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Custom / C++",
