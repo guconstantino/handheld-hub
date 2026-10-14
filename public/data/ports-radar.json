@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-10-13T02:03:35Z",
+  "updatedAt": "2026-10-14T23:56:46Z",
   "source": "SirDiabo/GithubLauncher (v1.70 N64RecompLauncher) + S20 FE Decompiled Ports",
   "counts": {
-    "total": 38,
-    "installed": 28,
+    "total": 39,
+    "installed": 29,
     "androidReady": 1,
     "desktopRecomp": 9,
     "ptbr": 20
@@ -916,6 +916,39 @@
         "s20Sd": false,
         "gdrive": true,
         "bestPath": "psx/TOMBRAIDER.iso"
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "nfsmw",
+      "name": "Need for Speed: Most Wanted (Xbox 360 Recompiled)",
+      "shortName": "NFS Most Wanted",
+      "system": "x360",
+      "engine": "NFSMW-Recomp",
+      "category": "installed",
+      "repository": "victorgbd/NFSMW-Recompiled-Mobile",
+      "upstreamRepo": "victorgbd/NFSMW-Recompiled-Mobile",
+      "packageName": "io.github.nfsmwrecomp",
+      "installedVersion": "0.4.2",
+      "ptbr": "Original ou Mods",
+      "features": [
+        "60 FPS",
+        "20:9 Widescreen",
+        "Vulkan / Turnip",
+        "ARM64 Nativo"
+      ],
+      "iconUrl": "covers/nfsmw.webp",
+      "romQuery": "Need for Speed - Most Wanted",
+      "latestTag": "v0.4.2",
+      "publishedAt": "2026-10-14",
+      "releaseUrl": "https://github.com/victorgbd/NFSMW-Recompiled-Mobile/releases/tag/v0.4.2",
+      "apkName": "nfsmw-ediciones-0.4.2-release.apk",
+      "apkUrl": "https://github.com/victorgbd/NFSMW-Recompiled-Mobile/releases/download/v0.4.2/nfsmw-ediciones-0.4.2-release.apk",
+      "apkSize": 118384209,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
       },
       "updateStatus": "up-to-date"
     },

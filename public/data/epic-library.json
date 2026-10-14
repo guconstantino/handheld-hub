@@ -1,13 +1,13 @@
 {
-  "updatedAt": "2026-10-14T00:56:03.971247+00:00",
+  "updatedAt": "2026-10-14T16:30:08.140455+00:00",
   "hash": "97f5c1bd7ee44761",
   "account": "guconstantino",
   "counts": {
     "total": 376,
-    "installed": 9,
+    "installed": 8,
     "nativeOrPort": 30,
     "greatLight": 93,
-    "playableMid": 142,
+    "playableMid": 143,
     "heavyOrIncompat": 111,
     "drmFree": 264
   },
@@ -182,10 +182,10 @@
       "diskHuman": "2.11 GB",
       "dlHuman": "1.84 GB",
       "cover": "https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_Sable_Shedworks_S2_1200x1600_1200x1600-8c822a6ef6f9cb4f07651ea61f291391?h=256&resize=1",
-      "tier": 0,
+      "tier": 6,
       "score": 80,
-      "category": "installed",
-      "installedS20": true,
+      "category": "playable-mid",
+      "installedS20": false,
       "compatLabel": "80% · Muito Boa 30–60 FPS (Unity)",
       "compatDetail": "Médio porte (Unity) — 30 a 60 FPS no Snapdragon 865"
     },
