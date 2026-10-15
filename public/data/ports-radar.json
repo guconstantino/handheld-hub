@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-10-15T00:11:58Z",
+  "updatedAt": "2026-10-15T00:31:09Z",
   "source": "SirDiabo/GithubLauncher (v1.70 N64RecompLauncher) + S20 FE Decompiled Ports",
   "counts": {
     "total": 39,
-    "installed": 29,
-    "androidReady": 1,
+    "installed": 30,
+    "androidReady": 0,
     "desktopRecomp": 9,
     "ptbr": 20
   },
@@ -959,31 +959,32 @@
       "shortName": "Ghostship",
       "system": "n64",
       "engine": "libultraship",
-      "category": "android-ready",
-      "repository": "izzy2lost/Ghostship",
+      "category": "installed",
+      "repository": "HarbourMasters/Ghostship",
       "upstreamRepo": "HarbourMasters/Ghostship",
-      "packageName": null,
-      "installedVersion": null,
+      "packageName": "dev.net64.ghostship",
+      "installedVersion": "3.0.0",
       "ptbr": "Compatível com mods .o2r",
       "features": [
         "60 FPS",
         "20:9 Widescreen",
-        "libultraship"
+        "libultraship",
+        "Câmera Analógica Livre"
       ],
-      "iconUrl": "https://raw.githubusercontent.com/HarbourMasters/Ghostship/refs/heads/develop/nx-logo.jpg",
-      "romQuery": "Super Mario 64",
-      "latestTag": "1.0.1",
-      "publishedAt": "2026-01-29",
-      "releaseUrl": "https://github.com/izzy2lost/Ghostship/releases/tag/1.0.1",
-      "apkName": "app-release.apk",
-      "apkUrl": "https://github.com/izzy2lost/Ghostship/releases/download/1.0.1/app-release.apk",
-      "apkSize": 23435683,
+      "iconUrl": "covers/ghostship.webp",
+      "romQuery": "Ghostship",
+      "latestTag": "3.0.0",
+      "publishedAt": "2026-09-07",
+      "releaseUrl": "https://github.com/HarbourMasters/Ghostship/releases/tag/3.0.0",
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
       "rom": {
-        "s20Sd": true,
-        "gdrive": true,
-        "bestPath": "n64/Super Mario 64 (USA).zip"
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
       },
-      "updateStatus": "ready-to-install"
+      "updateStatus": "up-to-date"
     },
     {
       "id": "banjorecomp",
