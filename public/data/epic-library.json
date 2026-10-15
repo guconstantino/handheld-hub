@@ -1,13 +1,13 @@
 {
-  "updatedAt": "2026-10-14T16:30:08.140455+00:00",
-  "hash": "97f5c1bd7ee44761",
+  "updatedAt": "2026-10-15T16:30:11.058823+00:00",
+  "hash": "d5077ee825ed5618",
   "account": "guconstantino",
   "counts": {
     "total": 376,
     "installed": 8,
     "nativeOrPort": 30,
     "greatLight": 93,
-    "playableMid": 143,
+    "playableMid": 142,
     "heavyOrIncompat": 111,
     "drmFree": 264
   },
@@ -166,28 +166,6 @@
       "installedS20": true,
       "compatLabel": "98% · Excelente (Unity)",
       "compatDetail": "60 FPS no GameHub (Unity, DRM-Free) + possui edição Android"
-    },
-    {
-      "appName": "9b48cbb1a0cf4a73b87ccbf4cde04b26",
-      "title": "Sable",
-      "developer": "Raw Fury",
-      "platforms": [
-        "Windows"
-      ],
-      "engine": "Unity",
-      "exe": "Sable.exe",
-      "offline": true,
-      "diskBytes": 2268366790,
-      "dlBytes": 1978704154,
-      "diskHuman": "2.11 GB",
-      "dlHuman": "1.84 GB",
-      "cover": "https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_Sable_Shedworks_S2_1200x1600_1200x1600-8c822a6ef6f9cb4f07651ea61f291391?h=256&resize=1",
-      "tier": 6,
-      "score": 80,
-      "category": "playable-mid",
-      "installedS20": false,
-      "compatLabel": "80% · Muito Boa 30–60 FPS (Unity)",
-      "compatDetail": "Médio porte (Unity) — 30 a 60 FPS no Snapdragon 865"
     },
     {
       "appName": "0a2d9f6403244d12969e11da6713137b",
@@ -3069,6 +3047,28 @@
       "installedS20": false,
       "compatLabel": "80% · Muito Boa 30–60 FPS (Custom / C++)",
       "compatDetail": "Médio porte (Custom / C++) — 30 a 60 FPS no Snapdragon 865"
+    },
+    {
+      "appName": "9b48cbb1a0cf4a73b87ccbf4cde04b26",
+      "title": "Sable",
+      "developer": "Raw Fury",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Unity",
+      "exe": "Sable.exe",
+      "offline": true,
+      "diskBytes": 2268366790,
+      "dlBytes": 1978704154,
+      "diskHuman": "2.11 GB",
+      "dlHuman": "1.84 GB",
+      "cover": "https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_Sable_Shedworks_S2_1200x1600_1200x1600-8c822a6ef6f9cb4f07651ea61f291391?h=256&resize=1",
+      "tier": 6,
+      "score": 80,
+      "category": "playable-mid",
+      "installedS20": false,
+      "compatLabel": "80% · Muito Boa 30–60 FPS (Unity)",
+      "compatDetail": "Médio porte (Unity) — 30 a 60 FPS no Snapdragon 865"
     },
     {
       "appName": "1d74dcbca79540efb52cab2ff026215f",
