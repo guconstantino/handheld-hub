@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-14T23:56:46Z",
+  "updatedAt": "2026-10-15T00:11:58Z",
   "source": "SirDiabo/GithubLauncher (v1.70 N64RecompLauncher) + S20 FE Decompiled Ports",
   "counts": {
     "total": 39,
@@ -310,24 +310,25 @@
       "system": "wii",
       "engine": "DriftDroid (Wii Recomp)",
       "category": "installed",
-      "repository": null,
-      "upstreamRepo": null,
+      "repository": "dorPXP/driftdroid",
+      "upstreamRepo": "dorPXP/driftdroid",
       "packageName": "com.driftdroid.android",
-      "installedVersion": "1.2.0",
+      "installedVersion": "1.3.0",
       "ptbr": "Não (Menus originais)",
       "features": [
-        "60 FPS",
+        "60 FPS / 30 FPS",
         "20:9 Widescreen",
-        "Gamepad Nativo"
+        "Gamepad Nativo",
+        "Retro Rewind 6.13+"
       ],
       "iconUrl": "covers/d-54b32cfa6db17d70.webp",
       "romQuery": "Mario Kart Wii",
-      "latestTag": null,
-      "publishedAt": null,
-      "releaseUrl": null,
-      "apkName": null,
-      "apkUrl": null,
-      "apkSize": null,
+      "latestTag": "v1.3.0",
+      "publishedAt": "2026-10-09",
+      "releaseUrl": "https://github.com/dorPXP/driftdroid/releases/tag/v1.3.0",
+      "apkName": "DriftDroid-v1.3.0.apk",
+      "apkUrl": "https://github.com/dorPXP/driftdroid/releases/download/v1.3.0/DriftDroid-v1.3.0.apk",
+      "apkSize": 202093393,
       "rom": {
         "s20Sd": false,
         "gdrive": true,
