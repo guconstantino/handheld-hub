@@ -1330,9 +1330,9 @@ async function renderGame(key) {
       <a class="small tlink" href="#platform-${esc(g.system)}">Ver todos</a></div><ul class="morerow" id="gmore"></ul></section>
 `;
   // Onde mais roda: consoles que já têm jogos desta plataforma, mas não este jogo.
-  api("/api/insights").then((x) => {
+  api(`/api/installable?key=${encodeURIComponent(g.game_key)}`).then((ids) => {
     const has = new Set(g.copies.map((c) => c.device_id));
-    const more = state.devices.filter((d) => d.kind === "console" && !has.has(d.id) && x.runs[d.id]?.includes(g.system));
+    const more = state.devices.filter((d) => ids.includes(d.id));
     if (!more.length || !$("#gWhere")) return;
     const from = has.has("drive") ? "do Drive" : `do ${shortName(deviceOf([...has][0]))}`;
     $("#gWhere").innerHTML = `${icon("info", "sm")}<span>Também roda no ${more.map((d) => `<b ${dev(d.id)}>${esc(d.name)}</b>`).join(" e no ")}, que já tem jogos de ${esc(sysName(g.system))}. Dá para copiar ${from}.</span>`;

@@ -55,7 +55,23 @@
     // Nota (Metacritic) e duração (horas para zerar), do RAWG: [nota|0, horas|0]. O grupo herda de qualquer grafia.
     const sc = (k) => (members[k] || [k]).map((m) => D.scores?.[m]).find(Boolean) || [0, 0];
     const yr = (k) => (members[k] || [k]).map((m) => D.years?.[m]).find(Boolean) || null;   // ano de lançamento
-    return { D, F, byKey, alias, sc, yr };
+    // "Pronto para instalar" num console: ele roda a plataforma, existe arquivo de jogo para copiar (pasta de save
+    // do JKSV não tem extensão e não é jogo: o save do Galaxy do Switch aparecia para o S20) e ele ainda não tem o
+    // jogo. Switch, ports, Android e PC ficam fora, como no backup. Arcade: o mesmo jogo em outro pacote (mame ×
+    // arcade × fbneo) conta como já instalado; nas outras plataformas, mesmo nome é outro jogo (Aladdin SNES ≠ MD).
+    const ARC = new Set(["arcade", "mame", "fbneo", "neogeo", "cps1", "cps2", "cps3"]);
+    const nameOf = (k) => k.slice(k.indexOf("|") + 1).replace(/^the /, "").replace(/ /g, "");
+    const runs = {}, arcNames = {};
+    for (const f of F) {
+      (runs[f.device_id] ||= new Set()).add(f.system);
+      if (ARC.has(f.system)) (arcNames[f.device_id] ||= new Set()).add(nameOf(f.game_key));
+    }
+    const installable = (k, dev) => {
+      const c = byKey.get(k);
+      return !!c && !NO_BACKUP.has(c[0].system) && !!runs[dev]?.has(c[0].system) && c.some((x) => x.ext)
+        && !c.some((x) => x.device_id === dev) && !(ARC.has(c[0].system) && arcNames[dev]?.has(nameOf(k)));
+    };
+    return { D, F, byKey, alias, sc, yr, runs, installable };
   }
   const bySystem = (list) => Object.entries(list.reduce((m, g) => ((m[g.system] = (m[g.system] || 0) + 1), m), {}))
     .map(([system, n]) => ({ system, n })).sort((a, b) => b.n - a.n);
@@ -100,7 +116,7 @@
       }
       return [...m.values()].map(({ keys, ...r }) => ({ ...r, games: keys.size })).sort((a, b) => a.system.localeCompare(b.system));
     },
-    "/api/games": ({ D, F, byKey, sc, yr }, p) => {
+    "/api/games": ({ D, F, byKey, sc, yr, installable }, p) => {
       const q = (p.get("q") || "").toLowerCase();
       const hit = new Set();
       for (const f of F) {
@@ -132,13 +148,7 @@
       }
       // "Pronto para instalar": não está no aparelho, mas é de uma plataforma que ele já roda.
       const miss = p.get("missing");
-      if (miss) {
-        const runs = new Set(F.filter((f) => f.device_id === miss).map((f) => f.system));
-        for (const k of [...hit]) {
-          const c = byKey.get(k);
-          if (c.some((x) => x.device_id === miss) || !runs.has(c[0].system)) hit.delete(k);
-        }
-      }
+      if (miss) for (const k of [...hit]) if (!installable(k, miss)) hit.delete(k);
       const SCORE = { mc75: ([m]) => m >= 75, mc85: ([m]) => m >= 85, curto: ([, h]) => h && h <= 10, longo: ([, h]) => h >= 30 };
       if (SCORE[p.get("score")]) for (const k of [...hit]) if (!SCORE[p.get("score")](sc(k))) hit.delete(k);
       // Ano de lançamento: "1995" (o ano) ou "1990s" (a década).
@@ -273,17 +283,22 @@
       });
       return { seeds: seeds.length, games: out };
     },
+    // Consoles em que este jogo está pronto para instalar (nota "Também roda no…" da página do jogo).
+    "/api/installable": (X, p) => {
+      const k = X.alias[p.get("key")] || p.get("key");
+      return X.D.devices.filter((d) => d.kind === "console" && X.installable(k, d.id)).map((d) => d.id);
+    },
     // Joias esquecidas: nota alta no Metacritic e só no Drive (em nenhum console). `runs` = consoles que já rodam a
     // plataforma (dá para instalar). Fora do backup por decisão (Switch, ports...) não entra.
     "/api/gems": (X, p) => {
       const { D, F, byKey, sc } = X, min = Number(p.get("min")) || 80;
-      const runs = (X.runsBy ||= F.reduce((m, f) => (f.device_id !== "drive" && (m[f.system] ||= new Set()).add(f.device_id), m), {}));
+      const consoles = D.devices.filter((d) => d.kind === "console").map((d) => d.id);
       const list = [];
       for (const [k, c] of byKey) {
         const [mc, horas] = sc(k);
         if (mc < min || NO_BACKUP.has(c[0].system) || c.some((x) => x.device_id !== "drive")) continue;
         list.push({ game_key: k, system: c[0].system, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title),
-          cover: D.covers[k] || null, mc, horas: horas || null, runs: [...(runs[c[0].system] || [])] });
+          cover: D.covers[k] || null, mc, horas: horas || null, runs: consoles.filter((d) => X.installable(k, d)) });
       }
       list.sort((a, b) => b.mc - a.mc || a.title.localeCompare(b.title, "pt-BR"));
       return { total: list.length, games: list.slice(0, Number(p.get("n")) || 24) };
@@ -315,7 +330,7 @@
         let n = 0, bytes = 0;
         const bySys = {};
         for (const [k, c] of byKey) {
-          if (onDev[d.id].has(k) || !runs[d.id].has(c[0].system)) continue;
+          if (!X.installable(k, d.id)) continue;
           n++;
           bytes += Math.min(...c.map((x) => x.size || 0));        // a menor cópia: estimativa do que ocuparia
           bySys[c[0].system] = (bySys[c[0].system] || 0) + 1;

@@ -37,6 +37,10 @@ def main():
                 run(log, sys.executable, "scanner/scan.py", "s20-sd", "s20-int", env={**os.environ, "ANDROID_SERIAL": serial})
             else:
                 log.write("S20 fora do adb: pulei\n")
+            # Radar de Ports & Decomp: o sync da Epic roda o `rom-tool check-ports` (GitHub + o que está instalado no
+            # S20) e sobe para o KV, de onde a tela lê em produção (o arquivo em data/ é só o reserva).
+            if serial:
+                run(log, sys.executable, "scripts/epic_sync.py", "--live", "--scan-s20", env={**os.environ, "ANDROID_SERIAL": serial})
             if glob.glob("/Volumes/*/Roms"):
                 run(log, sys.executable, "scanner/scan.py", "miyoo-sd")
             else:
