@@ -1809,7 +1809,7 @@ async function loadPortsFeed(forceReload = false) {
     if (ready > 0) {
       kpiHtml += `<span class="badge" style="background:var(--accent);color:#fff">${ready} pronto${ready > 1 ? "s" : ""}</span>`;
     }
-    kpiHtml += `<span class="badge muted">${c.desktopRecomp || 0} no radar</span>`;
+    kpiHtml += `<span class="badge muted">${(c.desktopRecomp || 0) + (c.decompRadar || 0)} no radar</span>`;
     const kpisEl = $("#portsFeedKpis");
     if (kpisEl) kpisEl.innerHTML = kpiHtml;
 
@@ -1842,6 +1842,8 @@ async function loadPortsFeed(forceReload = false) {
         statusBadge = `<span class="port-feed-badge info">Pronto p/ APK</span>`;
       } else if (p.category === "installed") {
         statusBadge = `<span class="port-feed-badge ok">Instalado</span>`;
+      } else if (p.category === "decomp-radar") {
+        statusBadge = `<span class="port-feed-badge" style="background:rgba(85,60,154,0.9);color:#fff">Decomp .dev</span>`;
       } else {
         statusBadge = `<span class="port-feed-badge muted">Radar (${esc(p.system?.toUpperCase() || "PC")})</span>`;
       }
@@ -1886,7 +1888,7 @@ async function renderPorts(forceReload = false) {
       }
     }
 
-    const catOrder = { installed: 0, "android-ready": 1, "n64recomp-desktop": 2 };
+    const catOrder = { installed: 0, "android-ready": 1, "n64recomp-desktop": 2, "decomp-radar": 3 };
     const list = [...(portsFilter === "all" ? all : all.filter((p) => p.category === portsFilter))].sort((a, b) => {
       const ca = catOrder[a.category] ?? 9, cb = catOrder[b.category] ?? 9;
       if (ca !== cb) return ca - cb;
@@ -1906,7 +1908,9 @@ async function renderPorts(forceReload = false) {
       if (p.updateStatus === "update-available")
         return `<span class="badge warn" title="Instalado: v${esc(p.installedVersion || "")}">Update · ${esc(p.latestTag || "novo")}</span>${usageLine}`;
       if (p.updateStatus === "ready-to-install")
-        return `<span class="badge">APK Android · ${esc(p.latestTag || "pronto")}</span>`;
+        return `<span class="badge" style="background:var(--accent);color:#fff">APK Android · ${esc(p.latestTag || "pronto")}</span>`;
+      if (p.category === "decomp-radar")
+        return `<span class="badge" style="background:rgba(85,60,154,0.9);color:#fff">Decomp .dev (${esc(p.system?.toUpperCase() || "WII")})</span>`;
       return `<span class="badge muted">Mac/PC · ${esc(p.latestTag || "N64Recomp")}</span>`;
     };
 
@@ -1923,11 +1927,14 @@ async function renderPorts(forceReload = false) {
       const playBtn = canPlay
         ? `<a href="${esc(launchHref(p.packageName, p.name))}" class="btn small play-btn" title="Iniciar ${esc(p.name)} no S20 FE" style="white-space:nowrap">▶ Jogar</a>`
         : "";
-      if (!p.repository) return playBtn || `<span class="badge muted">APK Nativo</span>`;
+      const apkBtn = (p.apkUrl && p.category !== "installed")
+        ? `<a href="${esc(p.apkUrl)}" target="_blank" rel="noopener" class="btn small" title="Baixar APK direto (${esc(p.apkName || "app.apk")})" style="white-space:nowrap;background:var(--accent);color:#fff">⬇ APK</a>`
+        : "";
+      if (!p.repository) return playBtn || apkBtn || `<span class="badge muted">APK Nativo</span>`;
       const shortRepo = p.repository.split("/")[1] || p.repository;
       const href = p.releaseUrl || `https://github.com/${p.repository}`;
       const ghBtn = `<a href="${esc(href)}" target="_blank" rel="noopener" class="btn small" title="${esc(p.repository)}" style="white-space:nowrap">${esc(shortRepo)}</a>`;
-      return playBtn ? `<div style="display:flex;gap:6px;align-items:center">${playBtn}${ghBtn}</div>` : ghBtn;
+      return (playBtn || apkBtn) ? `<div style="display:flex;gap:6px;align-items:center">${playBtn}${apkBtn}${ghBtn}</div>` : ghBtn;
     };
 
     const syncDate = portsCache.updatedAt
@@ -1939,7 +1946,7 @@ async function renderPorts(forceReload = false) {
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("gamepad-2", "sm")}Instalados no S20 FE</span><span class="kpi-value">${fmtN(c.installed || 0)}</span><span class="kpi-sub">60 fps · Widescreen 20:9</span></div>
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("shield-check", "sm")}Traduzidos PT-BR</span><span class="kpi-value">${fmtN(c.ptbr || 0)}</span><span class="kpi-sub">Mods .o2r, Lua e nativos</span></div>
         <div class="kpi" role="listitem"><span class="kpi-label">${icon("layers", "sm")}Prontos p/ Android</span><span class="kpi-value">${fmtN(c.androidReady || 0)}</span><span class="kpi-sub">Com APK oficial no GitHub</span></div>
-        <div class="kpi" role="listitem"><span class="kpi-label">${icon("wrench", "sm")}Radar N64Recomp</span><span class="kpi-value">${fmtN(c.desktopRecomp || 0)}</span><span class="kpi-sub">Catálogo SirDiabo/GithubLauncher</span></div>
+        <div class="kpi" role="listitem"><span class="kpi-label">${icon("wrench", "sm")}Radar de Decomps</span><span class="kpi-value">${fmtN((c.desktopRecomp || 0) + (c.decompRadar || 0))}</span><span class="kpi-sub">${c.decompRadar || 0} decomp.dev · ${c.desktopRecomp || 0} recomps</span></div>
       </div>
 
       <div class="tile">
@@ -1947,8 +1954,9 @@ async function renderPorts(forceReload = false) {
           <div class="seg tabs" role="group" aria-label="Filtrar categoria de port" id="portsTabs">
             <button type="button" data-pcat="all" aria-pressed="${portsFilter === "all"}">Todos (${all.length})</button>
             <button type="button" data-pcat="installed" aria-pressed="${portsFilter === "installed"}">No S20 FE (${c.installed || 0})</button>
-            <button type="button" data-pcat="android-ready" aria-pressed="${portsFilter === "android-ready"}">Candidatos Android (${c.androidReady || 0})</button>
-            <button type="button" data-pcat="n64recomp-desktop" aria-pressed="${portsFilter === "n64recomp-desktop"}">Radar N64Recomp (${c.desktopRecomp || 0})</button>
+            <button type="button" data-pcat="android-ready" aria-pressed="${portsFilter === "android-ready"}">Prontos p/ Android (${c.androidReady || 0})</button>
+            <button type="button" data-pcat="n64recomp-desktop" aria-pressed="${portsFilter === "n64recomp-desktop"}">Recomps PC (${c.desktopRecomp || 0})</button>
+            <button type="button" data-pcat="decomp-radar" aria-pressed="${portsFilter === "decomp-radar"}">Radar Decomp .dev (${c.decompRadar || 0})</button>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
             <span class="badge ok" title="Sincronizado com o S20 FE e Cloudflare KV">Ao vivo · ${esc(syncDate)}</span>
