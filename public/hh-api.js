@@ -11,13 +11,17 @@
   // Não contam como "sem backup no Drive" (o alerta ficaria sempre aceso por algo intencional).
   const NO_BACKUP = new Set(["switch", "ports", "android", "windows", "pinballfx3"]);
 
+  // Nomes exportados de sistemas que não aceitam apóstrofo trocam ' por _ ("Baldur_s Gate", "Cruis_n USA",
+  // "Reckin_ Balls", "Hockey _98"). Só o nome exibido muda: o arquivo (rom) e a chave do jogo ficam iguais.
+  const unscore = (t) => t.replace(/(?<=[a-z])_(?=(s|n|t|ll|re|d|ve|m)\b| )/g, "'").replace(/(?<= )_(?=\d\d\b)/g, "'");
+
   // Descompacta uma vez e monta os agrupamentos que todas as rotas usam.
   function index(D) {
     // Arcade: o arquivo tem o nome curto da ROM ("kof98"); D.names traz o título completo do DAT. A busca
     // continua achando pelo nome curto (game_key).
     const F = D.files.map(([li, si, title, key, st, size, ext, drive_id]) => ({
       location_id: D.locations[li].id, device_id: D.locations[li].device_id, system: D.systems[si],
-      title: D.names?.[D.systems[si] + "|" + key] || title, rom: title,
+      title: D.names?.[D.systems[si] + "|" + key] || unscore(title), rom: title,
       game_key: D.systems[si] + "|" + key, status: D.status[st], size, ext, drive_id: drive_id || null,
     }));
     const byKey = new Map();
