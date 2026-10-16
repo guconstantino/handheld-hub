@@ -52,7 +52,9 @@
     }
     window.HH_ALIAS = alias;                       // chave antiga → chave do grupo
     window.HH_MEMBERS = members;                   // chave do grupo → todas as chaves
-    return { D, F, byKey, alias };
+    // Nota (Metacritic) e duração (horas para zerar), do RAWG: [nota|0, horas|0]. O grupo herda de qualquer grafia.
+    const sc = (k) => (members[k] || [k]).map((m) => D.scores?.[m]).find(Boolean) || [0, 0];
+    return { D, F, byKey, alias, sc };
   }
   const bySystem = (list) => Object.entries(list.reduce((m, g) => ((m[g.system] = (m[g.system] || 0) + 1), m), {}))
     .map(([system, n]) => ({ system, n })).sort((a, b) => b.n - a.n);
@@ -97,7 +99,7 @@
       }
       return [...m.values()].map(({ keys, ...r }) => ({ ...r, games: keys.size })).sort((a, b) => a.system.localeCompare(b.system));
     },
-    "/api/games": ({ D, F, byKey }, p) => {
+    "/api/games": ({ D, F, byKey, sc }, p) => {
       const q = (p.get("q") || "").toLowerCase();
       const hit = new Set();
       for (const f of F) {
@@ -136,8 +138,6 @@
           if (c.some((x) => x.device_id === miss) || !runs.has(c[0].system)) hit.delete(k);
         }
       }
-      // Nota (Metacritic) e duração (horas para zerar), do RAWG: [nota|0, horas|0]. Apelidos herdam do grupo.
-      const sc = (k) => (window.HH_MEMBERS?.[k] || [k]).map((m) => D.scores?.[m]).find(Boolean) || [0, 0];
       const SCORE = { mc75: ([m]) => m >= 75, mc85: ([m]) => m >= 85, curto: ([, h]) => h && h <= 10, longo: ([, h]) => h >= 30 };
       if (SCORE[p.get("score")]) for (const k of [...hit]) if (!SCORE[p.get("score")](sc(k))) hit.delete(k);
       const list = [...hit].map((k) => {
@@ -214,10 +214,26 @@
       return out;
     },
     // Vários jogos pela chave, na ordem pedida (favoritos, vistos recentemente).
-    "/api/pick": ({ D, byKey, alias }, p) => [...new Set((p.get("keys") ? JSON.parse(p.get("keys")) : []).map((k) => alias[k] || k))].map((k) => {
-      const c = byKey.get(k);
-      return c && { game_key: k, system: c[0].system, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), cover: D.covers[k] || null, copies: c };
+    "/api/pick": ({ D, byKey, alias, sc }, p) => [...new Set((p.get("keys") ? JSON.parse(p.get("keys")) : []).map((k) => alias[k] || k))].map((k) => {
+      const c = byKey.get(k), [mc, horas] = sc(k);
+      return c && { game_key: k, system: c[0].system, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), cover: D.covers[k] || null, copies: c,
+        mc: mc || null, horas: horas || null };
     }).filter(Boolean),
+    // Joias esquecidas: nota alta no Metacritic e só no Drive (em nenhum console). `runs` = consoles que já rodam a
+    // plataforma (dá para instalar). Fora do backup por decisão (Switch, ports...) não entra.
+    "/api/gems": (X, p) => {
+      const { D, F, byKey, sc } = X, min = Number(p.get("min")) || 80;
+      const runs = (X.runsBy ||= F.reduce((m, f) => (f.device_id !== "drive" && (m[f.system] ||= new Set()).add(f.device_id), m), {}));
+      const list = [];
+      for (const [k, c] of byKey) {
+        const [mc, horas] = sc(k);
+        if (mc < min || NO_BACKUP.has(c[0].system) || c.some((x) => x.device_id !== "drive")) continue;
+        list.push({ game_key: k, system: c[0].system, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title),
+          cover: D.covers[k] || null, mc, horas: horas || null, runs: [...(runs[c[0].system] || [])] });
+      }
+      list.sort((a, b) => b.mc - a.mc || a.title.localeCompare(b.title, "pt-BR"));
+      return { total: list.length, games: list.slice(0, Number(p.get("n")) || 24) };
+    },
     // Relação entre os aparelhos: onde cada jogo está (combinações), o que dá para instalar em cada console
     // (jogos de plataformas que ele já roda e que estão em outro lugar) e o mapa plataforma × aparelho.
     "/api/insights": (X) => X.insights ||= (({ D, F, byKey }) => {

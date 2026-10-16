@@ -96,7 +96,7 @@ const pref = (k, d) => { try { return localStorage.getItem(k) || d; } catch { re
 const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 // Preferências sincronizadas entre aparelhos (KV do Worker, por usuário do Access). Toda gravação dessas chaves no
 // localStorage agenda um envio (1,5 s depois, juntando mudanças seguidas). Ao abrir, as do servidor vencem.
-const SYNC_KEYS = ["hh_ra_user", "hh_theme", "hh_ptheme", "hh_layout", "hh_view", "hh_gsort", "hh_tsort", "hh_csort", "hh_psort", "hh_gpsort", "hh_listtab", "hh_keys", "hh-trusted-hosts"];
+const SYNC_KEYS = ["hh_ra_user", "hh_theme", "hh_ptheme", "hh_layout", "hh_view", "hh_gsort", "hh_tsort", "hh_csort", "hh_psort", "hh_gpsort", "hh_listtab", "hh_keys", "hh-trusted-hosts", "hh_tempo"];
 const PREFS = { on: false, timer: null };
 const prefSnapshot = () => {
   const o = {};
@@ -378,7 +378,7 @@ async function loadSummary() {
 
 // ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
 // Ordem padrão: primeiro os consoles/devices no topo, seguido pela atividade ao vivo do S20 FE e resumo do acervo.
-const BLOCKS = [["consoles", "Consoles"], ["s20live", "Atividade ao Vivo · S20 FE"], ["portsFeed", "Radar de Ports & Novidades"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["plataformas", "Jogos por plataforma"],
+const BLOCKS = [["consoles", "Consoles"], ["s20live", "Atividade ao Vivo · S20 FE"], ["portsFeed", "Radar de Ports & Novidades"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["jogar", "Para jogar"], ["ra", "RetroAchievements"], ["plataformas", "Jogos por plataforma"],
   ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
 const loadLayout = () => {
   let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
@@ -545,7 +545,59 @@ async function loadMine() {
     row([...LISTS.fav].reverse(), "#mineFav", "Marque jogos com a estrela na página do jogo.")]);
   const pl = (n, um, varios) => `${fmtN(n)} ${n === 1 ? um : varios}`;
   $("#mineCounts").textContent = `${pl(LISTS.fav.size, "favorito", "favoritos")} · ${fmtN(LISTS.want.size)} quero jogar · ${pl(LISTS.done.size, "zerado", "zerados")}`;
+  loadPlay();
 }
+
+// Para jogar: "Jogue hoje" (uma sugestão por dia, do Quero jogar e das joias, cabendo no tempo escolhido) e
+// "Joias esquecidas" (nota alta e só no Drive). As joias são do acervo; o Quero jogar, o Zerei e o tempo são
+// de cada pessoa (listas e preferências por usuário), então cada sobrinho recebe a sua sugestão.
+let playSkip = 0, gemsCache = null;
+const dayHash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+const hoursTxt = (h) => (h ? `~${h} h para zerar` : "");
+const cleanTitle = (t) => t.replace(/\s*[\(\[].*$/, "") || t;     // "Castlevania (Europe) (En,Fr)" → "Castlevania"
+async function loadPlay() {
+  if (!$("#playBlock")) return;
+  gemsCache ||= await api("/api/gems?n=80&min=75").catch(() => ({ total: 0, games: [] }));
+  const skip = (g) => inList("done", g.game_key) || inList("playing", g.game_key);
+  const gems = gemsCache.games.filter((g) => !skip(g));
+  const runsTxt = (g) => g.runs?.length ? `Instala no ${g.runs.map((d) => shortName(deviceOf(d))).join(" ou ")}` : "";
+  $("#gemsRow").innerHTML = gems.length ? gems.slice(0, 16).map((g) => `<li><a href="${gameHref(g)}" title="${esc(runsTxt(g))}">
+      ${g.cover ? `<img src="covers/${esc(g.cover)}" alt="" loading="lazy">` : `<img class="gplat" src="${platImg(g.system)}" alt="">`}
+      <span>${esc(cleanTitle(g.title))}</span><small class="gem-meta">${mcTag(g)}${esc(sysName(g.system))}</small></a></li>`).join("")
+    : `<li class="muted small mine-empty">Nenhuma joia esquecida: tudo de nota alta já está em algum console.</li>`;
+  $("#gemsNote").textContent = gemsCache.total ? `${fmtN(gemsCache.total)} jogos com nota 75 ou mais que estão só no Drive.` : "";
+  $("#gemsAll").hidden = !gemsCache.total;
+
+  const tempo = pref("hh_tempo", "");
+  document.querySelectorAll("#tempoSeg [data-tempo]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tempo === tempo)));
+  const want = LISTS.want.size ? await api(`/api/pick?keys=${encodeURIComponent(JSON.stringify([...LISTS.want]))}`) : [];
+  const seen = new Set();
+  let pool = [...want.map((g) => ({ ...g, why: "Está no seu Quero jogar" })),
+              ...gems.map((g) => ({ ...g, why: `Joia esquecida: só no Drive${g.runs?.length ? ` · ${runsTxt(g).replace("Instala", "instala")}` : ""}` }))]
+    .filter((g) => !skip(g) && !seen.has(g.game_key) && seen.add(g.game_key));
+  if (tempo) pool = pool.filter((g) => g.horas && g.horas <= +tempo);
+  if (!pool.length) {
+    $("#todayCard").innerHTML = `<p class="muted small today-empty">${tempo ? `Nada com duração conhecida de até ${tempo} h. Tente "Sem pressa" ou marque mais jogos como Quero jogar.` : "Marque jogos como Quero jogar para receber sugestões."}</p>`;
+    return;
+  }
+  const g = pool[(dayHash(new Date().toISOString().slice(0, 10) + tempo) + playSkip) % pool.length];
+  $("#todayCard").innerHTML = `<article class="today-card">
+      <a class="today-art" href="${gameHref(g)}" tabindex="-1" aria-hidden="true">${g.cover ? `<img src="covers/${esc(g.cover)}" alt="">` : `<img class="gplat" src="${platImg(g.system)}" alt="">`}</a>
+      <div class="today-info">
+        <a class="today-title" href="${gameHref(g)}">${esc(cleanTitle(g.title))}</a>
+        <p class="muted small">${mcTag(g)}${esc(sysName(g.system))}${g.horas ? ` · ${hoursTxt(g.horas)}` : ""}</p>
+        <p class="small today-why">${esc(g.why)}</p>
+        <div class="today-actions"><a class="btn sm primary" href="${gameHref(g)}">Ver o jogo</a>
+          ${pool.length > 1 ? `<button type="button" class="btn sm" id="todayNext">Outra sugestão</button>` : ""}</div>
+      </div></article>`;
+  $("#todayNext")?.addEventListener("click", () => { playSkip++; loadPlay().then(() => $("#todayNext")?.focus()); });
+}
+$("#tempoSeg")?.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-tempo]");
+  if (!b) return;
+  setPref("hh_tempo", b.dataset.tempo); playSkip = 0; loadPlay();
+});
+$("#gemsAll")?.addEventListener("click", () => { $("#fSort").value = "nota"; goGames({ status: "driveonly", score: "mc75", device: "", system: "" }); });
 
 // Mosaico: capas aleatórias do acervo, cada uma leva à página da plataforma.
 async function loadMosaic() {

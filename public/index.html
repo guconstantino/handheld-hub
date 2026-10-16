@@ -92,6 +92,23 @@
               <div><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-star"/></svg>Favoritos</h3><ul class="morerow" id="mineFav"></ul></div>
             </div>
           </section>
+          <section class="tile b-12 play" id="playBlock" aria-labelledby="t-play" data-block="jogar">
+            <div class="tile-head"><h2 id="t-play">Para jogar</h2><span class="muted small">Do seu Quero jogar e das notas do Metacritic (via RAWG)</span></div>
+            <div class="play-grid">
+              <div class="today">
+                <div class="play-head"><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-clock"/></svg>Jogue hoje</h3>
+                  <div class="seg" role="group" aria-label="Quanto tempo você tem" id="tempoSeg">
+                    <button type="button" data-tempo="">Sem pressa</button><button type="button" data-tempo="5">Até 5 h</button><button type="button" data-tempo="15">Até 15 h</button></div></div>
+                <div id="todayCard" aria-live="polite"></div>
+              </div>
+              <div class="gems">
+                <div class="play-head"><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-star"/></svg>Joias esquecidas</h3>
+                  <button type="button" class="btn sm" id="gemsAll">Ver todas</button></div>
+                <p class="muted small" id="gemsNote"></p>
+                <ul class="morerow" id="gemsRow"></ul>
+              </div>
+            </div>
+          </section>
           <section class="tile b-12 ra ra-off" id="raBlock" aria-labelledby="t-ra" data-block="ra">
             <div class="tile-head"><h2 id="t-ra">RetroAchievements</h2><span class="muted small" id="raNote"></span></div>
             <div class="ra-head" id="raHead"></div>

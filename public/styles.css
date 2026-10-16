@@ -1358,3 +1358,22 @@ tr[data-gp-focus="true"] td:first-child {
 .gmc.mc-good { background: #66cc33; color: #0b1a05; }
 .gmc.mc-mixed { background: #ffcc33; color: #241b00; }
 .gmc.mc-bad { background: #c62828; color: #fff; }
+/* Para jogar: Jogue hoje + Joias esquecidas */
+.play-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px; }
+.play-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.play-head h3 { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.btn.sm { padding: 4px 10px; font-size: 13px; }
+.today-card { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: start; }
+.today-art img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; background: var(--hover); box-shadow: var(--shadow); display: block; }
+.today-info { display: grid; gap: 6px; }
+.today-title { font-size: 18px; font-weight: 650; line-height: 1.25; text-decoration: none; color: var(--text); }
+.today-title:hover { text-decoration: underline; }
+.today-why { color: var(--text); }
+.today-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.today-empty { padding: 20px 0; }
+.gems .morerow { grid-auto-columns: minmax(96px, 110px); }
+.gem-meta { display: flex; align-items: center; gap: 2px; font-size: 11px; color: var(--muted); overflow: hidden; white-space: nowrap; }
+@media (max-width: 900px) { .play-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: no-preference) { .today-card { animation: todayIn .25s ease-out; } }
+@keyframes todayIn { from { opacity: 0; transform: translateY(4px); } }
+.play-head .seg { order: 0; }
