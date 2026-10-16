@@ -16,7 +16,7 @@ faltam, converte para WebP de 384 px em public/covers/ e gera data/covers.sql.
 Precisa de Pillow (ex.: ~/.cache/s20fe-outpaint/bin/python). Só a lista de capas de cada
 sistema fica em cache (~/.cache/handheld-hub/libretro/, 7 dias).
 """
-import hashlib, html, io, json, os, re, subprocess, sys, time, urllib.parse, urllib.request
+import hashlib, html, io, json, os, re, subprocess, sys, time, unicodedata, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
@@ -53,9 +53,11 @@ def norm(title):
     """Mesmo critério do game_key do scanner: sem (região)/[tags], artigo no começo, só letras e números."""
     title = re.sub(r"\.\d{2}$", "", title)
     title = re.sub(r"(?i)[\s_-]*decrypted\b", "", title)
+    title = re.sub(r"(?i)\s+v\d+(?:\.\d+)+$", "", title)
     title = re.sub(r"(?i)\s*-\s*(c[oó]pia|copy)(\s*\(\d+\))?$", "", title)
     t = re.sub(r"[\(\[][^\)\]]*[\)\]]", " ", title)
     t = re.sub(r"^(.*), (the|a|an)\b", r"\2 \1", t.strip(), flags=re.I)
+    t = "".join(c for c in unicodedata.normalize("NFKD", t) if not unicodedata.combining(c))   # mesmo critério do scanner
     return re.sub(r"[^a-z0-9]+", " ", t.lower()).strip()
 
 

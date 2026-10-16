@@ -10,7 +10,7 @@
 Fluxo: lista arquivos → monta data/<local>.sql (substitui os arquivos daquele local) →
 `wrangler d1 execute gamehub`. Os devices e locais vêm de scanner/devices.json.
 """
-import ctypes, glob, json, os, re, subprocess, sys, time
+import ctypes, glob, json, os, re, subprocess, sys, time, unicodedata
 from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -52,6 +52,9 @@ def game_key(system, title):
     title = re.sub(r"(?i)\s*-\s*(c[oó]pia|copy)(\s*\(\d+\))?$", "", title)   # "- Copia" do Windows
     t = re.sub(r"[\(\[][^\)\]]*[\)\]]", " ", title)        # tira (USA), [!], (Rev A)...
     t = re.sub(r"^(.*), (the|a|an)\b", r"\2 \1", t.strip(), flags=re.I)  # "Zelda, The" → "The Zelda"
+    # Acento vira letra simples ("Ägypten" → "agypten"): o Drive no Mac grava nomes decompostos (NFD) e o
+    # console compostos (NFC); sem isso o mesmo jogo ficava "a gypten" de um lado e "gypten" do outro.
+    t = "".join(c for c in unicodedata.normalize("NFKD", t) if not unicodedata.combining(c))
     t = re.sub(r"[^a-z0-9]+", " ", t.lower()).strip()
     return f"{system}|{t}"
 

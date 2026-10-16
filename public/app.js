@@ -943,7 +943,8 @@ const RA_CONSOLE = {
   "Arcade": "arcade", "Famicom Disk System": "fds",
 };
 // Mesma normalização do game_key do scanner: sem (região)/[tags], artigo no começo, só letras e números.
-const normTitle = (t) => t.replace(/\.\d{2}$/, "").replace(/[\s_-]*decrypted\b/i, "").replace(/\s*-\s*(c[oó]pia|copy)(\s*\(\d+\))?$/i, "").replace(/[([][^)\]]*[)\]]/g, " ").trim().replace(/^(.*), (the|a|an)\b/i, "$2 $1").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+// Mesmo critério do scanner (scan.py game_key): sem versão "v1.8" e sem acento ("Pokémon" → "pokemon").
+const normTitle = (t) => t.replace(/\.\d{2}$/, "").replace(/[\s_-]*decrypted\b/i, "").replace(/\s+v\d+(?:\.\d+)+$/i, "").replace(/\s*-\s*(c[oó]pia|copy)(\s*\(\d+\))?$/i, "").replace(/[([][^)\]]*[)\]]/g, " ").trim().replace(/^(.*), (the|a|an)\b/i, "$2 $1").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 // Chave (ou apelido) → chave do grupo, e também a grafia sem espaços ("megaman zx" acha "mega man zx").
 function keyIndex(index) {
   const m = new Map();

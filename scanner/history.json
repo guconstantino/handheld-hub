@@ -143,5 +143,34 @@
     "free": 92073361407
    }
   }
+ },
+ {
+  "date": "2026-10-16",
+  "games": 15750,
+  "files": 38223,
+  "covers": 15229,
+  "corrupted": 0,
+  "devices": {
+   "drive": {
+    "games": 15660,
+    "total": null,
+    "free": null
+   },
+   "miyoo": {
+    "games": 6456,
+    "total": 62535499776,
+    "free": 21645524992
+   },
+   "s20fe": {
+    "games": 10504,
+    "total": 177608814592,
+    "free": 17858723840
+   },
+   "switch": {
+    "games": 58,
+    "total": 314606354432,
+    "free": 92073361407
+   }
+  }
  }
 ]
