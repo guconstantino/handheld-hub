@@ -265,6 +265,23 @@
       "method": "local",
       "drive_ids": true,
       "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/Retrogame/Plataform"
+    },
+    {
+      "id": "drive-gamecube",
+      "device_id": "drive",
+      "label": "Games/gamecube (atalhos compartilhados)",
+      "method": "local",
+      "drive_ids": true,
+      "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/gamecube",
+      "follow_links": true
+    },
+    {
+      "id": "drive-batocera",
+      "device_id": "drive",
+      "label": "Games/Batocera",
+      "method": "local",
+      "drive_ids": true,
+      "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/Batocera/3-Jogos"
     }
   ]
 }

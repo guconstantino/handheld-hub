@@ -21,8 +21,9 @@ ADB_SERIAL = os.environ.get("ANDROID_SERIAL", "")
 SKIP_EXT = {"nomedia", "png", "jpg", "jpeg", "gif", "webp", "mp4", "txt", "xml", "db", "lpl", "srm",
             "sav", "state", "cfg", "ini", "nfo", "dat", "json", "md", "ds_store", "url", "lnk",
             "ico", "pdf", "gdoc", "xlsx", "opt", "rtc", "mcr",
-            "bak", "tmp", "log"}                         # "miyoogamelist.xml.bak": backup da lista do Miyoo, não jogo
-SKIP_DIRS = {"media", "ps2_bios", "bios", "apps", "images", "videos", "manuals", "snap", "covers", "imgs"}
+            "bak", "tmp", "log", "ogg", "mp3", "wav"}                         # "miyoogamelist.xml.bak": backup da lista do Miyoo, não jogo
+SKIP_DIRS = {"media", "ps2_bios", "bios", "apps", "images", "videos", "manuals", "snap", "covers", "imgs",
+             "music"}                                   # Batocera: músicas de fundo do menu (.ogg)
 # O Drive duplica pastas como "media (1)": compara sem o " (n)" do fim.
 skip_dir = lambda d: re.sub(r"\s*\(\d+\)$", "", d.strip().lower()) in SKIP_DIRS
 # Formatos com assinatura no começo: 8 bytes zerados = arquivo corrompido.
@@ -34,7 +35,8 @@ SYSTEM_ALIAS = {"megadrivebr": "megadrive", "snesbr": "snes", "mastersystembr": 
                 "fc": "nes", "ps": "psx", "md": "megadrive", "pce": "pcengine", "ws": "wswanc", "coleco": "colecovision",
                 "gg": "gamegear", "ms": "mastersystem", "vb": "virtualboy", "atari": "atari2600", "32x": "sega32x",
                 "thirtytwox": "sega32x", "fiftytwohundred": "atari5200", "seventyeighthundred": "atari7800",
-                "commodore": "c64", "neocd": "neogeocd"}
+                "commodore": "c64", "neocd": "neogeocd",
+                "mortalkombat": "arcade"}                # coleção do Batocera (mk, mk2 de arcade)
 # Pastas de dados de emulador guardadas junto dos jogos (ex.: Azahar/Citra em n3ds/), também com " (1)" de cópia do Drive.
 EMU_DATA_DIRS = {"user", "config", "nand", "sdmc", "shaders", "states", "sysdata", "cheats", "log", "load", "dump"}
 # Sistemas em que cada subpasta é UM jogo (3DS instalado, PSX multidisco, PC, Lutro).
@@ -87,7 +89,9 @@ def record(loc, rel, size, mtime, head=None):
         return None                                      # Miyoo: só os atalhos .port aparecem no menu
     if ext in SKIP_EXT:
         return None
-    system = SYSTEM_ALIAS.get(folder.strip().lower(), folder.strip().lower())
+    # Drive: Games/gamecube/ guarda a biblioteca em "GAME CUBE PARTE 1..12" (o Antigravity achou o Mario Party 4 lá).
+    pasta = re.sub(r"^game ?cube parte \d+$", "gamecube", folder.strip().lower())
+    system = SYSTEM_ALIAS.get(pasta, pasta)
     if system in FOLDER_SYSTEMS and re.sub(r" \(\d+\)$", "", parts[1]).lower() in EMU_DATA_DIRS:
         return None                                      # dados do emulador (Azahar/Citra em n3ds/), não jogo
     title = name[: -(len(ext) + 1)] if ext else name
@@ -160,7 +164,7 @@ def scan_adb(loc, root):
     return rows, space
 
 
-def scan_local(loc, root, detect=None, read_head=False, with_ids=False):
+def scan_local(loc, root, detect=None, read_head=False, with_ids=False, follow_links=False):
     matches = glob.glob(os.path.expanduser(root))
     if detect:                                           # ex.: só o cartão que tem .tmp_update (OnionOS)
         matches = [m for m in matches if os.path.exists(os.path.join(m, detect))]
@@ -168,7 +172,9 @@ def scan_local(loc, root, detect=None, read_head=False, with_ids=False):
         sys.exit(f"{loc}: esperava 1 pasta para {root}, achei {len(matches)}. O cartão está plugado?")
     base = matches[0]
     rows, ids = [], {}
-    for dirpath, dirnames, filenames in os.walk(base):
+    # follow_links: as "GAME CUBE PARTE n" do Drive são atalhos para pastas compartilhadas por outra pessoa (symlink
+    # para .shortcut-targets-by-id); sem seguir, o os.walk vê as pastas e não entra (0 arquivos, sem erro).
+    for dirpath, dirnames, filenames in os.walk(base, followlinks=follow_links):
         dirnames[:] = [d for d in dirnames if not skip_dir(d) and not d.startswith(".")]
         rel_dir = os.path.relpath(dirpath, base)
         if rel_dir.lower().split(os.sep)[0] == "ports":
@@ -328,7 +334,8 @@ def main():
             elif method == "ftp":
                 entries, space = scan_ftp(loc, l["root"])
             else:
-                entries, space, ids = scan_local(loc, l["root"], l.get("detect"), l.get("read_head", False), l.get("drive_ids", False))
+                entries, space, ids = scan_local(loc, l["root"], l.get("detect"), l.get("read_head", False), l.get("drive_ids", False),
+                                                 l.get("follow_links", False))
         rows = to_rows(loc, entries, ids)
         # Trava: uma varredura que volta com menos da metade dos arquivos de antes quase sempre é falha de
         # acesso (permissão do macOS, cartão desmontado, Drive fora do ar), não jogos apagados. Não grava nada.
