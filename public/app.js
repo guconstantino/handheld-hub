@@ -1586,7 +1586,7 @@ async function loadDupes() {
   for (const i of [...d.exact, ...d.probable]) byLoc[i.loc] = (byLoc[i.loc] || 0) + i.extras.length;
   const base = (p) => p.split("/").pop();
   const item = (i) => `<li><span><a class="tlink" href="${gameHref({ game_key: i.key })}">${esc(base(i.keep))}</a>
-      <span class="muted small">${esc(sysName(i.system))} · ${esc(copyLabel(deviceOf(locOf(i.loc).device_id), i.loc))} · fica este</span></span>
+      <span class="muted small">${esc(sysName(i.system))} · ${esc(copyLabel(deviceOf(locOf(i.loc).device_id), i.loc))} · fica este${locOf(i.loc).device_id !== "drive" ? " · no console: confira qual tem o save antes" : ""}</span></span>
       <span class="small dup-extra"><b>Cópia${i.extras.length > 1 ? "s" : ""}:</b> ${i.extras.map((x) => `${esc(base(x.rel))} <span class="muted">(${fmtB(x.size)})</span>`).join("<br>")}</span></li>`;
   const list = (lst, label) => lst.length ? `<ul class="list fixlist dup-list" tabindex="0" aria-label="${label}">${lst.slice(0, 200).map(item).join("")}</ul>
       ${lst.length > 200 ? `<p class="muted small">E mais ${fmtN(lst.length - 200)}.</p>` : ""}` : `<p class="muted small">Nenhuma.</p>`;
@@ -1596,7 +1596,7 @@ async function loadDupes() {
     <p class="muted small">O mesmo jogo repetido na mesma pasta: cópias "(1)" e "- Copia" do Drive ou do Windows. Disco 1 e disco 2, versões de região e revisões diferentes não contam. Atualizado em ${esc(d.generated)}.</p>
     <div class="fixgroups">
       <details><summary><span class="fix ok">Idênticas: dá para apagar</span> <b>${fmtN(files(d.exact))}</b> <span class="muted small">${fmtB(bytes(d.exact))} · mesmo nome e mesmo tamanho</span></summary>
-        ${admin && d.exact.length ? `<p class="muted small dup-cmd">O comando para apagar fica no Mac: <code>data/dupes-remover.sh</code>. Confira e rode no Terminal. No Drive, o arquivo vai para a lixeira (dá para recuperar por 30 dias).</p>` : ""}
+        ${admin && d.exact.length ? `<p class="muted small dup-cmd">O comando para apagar as do Drive fica no Mac: <code>data/dupes-remover.sh</code>. Confira e rode no Terminal; o arquivo vai para a lixeira do Drive (dá para recuperar por 30 dias). Nos consoles o save fica preso ao nome do arquivo, por isso eles ficam fora do comando.</p>` : ""}
         ${list(d.exact, "Duplicatas idênticas")}</details>
       <details><summary><span class="fix warn">Prováveis: revisar</span> <b>${fmtN(files(d.probable))}</b> <span class="muted small">${fmtB(bytes(d.probable))} · mesmo jogo, arquivo de tamanho diferente</span></summary>
         <p class="muted small">Pode ser o mesmo jogo compactado de outro jeito ou outro dump. Abra no emulador antes de apagar.</p>

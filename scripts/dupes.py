@@ -10,7 +10,9 @@ de cópia do Drive/Windows ("(1)", ".00", "- Copia") não conta. Não é duplica
 - **Prováveis:** tamanho diferente (outro zip, outro dump). Só para revisar à mão.
 
 Gera public/data/dupes.json (tela Saúde) e data/dupes-remover.sh (só no Mac, gitignored), com o `rm` de cada
-cópia idêntica. O script não apaga nada (regra: o scanner só lê); quem roda o .sh é o Gustavo.
+cópia idêntica **do Drive**. Nos consoles o save e o estado ficam presos ao nome do arquivo (no Miyoo, "Metroid
+Fusion" e "Metroid - Fusion" tinham cada um o seu progresso): lá só relata. O script não apaga nada (regra: o
+scanner só lê); quem roda o .sh é o Gustavo.
   python3 scripts/dupes.py
 """
 import collections, glob, json, os, re, shlex, sys, time
@@ -59,20 +61,22 @@ def main():
         (out["exact"] if len({x["size"] for x in g}) == 1 else out["probable"]).append(item)
     for lst in (out["exact"], out["probable"]):
         lst.sort(key=lambda i: (i["loc"], i["system"], i["keep"].lower()))
-    json.dump(out, open(os.path.join(ROOT, "public", "data", "dupes.json"), "w"), ensure_ascii=False, separators=(",", ":"))
 
-    # Comando de remoção (só idênticas). Drive e Miyoo: caminho no Mac; S20: pelo adb.
-    linhas = ["#!/bin/sh", f"# Cópias idênticas (mesmo nome sem o marcador de cópia, mesmo tamanho). Gerado em {out['generated']}.",
-              "# Confira antes de rodar. Mantém uma cópia de cada jogo.", "set -e"]
+    # Comando de remoção: só idênticas e só no Drive (backup, sem save). O Drive manda para a lixeira dele (30 dias).
+    linhas = ["#!/bin/sh", f"# Cópias idênticas no Drive (mesmo nome sem o marcador de cópia, mesmo tamanho). Gerado em {out['generated']}.",
+              "# Confira antes de rodar. Mantém uma cópia de cada jogo. Consoles ficam de fora (save preso ao nome).", "set -e"]
     for i in out["exact"]:
         loc = locs[i["loc"]]
-        base = loc["root"] if loc["device_id"] == "s20fe" else raiz(loc)
+        i["cmd"] = loc["device_id"] == "drive"
+        if not i["cmd"]:
+            continue
+        base = raiz(loc)
         if not base:
-            linhas.append(f"# {i['loc']}: não montado, pulando {len(i['extras'])} arquivo(s)")
+            linhas.append(f"# {i['loc']}: pasta não encontrada, pulando {len(i['extras'])} arquivo(s)")
             continue
         for x in i["extras"]:
-            p = f"{base}/{x['rel']}"
-            linhas.append(f"adb shell rm {shlex.quote(shlex.quote(p))}" if loc["device_id"] == "s20fe" else f"rm -v -- {shlex.quote(p)}")
+            linhas.append("rm -v -- " + shlex.quote(f"{base}/{x['rel']}"))
+    json.dump(out, open(os.path.join(ROOT, "public", "data", "dupes.json"), "w"), ensure_ascii=False, separators=(",", ":"))
     sh = os.path.join(ROOT, "data", "dupes-remover.sh")
     open(sh, "w").write("\n".join(linhas) + "\n")
     os.chmod(sh, 0o755)
