@@ -1976,7 +1976,7 @@ async function renderPorts(forceReload = false) {
               </tr>
             </thead>
             <tbody>
-              ${list.map((p) => `
+              ${list.length ? list.map((p) => `
                 <tr>
                   <td>
                     <div style="display:flex;align-items:center;gap:10px">
@@ -1999,7 +1999,7 @@ async function renderPorts(forceReload = false) {
                   <td>${romBadges(p.rom)}</td>
                   <td>${sourceCell(p)}</td>
                 </tr>
-              `).join("")}
+              `).join("") : `<tr><td colspan="6" style="text-align:center;padding:36px 16px" class="muted">Nenhum projeto encontrado nesta categoria.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -2126,7 +2126,7 @@ async function renderEpic(forceReload = false) {
               </tr>
             </thead>
             <tbody>
-              ${filtered.map((g) => `
+              ${filtered.length ? filtered.map((g) => `
                 <tr>
                   <td>
                     <div style="display:flex;align-items:center;gap:10px">
@@ -2156,7 +2156,7 @@ async function renderEpic(forceReload = false) {
                       : `<code class="small" title="legendary install ${esc(g.appName)}">${esc(g.appName)}</code>`}
                   </td>
                 </tr>
-              `).join("")}
+              `).join("") : `<tr><td colspan="5" style="text-align:center;padding:36px 16px" class="muted">Nenhum título encontrado com os filtros atuais.</td></tr>`}
             </tbody>
           </table>
         </div>
