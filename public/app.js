@@ -378,7 +378,7 @@ async function loadSummary() {
 
 // ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
 // Ordem padrão: primeiro os consoles/devices no topo, seguido pela atividade ao vivo do S20 FE e resumo do acervo.
-const BLOCKS = [["consoles", "Consoles"], ["s20live", "Atividade ao Vivo · S20 FE"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["plataformas", "Jogos por plataforma"],
+const BLOCKS = [["consoles", "Consoles"], ["s20live", "Atividade ao Vivo · S20 FE"], ["portsFeed", "Radar de Ports & Novidades"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["ra", "RetroAchievements"], ["plataformas", "Jogos por plataforma"],
   ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
 const loadLayout = () => {
   let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
@@ -1787,6 +1787,87 @@ async function fetchLiveOrStatic(liveUrl, staticUrl) {
   return await r2.json();
 }
 
+async function loadPortsFeed(forceReload = false) {
+  const block = $("#portsFeedBlock");
+  if (!block) return;
+  try {
+    if (!portsCache || forceReload) {
+      portsCache = await fetchLiveOrStatic("/api/live/ports", "data/ports-radar.json");
+    }
+    const c = portsCache.counts || {};
+    const all = portsCache.ports || [];
+    if (!all.length) return;
+
+    // Badges no cabeçalho
+    const updates = all.filter((p) => p.updateStatus === "update-available").length;
+    const ready = all.filter((p) => p.updateStatus === "ready-to-install").length;
+
+    let kpiHtml = `<span class="badge ok">${c.installed || 0} no S20 FE</span>`;
+    if (updates > 0) {
+      kpiHtml += `<span class="badge warn" style="font-weight:600">${updates} update${updates > 1 ? "s" : ""}!</span>`;
+    }
+    if (ready > 0) {
+      kpiHtml += `<span class="badge" style="background:var(--accent);color:#fff">${ready} pronto${ready > 1 ? "s" : ""}</span>`;
+    }
+    kpiHtml += `<span class="badge muted">${c.desktopRecomp || 0} no radar</span>`;
+    const kpisEl = $("#portsFeedKpis");
+    if (kpisEl) kpisEl.innerHTML = kpiHtml;
+
+    const allBtn = $("#portsFeedAllBtn");
+    if (allBtn) allBtn.innerHTML = `Ver todos (${all.length}) <svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-chevron-right"/></svg>`;
+
+    // Ordenar itens do feed: updates primeiro, prontos para Android depois, depois por data recente de lançamento
+    const sorted = [...all].sort((a, b) => {
+      const aUp = a.updateStatus === "update-available" ? 1 : 0;
+      const bUp = b.updateStatus === "update-available" ? 1 : 0;
+      if (bUp !== aUp) return bUp - aUp;
+
+      const aRdy = a.updateStatus === "ready-to-install" ? 1 : 0;
+      const bRdy = b.updateStatus === "ready-to-install" ? 1 : 0;
+      if (bRdy !== aRdy) return bRdy - aRdy;
+
+      const dateA = a.publishedAt || "1970-01-01";
+      const dateB = b.publishedAt || "1970-01-01";
+      return dateB.localeCompare(dateA);
+    });
+
+    const feedList = $("#portsFeedList");
+    if (!feedList) return;
+
+    feedList.innerHTML = sorted.slice(0, 10).map((p) => {
+      let statusBadge = "";
+      if (p.updateStatus === "update-available") {
+        statusBadge = `<span class="port-feed-badge warn">Update · ${esc(p.latestTag || "novo")}</span>`;
+      } else if (p.updateStatus === "ready-to-install") {
+        statusBadge = `<span class="port-feed-badge info">Pronto p/ APK</span>`;
+      } else if (p.category === "installed") {
+        statusBadge = `<span class="port-feed-badge ok">Instalado</span>`;
+      } else {
+        statusBadge = `<span class="port-feed-badge muted">Radar (${esc(p.system?.toUpperCase() || "PC")})</span>`;
+      }
+
+      const coverSrc = p.iconUrl || "icons/favicon-96.png";
+      const relDate = p.publishedAt ? p.publishedAt.split("-").reverse().slice(0, 2).join("/") : "";
+
+      return `<a class="port-feed-card" href="#ports" title="${esc(p.name)} · ${esc(p.engine)}">
+        <div class="port-feed-thumb">
+          <img src="${esc(coverSrc)}" alt="${esc(p.name)}" loading="lazy" onerror="this.src='icons/favicon-96.png'">
+          ${statusBadge}
+        </div>
+        <div class="port-feed-info">
+          <strong class="port-feed-title">${esc(p.shortName || p.name)}</strong>
+          <div class="port-feed-meta">
+            <span class="engine-tag">${esc(p.engine || "Port")}</span>
+            ${relDate ? `<span class="date-tag">${relDate}</span>` : ""}
+          </div>
+        </div>
+      </a>`;
+    }).join("");
+  } catch (e) {
+    console.warn("loadPortsFeed error:", e);
+  }
+}
+
 async function renderPorts(forceReload = false) {
   const el = $("#portsBody");
   if (!el) return;
@@ -2317,6 +2398,7 @@ async function pollLiveStatus() {
       liveHashes.portsHash = st.portsHash;
       if (hadPrev) {
         portsCache = null;
+        loadPortsFeed(true);
         if (curView === "ports") renderPorts(true);
       }
     }
@@ -2338,6 +2420,7 @@ document.addEventListener("visibilitychange", () => {
     loadMine();
     loadRelation();
     loadS20Telemetry();
+    loadPortsFeed();
     RA.ready = loadRA();
     RA.ready.then(drawContinue);
     loadHealthTiles();

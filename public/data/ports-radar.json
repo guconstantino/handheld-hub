@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-10-15T00:31:09Z",
+  "updatedAt": "2026-10-16T00:47:29Z",
   "source": "SirDiabo/GithubLauncher (v1.70 N64RecompLauncher) + S20 FE Decompiled Ports",
   "counts": {
-    "total": 39,
-    "installed": 30,
+    "total": 40,
+    "installed": 32,
     "androidReady": 0,
-    "desktopRecomp": 9,
+    "desktopRecomp": 8,
     "ptbr": 20
   },
   "ports": [
@@ -346,7 +346,7 @@
       "repository": "fexed/Pinball-on-Android",
       "upstreamRepo": "k4zmu2a/SpaceCadetPinball",
       "packageName": "com.fexed.spacecadetpinball",
-      "installedVersion": "1.2",
+      "installedVersion": "2.5",
       "ptbr": "Sim",
       "features": [
         "60 FPS",
@@ -366,7 +366,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "update-available"
+      "updateStatus": "up-to-date"
     },
     {
       "id": "hollowknight",
@@ -992,32 +992,32 @@
       "shortName": "Banjo: Recompiled",
       "system": "n64",
       "engine": "N64Recomp",
-      "category": "n64recomp-desktop",
-      "repository": "BanjoRecomp/BanjoRecomp",
+      "category": "installed",
+      "repository": "AurelioB/BanjoRecomp-Android",
       "upstreamRepo": "BanjoRecomp/BanjoRecomp",
-      "packageName": null,
-      "installedVersion": null,
+      "packageName": "com.aure.banjorecomp",
+      "installedVersion": "0.1.1",
       "ptbr": "Mods de tradução compatíveis",
       "features": [
         "60+ FPS",
-        "Ultrawide",
-        "RT64",
-        "macOS / PC"
+        "20:9 Widescreen",
+        "RT64 Vulkan",
+        "Câmera Analógica Livre"
       ],
-      "iconUrl": "https://raw.githubusercontent.com/BanjoRecomp/BanjoRecomp/refs/heads/main/icons/app.png",
+      "iconUrl": "covers/banjorecomp.webp",
       "romQuery": "Banjo-Kazooie",
-      "latestTag": "v1.0.2",
-      "publishedAt": "2026-07-31",
-      "releaseUrl": "https://github.com/BanjoRecomp/BanjoRecomp/releases/tag/v1.0.2",
-      "apkName": null,
-      "apkUrl": null,
-      "apkSize": null,
+      "latestTag": "android-v0.1.1",
+      "publishedAt": "2026-06-14",
+      "releaseUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/tag/android-v0.1.1",
+      "apkName": "BanjoRecompiled-v0.1.1-Android-ARM64.apk",
+      "apkUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/download/android-v0.1.1/BanjoRecompiled-v0.1.1-Android-ARM64.apk",
+      "apkSize": 8718192,
       "rom": {
         "s20Sd": true,
         "gdrive": true,
         "bestPath": "n64/Banjo-Kazooie (USA).zip"
       },
-      "updateStatus": "desktop-recomp"
+      "updateStatus": "up-to-date"
     },
     {
       "id": "zelda64recomp",
@@ -1217,31 +1217,32 @@
       "shortName": "Mega Man 64 Recomp",
       "system": "n64",
       "engine": "N64Recomp",
-      "category": "n64recomp-desktop",
-      "repository": "MegaMan64Recomp/MegaMan64Recompiled",
+      "category": "installed",
+      "repository": "DevZer0D4Y/MegaMan64Recompiled-Mobile",
       "upstreamRepo": "MegaMan64Recomp/MegaMan64Recompiled",
-      "packageName": null,
-      "installedVersion": null,
+      "packageName": "com.devz.megaman64",
+      "installedVersion": "0.9.1-mobile.1",
       "ptbr": "Não",
       "features": [
-        "Experimental",
         "60 FPS",
-        "Widescreen"
+        "20:9 Widescreen",
+        "Vulkan",
+        "Gamepad Nativo"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/850618e22f83f152773d2a3e51168812.png",
+      "iconUrl": "covers/megaman64recomp.webp",
       "romQuery": "Mega Man 64",
-      "latestTag": "v0.9.1",
-      "publishedAt": "2026-04-30",
-      "releaseUrl": "https://github.com/MegaMan64Recomp/MegaMan64Recompiled/releases/tag/v0.9.1",
-      "apkName": null,
-      "apkUrl": null,
-      "apkSize": null,
+      "latestTag": "v0.9.1-mobile.1",
+      "publishedAt": "2026-10-13",
+      "releaseUrl": "https://github.com/DevZer0D4Y/MegaMan64Recompiled-Mobile/releases/tag/v0.9.1-mobile.1",
+      "apkName": "MegaMan64-Android-v0.9.1-mobile.1.apk",
+      "apkUrl": "https://github.com/DevZer0D4Y/MegaMan64Recompiled-Mobile/releases/download/v0.9.1-mobile.1/MegaMan64-Android-v0.9.1-mobile.1.apk",
+      "apkSize": 27811935,
       "rom": {
         "s20Sd": true,
         "gdrive": true,
         "bestPath": "n64/Mega Man 64 (USA).zip"
       },
-      "updateStatus": "desktop-recomp"
+      "updateStatus": "up-to-date"
     },
     {
       "id": "quest64recomp",
@@ -1272,6 +1273,39 @@
         "s20Sd": true,
         "gdrive": true,
         "bestPath": "n64/Quest 64 (USA).zip"
+      },
+      "updateStatus": "desktop-recomp"
+    },
+    {
+      "id": "pinyonshift",
+      "name": "Forza Horizon: Recompiled (Pinyon Shift)",
+      "shortName": "Forza Horizon Recomp",
+      "system": "xbox360",
+      "engine": "XenonRecomp",
+      "category": "n64recomp-desktop",
+      "repository": "arcanite24/pinyon-shift",
+      "upstreamRepo": "arcanite24/pinyon-shift",
+      "packageName": null,
+      "installedVersion": null,
+      "ptbr": "Não",
+      "features": [
+        "60/120 FPS",
+        "21:9 Ultrawide",
+        "Modding API",
+        "macOS / PC"
+      ],
+      "iconUrl": "https://raw.githubusercontent.com/arcanite24/pinyon-shift/refs/heads/main/config/steam/capsule.png",
+      "romQuery": "Forza Horizon",
+      "latestTag": "v0.5.1",
+      "publishedAt": "2026-10-12",
+      "releaseUrl": "https://github.com/arcanite24/pinyon-shift/releases/tag/v0.5.1",
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
       },
       "updateStatus": "desktop-recomp"
     }
