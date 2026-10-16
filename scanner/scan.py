@@ -219,7 +219,10 @@ def scan_inventory(loc, root, prefix):
     if len(matches) != 1:
         sys.exit(f"{loc}: inventário não encontrado em {root}. Gere de novo no PC.")
     data = json.load(open(matches[0], encoding="utf-8-sig"))
-    rows = [(r[len(prefix):], s, int(m or 0), None) for r, s, m in data.get("files", [])
+    # Cabeçalhos lidos pelo FTP temporário do PC (8 bytes por arquivo com assinatura): data/<local>-heads.json.
+    hp = os.path.join(ROOT, "data", f"{loc}-heads.json")
+    heads = json.load(open(hp)) if os.path.exists(hp) else {}
+    rows = [(r[len(prefix):], s, int(m or 0), heads.get(r)) for r, s, m in data.get("files", [])
             if r.startswith(prefix) and not os.path.basename(r).startswith(".")
             and (r.rsplit(".", 1)[-1].lower() if "." in os.path.basename(r) else "") not in SKIP_EXT]
     print(f"{loc}: inventário de {data.get('generated', '?')}")
