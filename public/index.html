@@ -107,6 +107,11 @@
                 <p class="muted small" id="gemsNote"></p>
                 <ul class="morerow" id="gemsRow"></ul>
               </div>
+              <div class="similar" id="simWrap" hidden>
+                <div class="play-head"><h3><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-gamepad-2"/></svg>Parecidos com o que você gostou</h3></div>
+                <p class="muted small">Pelos gêneros dos seus favoritos, zerados e do que está jogando, com nota 70 ou mais.</p>
+                <ul class="morerow" id="simRow"></ul>
+              </div>
             </div>
           </section>
           <section class="tile b-12 ra ra-off" id="raBlock" aria-labelledby="t-ra" data-block="ra">
@@ -195,8 +200,8 @@
             <option value="">Qualquer nota e duração</option>
             <option value="mc75">Nota 75 ou mais</option>
             <option value="mc85">Nota 85 ou mais</option>
-            <option value="curto">Curtos (até 10 h)</option>
-            <option value="longo">Longos (30 h ou mais)</option>
+            <option value="curto">Curtos (até 10 h em média)</option>
+            <option value="longo">Longos (30 h ou mais em média)</option>
           </select>
           <select id="fSort" aria-label="Ordenar">
             <option value="">Por plataforma</option>

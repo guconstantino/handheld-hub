@@ -1405,3 +1405,7 @@ tr[data-gp-focus="true"] td:first-child {
 @media (max-width: 700px) { .dup-list li { grid-template-columns: minmax(0, 1fr); } }
 .time-dev { margin-bottom: 8px; order: 0; }
 .time-dev .dot { margin-right: 2px; }
+.gfile { font-size: 12px; opacity: .75; margin-top: -2px; overflow-wrap: anywhere; }
+.similar { grid-column: 1 / -1; }
+.similar .morerow { grid-auto-columns: minmax(96px, 110px); }
+.sim-why { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

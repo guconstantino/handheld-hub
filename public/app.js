@@ -553,7 +553,9 @@ async function loadMine() {
 // de cada pessoa (listas e preferências por usuário), então cada sobrinho recebe a sua sugestão.
 let playSkip = 0, gemsCache = null;
 const dayHash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
-const hoursTxt = (h) => (h ? `~${h} h para zerar` : "");
+// "playtime" do RAWG = média de horas registradas pelos usuários de lá (muitos param no meio), não o tempo para
+// zerar: Ocarina of Time aparece com ~7 h. Por isso o texto diz "de jogo em média".
+const hoursTxt = (h) => (h ? `~${h} h de jogo em média` : "");
 const cleanTitle = (t) => t.replace(/\s*[\(\[].*$/, "") || t;     // "Castlevania (Europe) (En,Fr)" → "Castlevania"
 async function loadPlay() {
   if (!$("#playBlock")) return;
@@ -568,6 +570,7 @@ async function loadPlay() {
   $("#gemsNote").textContent = gemsCache.total ? `${fmtN(gemsCache.total)} jogos com nota 75 ou mais que estão só no Drive.` : "";
   $("#gemsAll").hidden = !gemsCache.total;
 
+  loadSimilar();
   const tempo = pref("hh_tempo", "");
   document.querySelectorAll("#tempoSeg [data-tempo]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tempo === tempo)));
   const want = LISTS.want.size ? await api(`/api/pick?keys=${encodeURIComponent(JSON.stringify([...LISTS.want]))}`) : [];
@@ -591,6 +594,20 @@ async function loadPlay() {
           ${pool.length > 1 ? `<button type="button" class="btn sm" id="todayNext">Outra sugestão</button>` : ""}</div>
       </div></article>`;
   $("#todayNext")?.addEventListener("click", () => { playSkip++; loadPlay().then(() => $("#todayNext")?.focus()); });
+}
+// Parecidos: cada pessoa tem as próprias listas, então cada sobrinho recebe as suas sugestões.
+async function loadSimilar() {
+  const seeds = [...LISTS.playing, ...[...LISTS.fav].reverse(), ...[...LISTS.done].reverse()];
+  const wrap = $("#simWrap");
+  if (!wrap) return;
+  if (!seeds.length) { wrap.hidden = true; return; }
+  const r = await api(`/api/similar?n=16&seeds=${encodeURIComponent(JSON.stringify(seeds))}&skip=${encodeURIComponent(JSON.stringify([...LISTS.want]))}`).catch(() => null);
+  wrap.hidden = !r?.games.length;
+  if (!r?.games.length) return;
+  $("#simRow").innerHTML = r.games.map((g) => `<li><a href="${gameHref(g)}" title="${esc(`Porque você gostou de ${cleanTitle(g.because)}`)}">
+      ${g.cover ? `<img src="covers/${esc(g.cover)}" alt="" loading="lazy">` : `<img class="gplat" src="${platImg(g.system)}" alt="">`}
+      <span>${esc(cleanTitle(g.title))}</span><small class="gem-meta">${mcTag(g)}${esc(sysName(g.system))}</small>
+      <small class="sim-why">como ${esc(cleanTitle(g.because))}</small></a></li>`).join("");
 }
 $("#tempoSeg")?.addEventListener("click", (e) => {
   const b = e.target.closest("[data-tempo]");
@@ -1355,18 +1372,26 @@ async function renderGame(key) {
     const el = $("#gScore");
     if (!sc || !el) return;
     const rawg = `https://rawg.io/games/${encodeURIComponent(sc.slug)}`;
+    // Título oficial do RAWG no cabeçalho ("The Legend of Zelda: The Wind Waker"); o nome do arquivo fica embaixo.
+    // Só aqui: listas e busca seguem com o nome do acervo. Sem o ano que o RAWG põe às vezes ("Yoshi's Story (1997)").
+    const oficial = (sc.nome || "").replace(/\s*\(\d{4}\)$/, "").trim(), h1 = $("#view-game h1");
+    if (oficial && h1 && oficial !== g.title && !$("#gFile")) {
+      h1.textContent = oficial;
+      document.title = `${oficial} · Handheld Hub`;
+      h1.insertAdjacentHTML("afterend", `<p class="gfile" id="gFile">Arquivo: ${esc(g.title)}</p>`);
+    }
     const parts = [];
     if (sc.mc) {
       const tier = sc.mc >= 75 ? "good" : sc.mc >= 50 ? "mixed" : "bad";
       parts.push(`<a class="mc-badge mc-${tier}" href="${rawg}" target="_blank" rel="noopener" aria-label="Nota do Metacritic: ${sc.mc} de 100. Dados do RAWG"><b>${sc.mc}</b><span>Metacritic</span></a>`);
     }
-    if (sc.horas) parts.push(`<span class="gtime">${icon("clock", "sm")}~${sc.horas} h para zerar</span>`);
+    if (sc.horas) parts.push(`<span class="gtime" title="Média de horas registradas pelos jogadores no RAWG (não é o tempo para zerar)">${icon("clock", "sm")}${hoursTxt(sc.horas)}</span>`);
     if (parts.length) { el.innerHTML = parts.join("") + `<span class="muted small">via RAWG</span>`; el.hidden = false; }
     const sub = el.previousElementSibling;                 // sem ficha no libretro: o ano vem do RAWG
     if (sc.ano && sub?.classList.contains("gsub") && sub.textContent.startsWith("Sem ficha")) sub.textContent = sc.ano;
     // Ficha que o libretro não tem + imagens + trailer.
     const ficha = [[!info.genero && "Gênero", sc.generos?.join(", ")], [!info.dev && "Desenvolvedora", sc.dev?.join(", ")],
-      [!info.pub && "Publicadora", sc.pub?.join(", ")], ["Classificação", sc.esrb], ["Duração média", sc.horas && `~${sc.horas} h`]]
+      [!info.pub && "Publicadora", sc.pub?.join(", ")], ["Classificação", sc.esrb], ["Tempo médio de jogo", sc.horas && `~${sc.horas} h (jogadores do RAWG)`]]
       .filter(([k, v]) => k && v);                          // o que o libretro já mostra na ficha não se repete
     const shots = (sc.shots || []).map(rawgImg);
     if (!ficha.length && !shots.length && !sc.video?.mp4) return;

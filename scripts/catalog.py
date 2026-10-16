@@ -81,13 +81,14 @@ def years(files):
 
 def rawg_scores():
     """Nota do Metacritic e horas para zerar (do RAWG, scripts/rawg_scores.py) para ordenar e filtrar
-    a lista de jogos: { "sistema|chave": [nota|0, horas|0] }. A ficha completa fica em data/scores/<sistema>.json."""
+    a lista de jogos e sugerir parecidos: { "sistema|chave": [nota|0, horas|0, "Ação|Aventura"] }. A ficha completa
+    fica em data/scores/<sistema>.json."""
     sdir, out = os.path.join(ROOT, "public", "data", "scores"), {}
     for f in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
         if f.endswith(".json"):
             for k, v in json.load(open(os.path.join(sdir, f))).items():
-                if v.get("mc") or v.get("horas"):
-                    out[f"{f[:-5]}|{k}"] = [v.get("mc") or 0, v.get("horas") or 0]
+                if v.get("mc") or v.get("horas") or v.get("generos"):
+                    out[f"{f[:-5]}|{k}"] = [v.get("mc") or 0, v.get("horas") or 0] + (["|".join(v["generos"])] if v.get("generos") else [])
     return out
 
 

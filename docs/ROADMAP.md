@@ -67,6 +67,8 @@ Handoff completo (portal + console) em `s20fe-gamesirx5lite/docs/STATE.md`, seç
 - [x] **Duplicatas (2026-10-16):** `scripts/dupes.py` acha o mesmo arquivo repetido na mesma pasta (marcador "(1)", ".00", "- Copia"; mesmas etiquetas; nome igual ignorando pontuação, mas "INV" ≠ "INV+"). **Idênticas** (mesmo tamanho): 38 arquivos, 40 MB, com comando de remoção em `data/dupes-remover.sh` (só no Mac, gitignored; o script não apaga nada). **Prováveis** (tamanho diferente): 614, 2,3 GB, só para revisar. Tela Saúde → "Duplicatas"; o caminho do comando só aparece para admin. Roda na varredura das 5h.
 - [x] **Linha do tempo por console (2026-10-16):** botões Todos / S20 FE / Miyoo / Switch / Drive (preferência `hh_tdev` por usuário); clique no ano ou na década leva o filtro de lugar junto.
 - [x] **Varredura das 5h:** ordem corrigida para catálogo → RAWG → catálogo → duplicatas (antes notas, nomes e anos do RAWG chegavam com um dia de atraso).
+- [x] **Título oficial (2026-10-16):** a página do jogo mostra o nome do RAWG no cabeçalho ("The Legend of Zelda: Ocarina of Time") e o nome do arquivo embaixo; listas e busca seguem com o nome do acervo.
+- [x] **Parecidos com o que você gostou (2026-10-16):** no bloco "Para jogar", sugestões com nota 70+ que dividem gêneros (RAWG) com os favoritos, zerados e o que está jogando; gêneros amplos (Ação, Arcade...) pesam menos, mesma plataforma e estar num console somam. Rota `/api/similar`; cada pessoa recebe as suas (listas por usuário). Catálogo: `scores` ganhou os gêneros.
 - [ ] **Depois:** pendências de cada repo no painel.
 
 ## Fora do escopo

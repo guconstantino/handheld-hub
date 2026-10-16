@@ -241,6 +241,38 @@
       if (ys.length) for (let y = Math.min(...ys); y <= Math.max(...ys); y++) years.push({ year: y, n: n[y] || 0 });
       return { years, known: Object.values(n).reduce((a, b) => a + b, 0), total };
     })()),
+    // Parecidos: a partir dos jogos de que a pessoa gostou (favoritos, zerados, jogando), os de nota boa que dividem
+    // gêneros com eles (RAWG). Pontua gênero em comum, mesma plataforma, estar em algum console e a nota.
+    // `seeds` e `skip` vêm do app (listas de cada usuário). Cada sugestão diz "porque você gostou de X".
+    "/api/similar": (X, p) => {
+      // Gêneros amplos (o RAWG põe "Arcade"/"Ação" em quase tudo) pesam menos que os específicos (Plataforma, RPG...).
+      const BROAD = new Set(["Ação", "Arcade", "Aventura", "Família", "Casual", "Indie"]);
+      const { D, byKey, sc } = X, title = (c) => c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title);
+      const gen = (k) => new Set((sc(k)[2] || "").split("|").filter(Boolean));
+      const seeds = [...new Set(JSON.parse(p.get("seeds") || "[]").map((k) => X.alias[k] || k))].filter((k) => byKey.has(k) && gen(k).size).slice(0, 30);
+      const skip = new Set([...seeds, ...JSON.parse(p.get("skip") || "[]").map((k) => X.alias[k] || k)]);
+      if (!seeds.length) return { seeds: 0, games: [] };
+      const best = new Map();
+      for (const [k, c] of byKey) {
+        const [mc] = sc(k), g = gen(k);
+        if (mc < 70 || !g.size || skip.has(k) || NO_BACKUP.has(c[0].system) && c[0].system !== "switch") continue;
+        for (const s of seeds) {
+          const gs = gen(s), w = (x) => (BROAD.has(x) ? 0.4 : 1);
+          const inter = [...g].filter((x) => gs.has(x)).reduce((n, x) => n + w(x), 0);
+          if (!inter) continue;
+          const union = [...new Set([...g, ...gs])].reduce((n, x) => n + w(x), 0);
+          const score = (inter / union) * 20 + (byKey.get(s)[0].system === c[0].system ? 6 : 0)
+            + (c.some((x) => x.device_id !== "drive") ? 3 : 0) + (mc - 70) * 0.5;
+          if (score > (best.get(k)?.score || 0)) best.set(k, { score, because: s });
+        }
+      }
+      const out = [...best].sort((a, b) => b[1].score - a[1].score).slice(0, Number(p.get("n")) || 16).map(([k, v]) => {
+        const c = byKey.get(k), [mc, horas] = sc(k);
+        return { game_key: k, system: c[0].system, title: title(c), cover: D.covers[k] || null, mc, horas: horas || null,
+          because: title(byKey.get(v.because)), onConsole: c.some((x) => x.device_id !== "drive") };
+      });
+      return { seeds: seeds.length, games: out };
+    },
     // Joias esquecidas: nota alta no Metacritic e só no Drive (em nenhum console). `runs` = consoles que já rodam a
     // plataforma (dá para instalar). Fora do backup por decisão (Switch, ports...) não entra.
     "/api/gems": (X, p) => {
