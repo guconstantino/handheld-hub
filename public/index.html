@@ -167,11 +167,20 @@
             <option value="want">Quero jogar</option>
             <option value="done">Zerei</option>
           </select>
+          <select id="fScore" aria-label="Nota e duração">
+            <option value="">Qualquer nota e duração</option>
+            <option value="mc75">Nota 75 ou mais</option>
+            <option value="mc85">Nota 85 ou mais</option>
+            <option value="curto">Curtos (até 10 h)</option>
+            <option value="longo">Longos (30 h ou mais)</option>
+          </select>
           <select id="fSort" aria-label="Ordenar">
             <option value="">Por plataforma</option>
             <option value="nome">Nome (A–Z)</option>
             <option value="capa">Com capa primeiro</option>
             <option value="copias">Mais cópias</option>
+            <option value="nota">Nota (maior)</option>
+            <option value="duracao">Duração (menor)</option>
           </select>
           </div>
           <div class="seg" role="group" aria-label="Exibição">
@@ -266,7 +275,7 @@
               <div class="seg" role="group" aria-label="Exibição padrão" id="sView">
                 <button type="button" data-view-mode="grid">Grade</button><button type="button" data-view-mode="list">Lista</button></div></div>
             <div class="srow"><div><b>Ordenação</b><p class="muted small">Ordem padrão da lista de jogos.</p></div>
-              <select id="sSort" aria-label="Ordenação padrão dos jogos"><option value="">Por plataforma</option><option value="nome">Nome (A–Z)</option><option value="capa">Com capa primeiro</option><option value="copias">Mais cópias</option></select></div>
+              <select id="sSort" aria-label="Ordenação padrão dos jogos"><option value="">Por plataforma</option><option value="nome">Nome (A–Z)</option><option value="capa">Com capa primeiro</option><option value="copias">Mais cópias</option><option value="nota">Nota (maior)</option><option value="duracao">Duração (menor)</option></select></div>
           </section>
           <section class="tile" aria-labelledby="t-s-home">
             <h2 id="t-s-home">Visão geral e teclado</h2>
@@ -385,6 +394,11 @@
   </dialog>
   <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
   <button type="button" class="totop" id="toTop" hidden><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-chevron-left"/></svg>Voltar ao topo</button>
+  <dialog class="shot-dlg" id="shotDlg" aria-label="Imagem ampliada">
+    <img id="shotImg" alt="">
+    <div class="shot-bar"><button type="button" class="btn" id="shotPrev" aria-label="Imagem anterior">‹</button><span id="shotCount" class="small"></span>
+      <button type="button" class="btn" id="shotNext" aria-label="Próxima imagem">›</button><form method="dialog"><button class="btn">Fechar</button></form></div>
+  </dialog>
   <dialog class="palette shortcuts themes-dlg" id="themeDlg" aria-labelledby="t-theme">
     <h2 id="t-theme">Tema das plataformas</h2>
     <p class="muted small">Pacotes de papéis de parede da comunidade do Daijishō. Fica salvo neste aparelho.</p>

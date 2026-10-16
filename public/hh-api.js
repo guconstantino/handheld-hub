@@ -132,16 +132,23 @@
           if (c.some((x) => x.device_id === miss) || !runs.has(c[0].system)) hit.delete(k);
         }
       }
+      // Nota (Metacritic) e duração (horas para zerar), do RAWG: [nota|0, horas|0]. Apelidos herdam do grupo.
+      const sc = (k) => (window.HH_MEMBERS?.[k] || [k]).map((m) => D.scores?.[m]).find(Boolean) || [0, 0];
+      const SCORE = { mc75: ([m]) => m >= 75, mc85: ([m]) => m >= 85, curto: ([, h]) => h && h <= 10, longo: ([, h]) => h >= 30 };
+      if (SCORE[p.get("score")]) for (const k of [...hit]) if (!SCORE[p.get("score")](sc(k))) hit.delete(k);
       const list = [...hit].map((k) => {
-        const copies = byKey.get(k);
-        return { game_key: k, system: copies[0].system, title: copies.reduce((t, c) => (c.title < t ? c.title : t), copies[0].title), copies };
+        const copies = byKey.get(k), [mc, horas] = sc(k);
+        return { game_key: k, system: copies[0].system, title: copies.reduce((t, c) => (c.title < t ? c.title : t), copies[0].title), copies,
+          mc: mc || null, horas: horas || null };
       });
-      // Ordenação: plataforma (padrão), nome, com capa primeiro, mais cópias.
+      // Ordenação: plataforma (padrão), nome, com capa primeiro, mais cópias, nota, duração.
       const name = (a, b) => a.title.localeCompare(b.title, "pt-BR");
       const SORT = {
         nome: name,
         capa: (a, b) => (!!D.covers[b.game_key] - !!D.covers[a.game_key]) || name(a, b),
         copias: (a, b) => b.copies.length - a.copies.length || name(a, b),
+        nota: (a, b) => (b.mc || 0) - (a.mc || 0) || name(a, b),                                  // sem nota vai para o fim
+        duracao: (a, b) => (a.horas || 1e9) - (b.horas || 1e9) || name(a, b),                   // sem duração vai para o fim
       };
       list.sort(SORT[p.get("sort")] || byTitle);
       const limit = Math.min(Number(p.get("limit")) || 100, 5000), offset = Number(p.get("offset")) || 0;

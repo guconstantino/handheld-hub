@@ -1339,3 +1339,22 @@ tr[data-gp-focus="true"] td:first-child {
 .mc-bad b { background: #c62828; color: #fff; }        /* 5,6:1 */
 .mc-badge:hover { border-color: #fff; }
 .gscore .muted { color: #d4d4da; }
+
+/* Dados do RAWG na página do jogo: duração, ficha extra, screenshots e trailer. */
+.gtime { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 6px 10px; border-radius: 8px; background: rgb(0 0 0 / .45); border: 1px solid rgb(255 255 255 / .25); }
+.gfacts { margin-bottom: 14px; }
+.gvideo { width: 100%; max-width: 720px; aspect-ratio: 16 / 9; border-radius: 10px; background: #000; margin-bottom: 14px; display: block; }
+.gshots { list-style: none; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 280px); gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.gshots li { scroll-snap-align: start; }
+.gshot { padding: 0; border: 0; background: none; border-radius: 10px; overflow: hidden; cursor: zoom-in; display: block; width: 100%; }
+.gshot img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: var(--hover); transition: transform .3s; }
+@media (prefers-reduced-motion: no-preference) { .gshot:hover img { transform: scale(1.04); } }
+.shot-dlg { border: 0; padding: 0; margin: auto; background: transparent; max-width: min(1280px, 96vw); }
+.shot-dlg::backdrop { background: rgb(0 0 0 / .85); }
+.shot-dlg img { width: 100%; max-height: 80vh; object-fit: contain; border-radius: 10px; display: block; }
+.shot-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; color: #fff; }
+/* Nota do Metacritic no cartão da grade (mesmas cores do selo da página do jogo). */
+.gmc { display: inline-block; min-width: 24px; padding: 0 4px; margin-right: 2px; border-radius: 4px; font-size: 11px; font-weight: 750; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+.gmc.mc-good { background: #66cc33; color: #0b1a05; }
+.gmc.mc-mixed { background: #ffcc33; color: #241b00; }
+.gmc.mc-bad { background: #c62828; color: #fff; }

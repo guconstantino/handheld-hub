@@ -37,7 +37,19 @@ def build():
     rows = [[loc_ids.index(f["location_id"]), systems.index(f["system"]), f["title"], f["game_key"].split("|", 1)[1],
              status.index(f["status"]), f["size"] or 0, f["ext"] or "", f["drive_id"] or ""] for f in files]
     return {"devices": devices, "locations": locations, "systems": systems, "status": status,
-            "files": rows, "covers": covers, "names": arcade_names(files)}
+            "files": rows, "covers": covers, "names": arcade_names(files), "scores": rawg_scores()}
+
+
+def rawg_scores():
+    """Nota do Metacritic e horas para zerar (do RAWG, scripts/rawg_scores.py) para ordenar e filtrar
+    a lista de jogos: { "sistema|chave": [nota|0, horas|0] }. A ficha completa fica em data/scores/<sistema>.json."""
+    sdir, out = os.path.join(ROOT, "public", "data", "scores"), {}
+    for f in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
+        if f.endswith(".json"):
+            for k, v in json.load(open(os.path.join(sdir, f))).items():
+                if v.get("mc") or v.get("horas"):
+                    out[f"{f[:-5]}|{k}"] = [v.get("mc") or 0, v.get("horas") or 0]
+    return out
 
 
 ARCADE = {"mame", "fbneo", "lightgun", "model2", "model3", "atomiswave", "naomi", "arcade", "neogeo", "cps1", "cps2", "cps3"}

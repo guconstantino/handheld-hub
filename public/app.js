@@ -433,7 +433,7 @@ function goGames(filters = {}) {
   state.gx = { missing: filters.missing, where: filters.where };
   location.hash = "#games";
   setTimeout(() => {
-    for (const [id, v] of Object.entries({ "#fDevice": filters.device, "#fSystem": filters.system, "#fStatus": filters.status }))
+    for (const [id, v] of Object.entries({ "#fDevice": filters.device, "#fSystem": filters.system, "#fStatus": filters.status, "#fScore": filters.score }))
       if (v !== undefined) $(id).value = v;
     loadGames();
   }, 0);
@@ -622,6 +622,8 @@ const emptyState = (title, hint, withClear = true) => `<div class="empty">${icon
 
 // Cartões da grade de jogos (tela Jogos e página de plataforma): a capa ocupa o cartão inteiro,
 // nome e sistema ficam sobre ela. Sem capa: a arte da plataforma (lado do logo) no fundo.
+// Nota do Metacritic (RAWG) em cartões e linhas; mesmas faixas do selo da página do jogo.
+const mcTag = (g) => g.mc ? `<b class="gmc mc-${g.mc >= 75 ? "good" : g.mc >= 50 ? "mixed" : "bad"}" title="Nota do Metacritic">${g.mc}<span class="sr-only"> no Metacritic</span></b> ` : "";
 const gridHtml = (games) => games.length ? games.map((g) => {
   const bad = g.copies.some((c) => c.status === "corrupted");
   const art = g.cover
@@ -635,7 +637,7 @@ const gridHtml = (games) => games.length ? games.map((g) => {
       ${RA.has.get(g.game_key) ? `<span class="gra" title="${fmtN(RA.has.get(g.game_key))} conquistas no RetroAchievements">${icon("trophy", "sm")}<span class="sr-only">Tem conquistas</span></span>` : ""}
       <div class="gover">
         <a class="gtitle glink" href="${gameHref(g)}">${esc(g.title)}</a>
-        <span class="gmeta"><span>${esc(sysName(g.system))} ${flagsHtml(gameRegions(g), 3)}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span></span>
+        <span class="gmeta"><span>${mcTag(g)}${esc(sysName(g.system))} ${flagsHtml(gameRegions(g), 3)}</span><span class="gdots">${g.copies.map((c) => `<i class="dot" ${dev(c.device_id)}></i>`).join("")}</span></span>
         <span class="sr-only">Onde está: ${g.copies.map((c) => esc(copyLabel(deviceOf(c.device_id), c.location_id))).join(", ")}</span>
       </div>
       <div class="gdrive">${driveBtn(g)}</div>
@@ -655,7 +657,7 @@ function renderGames() {
     $("#gamesGrid").innerHTML = gridHtml(games);
   } else {
     $("#gamesTable tbody").innerHTML = games.length ? games.map((g) => `<tr>
-      <td><div class="game-cell"><span class="thumb">${coverImg(g) || icon("gamepad-2")}</span><a class="tlink" href="${gameHref(g)}">${esc(g.title)}</a></div></td>
+      <td><div class="game-cell"><span class="thumb">${coverImg(g) || icon("gamepad-2")}</span><a class="tlink" href="${gameHref(g)}">${esc(g.title)}</a>${mcTag(g)}</div></td>
       <td class="sys">${esc(sysName(g.system))}</td>
       <td class="col-wide num-cell" data-info="${esc(g.game_key)}" data-field="ano">—</td>
       <td class="col-wide" data-info="${esc(g.game_key)}" data-field="dev">—</td>
@@ -688,7 +690,7 @@ document.querySelectorAll("#gamesTable th[data-sort] .thsort").forEach((b) => (b
 // "Limpar filtros" dos estados vazios.
 document.addEventListener("click", (e) => {
   if (!e.target.closest("[data-clear-all]")) return;
-  ["#q", "#fDevice", "#fSystem", "#fStatus"].forEach((id) => ($(id).value = ""));
+  ["#q", "#fDevice", "#fSystem", "#fStatus", "#fScore"].forEach((id) => ($(id).value = ""));
   loadGames();
 });
 
@@ -725,12 +727,12 @@ const autoLoad = async (btn, load) => {
 
 // Chips: atalhos para cada console (com a cor dele) e os filtros ativos como etiquetas removíveis.
 function renderChips() {
-  const dev = $("#fDevice").value, sys = $("#fSystem").value, st = $("#fStatus").value, q = $("#q").value.trim();
+  const dev = $("#fDevice").value, sys = $("#fSystem").value, st = $("#fStatus").value, q = $("#q").value.trim(), sco = $("#fScore").value;
   const devChips = [["", "Todos os lugares"], ...state.devices.map((d) => [d.id, shortName(d)])].map(([id, label]) =>
     `<button type="button" class="chip ${id ? "" : "all"}" data-dev="${esc(id)}" data-set-device="${esc(id)}" aria-pressed="${dev === id}">${id ? `<i class="dot"></i>` : ""}${esc(label)}</button>`).join("");
   const STATUS = { ok: "OK", corrupted: "Corrompido", unknown: "Não verificado", nobackup: "Sem backup no Drive", driveonly: "Só no Drive", playing: "Jogando agora", fav: "Favoritos", want: "Quero jogar", done: "Zerei" };
   const active = [
-    sys && ["system", sysName(sys)], st && ["status", STATUS[st]], q && ["q", `“${q}”`],
+    sys && ["system", sysName(sys)], st && ["status", STATUS[st]], sco && ["score", $("#fScore").selectedOptions[0].text], q && ["q", `“${q}”`],
     state.gx?.missing && ["missing", `Pronto para instalar no ${shortName(deviceOf(state.gx.missing))}`],
     state.gx?.where && ["where", `Só em: ${whereLabel(state.gx.where)}`],
   ].filter(Boolean);
@@ -746,6 +748,7 @@ $("#gChips")?.addEventListener("click", (e) => {
   const c = b.dataset.clear;
   if (c === "system" || c === "all") $("#fSystem").value = "";
   if (c === "status" || c === "all") $("#fStatus").value = "";
+  if (c === "score" || c === "all") $("#fScore").value = "";
   if (c === "q" || c === "all") $("#q").value = "";
   if (c === "all") $("#fDevice").value = "";
   if (c === "missing" || c === "all") state.gx = { ...state.gx, missing: undefined };
@@ -760,7 +763,7 @@ async function loadGames(append = false) {
   if (!append) window.HH_FILTERCOUNT?.();
   const p = new URLSearchParams({ limit: 100, offset: state.offset });
   if ($("#fSort").value) p.set("sort", $("#fSort").value);
-  for (const [k, el] of [["q", "#q"], ["device", "#fDevice"], ["system", "#fSystem"], ["status", "#fStatus"]])
+  for (const [k, el] of [["q", "#q"], ["device", "#fDevice"], ["system", "#fSystem"], ["status", "#fStatus"], ["score", "#fScore"]])
     if ($(el).value.trim()) p.set(k, $(el).value.trim());
   for (const [k, v] of Object.entries(state.gx || {})) if (v) p.set(k, v);
   const r = await api(`/api/games?${p}`);
@@ -774,7 +777,7 @@ async function loadGames(append = false) {
 }
 let t;
 $("#q").oninput = () => { clearTimeout(t); t = setTimeout(() => loadGames(), 250); };
-["#fDevice", "#fSystem", "#fStatus"].forEach((s) => ($(s).onchange = () => loadGames()));
+["#fDevice", "#fSystem", "#fStatus", "#fScore"].forEach((s) => ($(s).onchange = () => loadGames()));
 $("#fSort").value = pref("hh_gsort", "");
 $("#fSort").onchange = () => { setPref("hh_gsort", $("#fSort").value); loadGames(); };
 $("#more").onclick = () => autoLoad($("#more"), () => loadGames(true));
@@ -1189,6 +1192,7 @@ async function renderGame(key) {
       </div>
     </div>
     <section class="tile gabout hidden" id="gabout" aria-labelledby="t-gabout"></section>
+    <section class="tile gmedia" id="gMedia" aria-labelledby="t-gmedia" hidden></section>
     <div class="ggrid">
       ${facts.length ? `<section class="tile"><h2>Ficha</h2><dl class="kv">${facts.map(([k, x]) => `<dt>${k}</dt><dd>${esc(x)}</dd>`).join("")}</dl></section>` : ""}
       <section class="tile"><h2>Onde está · ${fmtN(g.copies.length)} ${g.copies.length === 1 ? "cópia" : "cópias"}</h2>
@@ -1252,18 +1256,34 @@ async function renderGame(key) {
       || `<li class="muted small">Sem outros jogos com capa nesta plataforma.</li>`;
   });
   // Sobre o jogo: introdução da Wikipédia (casada pelo Wikidata), um arquivo por plataforma.
-  // Nota do Metacritic (dados do RAWG; os termos pedem crédito e link). Cor como no Metacritic.
+  // Dados do RAWG (os termos pedem crédito e link): nota do Metacritic, duração, ficha que falta, imagens e trailer.
   getData("scores", g.system).then((all) => {
     const sc = pickAny(all);
     const el = $("#gScore");
-    if (!sc?.mc || !el) return;
-    const tier = sc.mc >= 75 ? "good" : sc.mc >= 50 ? "mixed" : "bad";
-    el.innerHTML = `<a class="mc-badge mc-${tier}" href="https://rawg.io/games/${encodeURIComponent(sc.slug)}" target="_blank" rel="noopener"
-      aria-label="Nota do Metacritic: ${sc.mc} de 100. Dados do RAWG"><b>${sc.mc}</b><span>Metacritic</span></a><span class="muted small">via RAWG</span>`;
-    el.hidden = false;
-    // Sem ficha no libretro: o ano vem do RAWG.
-    const sub = el.previousElementSibling;
+    if (!sc || !el) return;
+    const rawg = `https://rawg.io/games/${encodeURIComponent(sc.slug)}`;
+    const parts = [];
+    if (sc.mc) {
+      const tier = sc.mc >= 75 ? "good" : sc.mc >= 50 ? "mixed" : "bad";
+      parts.push(`<a class="mc-badge mc-${tier}" href="${rawg}" target="_blank" rel="noopener" aria-label="Nota do Metacritic: ${sc.mc} de 100. Dados do RAWG"><b>${sc.mc}</b><span>Metacritic</span></a>`);
+    }
+    if (sc.horas) parts.push(`<span class="gtime">${icon("clock", "sm")}~${sc.horas} h para zerar</span>`);
+    if (parts.length) { el.innerHTML = parts.join("") + `<span class="muted small">via RAWG</span>`; el.hidden = false; }
+    const sub = el.previousElementSibling;                 // sem ficha no libretro: o ano vem do RAWG
     if (sc.ano && sub?.classList.contains("gsub") && sub.textContent.startsWith("Sem ficha")) sub.textContent = sc.ano;
+    // Ficha que o libretro não tem + imagens + trailer.
+    const ficha = [[!info.genero && "Gênero", sc.generos?.join(", ")], [!info.dev && "Desenvolvedora", sc.dev?.join(", ")],
+      [!info.pub && "Publicadora", sc.pub?.join(", ")], ["Classificação", sc.esrb], ["Duração média", sc.horas && `~${sc.horas} h`]]
+      .filter(([k, v]) => k && v);                          // o que o libretro já mostra na ficha não se repete
+    const shots = (sc.shots || []).map(rawgImg);
+    if (!ficha.length && !shots.length && !sc.video?.mp4) return;
+    const m = $("#gMedia");
+    m.innerHTML = `<div class="tile-head"><h2 id="t-gmedia">Mais informações</h2><a class="tlink small" href="${rawg}" target="_blank" rel="noopener">Dados do RAWG</a></div>
+      ${ficha.length ? `<dl class="kv gfacts">${ficha.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` : ""}
+      ${sc.video?.mp4 ? `<video class="gvideo" controls preload="none" playsinline poster="${esc(rawgImg(sc.video.poster || ""))}" src="${esc(sc.video.mp4)}" aria-label="Trailer de ${esc(g.title)}"></video>` : ""}
+      ${shots.length ? `<ul class="gshots" aria-label="Imagens do jogo">${shots.map((u, n) => `<li><button type="button" class="gshot" data-shot="${n}" aria-label="Ampliar imagem ${n + 1} de ${shots.length}"><img src="${esc(u)}" alt="" loading="lazy" decoding="async"></button></li>`).join("")}</ul>` : ""}`;
+    m.hidden = false;
+    m.querySelectorAll("[data-shot]").forEach((b) => (b.onclick = () => openShot(shots, +b.dataset.shot, g.title)));
   });
   getData("about", g.system).then((all) => {
     const ab = pickAny(all);
@@ -1494,7 +1514,7 @@ function clampList(ul, n, what) {
   const btn = $("#fMoreBtn"), box = $("#fMore");
   if (!btn) return;
   const count = () => {
-    const n = ["#fDevice", "#fSystem", "#fStatus"].filter((id) => $(id).value).length;
+    const n = ["#fDevice", "#fSystem", "#fStatus", "#fScore"].filter((id) => $(id).value).length;
     $("#fMoreLabel").textContent = n ? `Filtros (${n})` : "Filtros";
   };
   btn.onclick = () => { box.classList.toggle("open"); btn.setAttribute("aria-expanded", box.classList.contains("open")); };
@@ -1713,6 +1733,24 @@ $("#adminBody").addEventListener("click", (e) => {
   if (!b) return;
   navigator.clipboard?.writeText(b.dataset.copy).then(() => toast("Comando copiado"), () => toast("Não consegui copiar"));
 });
+
+// Imagem ampliada (sem sair do portal): setas trocam, Esc fecha.
+/* O CDN do RAWG só serve alguns tamanhos: crop/640/360 dá 404, resize/640/- funciona. */
+const rawgImg = (u) => u.replace(/\/media\/crop\/\d+\/\d+\//, "/media/resize/640/-/");
+
+function openShot(shots, n, title) {
+  const dlg = $("#shotDlg"), big = (u) => rawgImg(u).replace("/resize/640/-/", "/resize/1280/-/");
+  const show = () => {
+    $("#shotImg").src = big(shots[n]);
+    $("#shotImg").alt = `Imagem ${n + 1} de ${shots.length} de ${title}`;
+    $("#shotCount").textContent = `${n + 1} / ${shots.length}`;
+  };
+  $("#shotPrev").onclick = () => { n = (n - 1 + shots.length) % shots.length; show(); };
+  $("#shotNext").onclick = () => { n = (n + 1) % shots.length; show(); };
+  dlg.onkeydown = (e) => { if (e.key === "ArrowLeft") $("#shotPrev").click(); if (e.key === "ArrowRight") $("#shotNext").click(); };
+  show();
+  dlg.showModal();
+}
 
 // ---------- tema das plataformas ----------
 async function loadThemes() {
