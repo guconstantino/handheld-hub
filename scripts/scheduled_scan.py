@@ -45,7 +45,9 @@ def main():
             run(log, "npm", "run", "r2")
             run(log, PY, "-I", "scripts/covers.py", "--sql")
             run(log, sys.executable, "scripts/catalog.py")
-            run(log, sys.executable, "scripts/rawg_scores.py")   # notas do Metacritic: só consulta jogos novos (cache)
+            run(log, sys.executable, "scripts/rawg_scores.py")   # RAWG: só consulta jogos novos (cache); lê o catálogo
+            run(log, sys.executable, "scripts/catalog.py")       # de novo, para levar notas, nomes e anos do RAWG
+            run(log, sys.executable, "scripts/dupes.py")         # relatório de duplicatas (Saúde) + comando no Mac
             run(log, "npx", "wrangler", "deploy")
             log.write(f"=== {datetime.now():%F %T} fim\n")
     finally:

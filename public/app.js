@@ -96,7 +96,7 @@ const pref = (k, d) => { try { return localStorage.getItem(k) || d; } catch { re
 const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 // Preferências sincronizadas entre aparelhos (KV do Worker, por usuário do Access). Toda gravação dessas chaves no
 // localStorage agenda um envio (1,5 s depois, juntando mudanças seguidas). Ao abrir, as do servidor vencem.
-const SYNC_KEYS = ["hh_ra_user", "hh_theme", "hh_ptheme", "hh_layout", "hh_view", "hh_gsort", "hh_tsort", "hh_csort", "hh_psort", "hh_gpsort", "hh_listtab", "hh_keys", "hh-trusted-hosts", "hh_tempo"];
+const SYNC_KEYS = ["hh_ra_user", "hh_theme", "hh_ptheme", "hh_layout", "hh_view", "hh_gsort", "hh_tsort", "hh_csort", "hh_psort", "hh_gpsort", "hh_listtab", "hh_keys", "hh-trusted-hosts", "hh_tempo", "hh_tdev"];
 const PREFS = { on: false, timer: null };
 const prefSnapshot = () => {
   const o = {};
@@ -1570,6 +1570,37 @@ async function loadHealth() {
         <p class="muted small" style="margin-bottom:10px">Estão em algum console, mas não no Drive. Vale copiar para o Drive. Switch, ports e jogos de PC ficam fora do backup por escolha e não entram nesta conta.</p>${sysList(h.noBackup, "nobackup", "Sem backup no Drive")}</section>
       <section class="tile" aria-labelledby="t-don"><h2 id="t-don">${icon("cloud", "sm")}Só no Drive, por plataforma</h2>
         <p class="muted small" style="margin-bottom:10px">Estão no acervo, mas em nenhum console. Bom para escolher o que instalar.</p>${sysList(h.driveOnly, "driveonly", "Só no Drive")}</section>
+    </div>
+    <section class="tile" aria-labelledby="t-dup" id="dupSec"></section>`;
+  loadDupes();
+}
+
+// Duplicatas: o mesmo arquivo repetido na mesma pasta (scripts/dupes.py). Idênticas = mesmo tamanho, dá para
+// apagar (o comando fica no Mac do admin); prováveis = tamanho diferente, só revisar. O portal não apaga nada.
+async function loadDupes() {
+  const el = $("#dupSec");
+  const d = await fetch("data/dupes.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (!el || !d) { el?.remove(); return; }
+  const files = (lst) => lst.reduce((n, i) => n + i.extras.length, 0), bytes = (lst) => lst.reduce((n, i) => n + i.extras.reduce((a, x) => a + x.size, 0), 0);
+  const byLoc = {};
+  for (const i of [...d.exact, ...d.probable]) byLoc[i.loc] = (byLoc[i.loc] || 0) + i.extras.length;
+  const base = (p) => p.split("/").pop();
+  const item = (i) => `<li><span><a class="tlink" href="${gameHref({ game_key: i.key })}">${esc(base(i.keep))}</a>
+      <span class="muted small">${esc(sysName(i.system))} · ${esc(copyLabel(deviceOf(locOf(i.loc).device_id), i.loc))} · fica este</span></span>
+      <span class="small dup-extra"><b>Cópia${i.extras.length > 1 ? "s" : ""}:</b> ${i.extras.map((x) => `${esc(base(x.rel))} <span class="muted">(${fmtB(x.size)})</span>`).join("<br>")}</span></li>`;
+  const list = (lst, label) => lst.length ? `<ul class="list fixlist dup-list" tabindex="0" aria-label="${label}">${lst.slice(0, 200).map(item).join("")}</ul>
+      ${lst.length > 200 ? `<p class="muted small">E mais ${fmtN(lst.length - 200)}.</p>` : ""}` : `<p class="muted small">Nenhuma.</p>`;
+  const admin = state.me?.role === "admin" || !state.me;
+  el.innerHTML = `<div class="tile-head"><h2 id="t-dup">${icon("layers", "sm")}Duplicatas</h2>
+      <span class="muted small">${Object.entries(byLoc).map(([l, n]) => `${esc(copyLabel(deviceOf(locOf(l).device_id), l))}: ${fmtN(n)}`).join(" · ")}</span></div>
+    <p class="muted small">O mesmo jogo repetido na mesma pasta: cópias "(1)" e "- Copia" do Drive ou do Windows. Disco 1 e disco 2, versões de região e revisões diferentes não contam. Atualizado em ${esc(d.generated)}.</p>
+    <div class="fixgroups">
+      <details><summary><span class="fix ok">Idênticas: dá para apagar</span> <b>${fmtN(files(d.exact))}</b> <span class="muted small">${fmtB(bytes(d.exact))} · mesmo nome e mesmo tamanho</span></summary>
+        ${admin && d.exact.length ? `<p class="muted small dup-cmd">O comando para apagar fica no Mac: <code>data/dupes-remover.sh</code>. Confira e rode no Terminal. No Drive, o arquivo vai para a lixeira (dá para recuperar por 30 dias).</p>` : ""}
+        ${list(d.exact, "Duplicatas idênticas")}</details>
+      <details><summary><span class="fix warn">Prováveis: revisar</span> <b>${fmtN(files(d.probable))}</b> <span class="muted small">${fmtB(bytes(d.probable))} · mesmo jogo, arquivo de tamanho diferente</span></summary>
+        <p class="muted small">Pode ser o mesmo jogo compactado de outro jeito ou outro dump. Abra no emulador antes de apagar.</p>
+        ${list(d.probable, "Duplicatas prováveis")}</details>
     </div>`;
 }
 document.addEventListener("click", (e) => {
@@ -1643,14 +1674,19 @@ $("#matrixMore").onclick = () => drawMatrix(true);
 const anoLabel = (a) => (a.endsWith("s") ? `Anos ${a.slice(2, 4)} (${a.slice(0, 4)}–${+a.slice(0, 4) + 9})` : `Lançados em ${a}`);
 async function loadTimeline() {
   if (!$("#timeChart") || !window.HH_CHARTS) return;
-  const t = await api("/api/timeline");
-  if (!t.years.length) return;
-  $("#timeNote").textContent = `${fmtN(t.known)} de ${fmtN(t.total)} jogos com ano conhecido`;
+  // Um lugar (S20, Miyoo, Switch, Drive) ou todos: de que época é o acervo de cada console. Lembra a escolha.
+  const devId = pref("hh_tdev", "");
+  $("#timeDev").innerHTML = [["", "Todos"], ...state.devices.map((d) => [d.id, shortName(d)])].map(([id, label]) =>
+    `<button type="button" data-tdev="${esc(id)}" aria-pressed="${devId === id}">${id ? `<i class="dot" ${dev(id)}></i>` : ""}${esc(label)}</button>`).join("");
+  const t = await api(`/api/timeline${devId ? `?device=${encodeURIComponent(devId)}` : ""}`);
+  if (!t.years.length) { $("#timeChart").innerHTML = `<p class="muted small">Nenhum jogo com ano conhecido aqui.</p>`; $("#timeDecades").innerHTML = ""; return; }
+  const where = devId ? ` no ${shortName(deviceOf(devId))}` : "";
+  $("#timeNote").textContent = `${fmtN(t.known)} de ${fmtN(t.total)} jogos${where} com ano conhecido`;
   const peak = t.years.reduce((a, b) => (b.n > a.n ? b : a));
   HH_CHARTS.columns($("#timeChart"), t.years, {
-    x: (d) => d.year, y: (d) => d.n, href: (d) => (d.n ? `#games?ano=${d.year}` : null),
+    x: (d) => d.year, y: (d) => d.n, href: (d) => (d.n ? `#games?ano=${d.year}${devId ? `&dev=${devId}` : ""}` : null),
     tipLabel: (d) => `${d.year}: ${fmtN(d.n)} ${d.n === 1 ? "jogo" : "jogos"}`,
-    aria: `Jogos por ano de lançamento, de ${t.years[0].year} a ${t.years.at(-1).year}. Ano com mais jogos: ${peak.year}, com ${fmtN(peak.n)}.`,
+    aria: `Jogos${where} por ano de lançamento, de ${t.years[0].year} a ${t.years.at(-1).year}. Ano com mais jogos: ${peak.year}, com ${fmtN(peak.n)}.`,
   });
   // Décadas: resumo legível (e alternativa em texto ao gráfico), cada uma abre a lista filtrada.
   const dec = {};
@@ -1662,16 +1698,22 @@ async function loadTimeline() {
 }
 $("#timeDecades")?.addEventListener("click", (e) => {
   const b = e.target.closest("[data-ano]");
-  if (b) goGames({ ano: b.dataset.ano, device: "", system: "", status: "" });
+  if (b) goGames({ ano: b.dataset.ano, device: pref("hh_tdev", ""), system: "", status: "" });
+});
+$("#timeDev")?.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-tdev]");
+  if (!b) return;
+  setPref("hh_tdev", b.dataset.tdev);
+  loadTimeline().then(() => $(`#timeDev [data-tdev="${b.dataset.tdev}"]`)?.focus());
 });
 // Coluna do gráfico: o link "#games?ano=1995" vira o filtro. Troca a entrada do histórico (não empilha):
 // senão o "voltar" cairia de novo no "#games?ano=…" e redirecionaria para Jogos sem fim.
 addEventListener("hashchange", () => {
-  const m = location.hash.match(/^#games\?ano=(\d{4}s?)$/);
+  const m = location.hash.match(/^#games\?ano=(\d{4}s?)(?:&dev=([\w-]+))?$/);
   if (!m) return;
   history.replaceState(null, "", "#games");
   dispatchEvent(new HashChangeEvent("hashchange"));
-  goGames({ ano: m[1], device: "", system: "", status: "" });
+  goGames({ ano: m[1], device: m[2] || "", system: "", status: "" });
 });
 
 const whereLabel = (sig) => sig.split("+").map((d) => shortName(deviceOf(d))).join(" + ");

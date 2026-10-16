@@ -227,13 +227,20 @@
         mc: mc || null, horas: horas || null };
     }).filter(Boolean),
     // Linha do tempo: jogos (únicos) por ano de lançamento; `known` = quantos têm ano conhecido.
-    "/api/timeline": (X) => X.timeline ||= (() => {
-      const n = {};
-      for (const k of X.byKey.keys()) { const y = X.yr(k); if (y) n[y] = (n[y] || 0) + 1; }
+    // `device` (opcional): só os jogos que têm cópia naquele lugar.
+    "/api/timeline": (X, p) => ((X.timeline ||= {})[p.get("device") || ""] ||= (() => {
+      const dev = p.get("device"), n = {};
+      let total = 0;
+      for (const [k, c] of X.byKey) {
+        if (dev && !c.some((x) => x.device_id === dev)) continue;
+        total++;
+        const y = X.yr(k);
+        if (y) n[y] = (n[y] || 0) + 1;
+      }
       const ys = Object.keys(n).map(Number), years = [];
-      for (let y = Math.min(...ys); y <= Math.max(...ys); y++) years.push({ year: y, n: n[y] || 0 });
-      return { years, known: Object.values(n).reduce((a, b) => a + b, 0), total: X.byKey.size };
-    })(),
+      if (ys.length) for (let y = Math.min(...ys); y <= Math.max(...ys); y++) years.push({ year: y, n: n[y] || 0 });
+      return { years, known: Object.values(n).reduce((a, b) => a + b, 0), total };
+    })()),
     // Joias esquecidas: nota alta no Metacritic e só no Drive (em nenhum console). `runs` = consoles que já rodam a
     // plataforma (dá para instalar). Fora do backup por decisão (Switch, ports...) não entra.
     "/api/gems": (X, p) => {

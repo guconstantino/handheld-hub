@@ -1397,3 +1397,11 @@ tr[data-gp-focus="true"] td:first-child {
 .time-chart [aria-label] rect { cursor: pointer; }
 .time-decades { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; }
 .time-decades .chip b { font-weight: 650; margin-right: 4px; }
+/* Duplicatas (Saúde) */
+.dup-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 16px; align-items: start; }
+.dup-list li > span:first-child { display: grid; gap: 2px; }
+.dup-extra { color: var(--muted); overflow-wrap: anywhere; }
+.dup-cmd code { font-size: 12px; padding: 1px 5px; border-radius: 4px; background: var(--hover); }
+@media (max-width: 700px) { .dup-list li { grid-template-columns: minmax(0, 1fr); } }
+.time-dev { margin-bottom: 8px; order: 0; }
+.time-dev .dot { margin-right: 2px; }
