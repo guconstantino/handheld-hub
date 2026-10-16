@@ -5,7 +5,7 @@ O site não consulta o D1 em produção (o plano grátis lê 5 mi de linhas/dia 
 tabela toda). Fluxo: scanner → D1 local → este script → wrangler deploy.
   python3 scripts/catalog.py
 """
-import json, os, subprocess
+import json, os, re, subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,7 +23,8 @@ def build():
     locations = d1("""SELECT l.*, COUNT(f.id) AS files, COALESCE(SUM(f.size),0) AS bytes,
                       SUM(f.status='corrupted') AS corrupted, COUNT(DISTINCT f.system) AS systems
                       FROM locations l LEFT JOIN files f ON f.location_id = l.id GROUP BY l.id ORDER BY l.device_id, l.id""")
-    files = d1("SELECT location_id, system, title, game_key, ext, size, status, drive_id FROM files")
+    # .bak/.tmp/.log: sobras de front-end (ex. "miyoogamelist.xml.bak") gravadas antes de o scanner pular essas extensões.
+    files = d1("SELECT location_id, system, title, game_key, ext, size, status, drive_id FROM files WHERE ext NOT IN ('bak', 'tmp', 'log')")
     covers = {r["game_key"]: r["file"] for r in d1("SELECT game_key, file FROM covers")}
     # Só capas que existem em public/covers/ (o download pode estar no meio).
     cdir = os.path.join(ROOT, "public", "covers")
@@ -37,7 +38,30 @@ def build():
     rows = [[loc_ids.index(f["location_id"]), systems.index(f["system"]), f["title"], f["game_key"].split("|", 1)[1],
              status.index(f["status"]), f["size"] or 0, f["ext"] or "", f["drive_id"] or ""] for f in files]
     return {"devices": devices, "locations": locations, "systems": systems, "status": status,
-            "files": rows, "covers": covers, "names": arcade_names(files), "scores": rawg_scores()}
+            "files": rows, "covers": covers, "names": {**rawg_names(files), **arcade_names(files)}, "scores": rawg_scores()}
+
+
+def cru(title):
+    """Nome de arquivo cru, sem cara de título: "dino_crisis_2", "legend_of_mana", "SUPER MARIO ODYSSEY".
+    O "_" no lugar do apóstrofo ("Baldur_s Gate") não conta: o hh-api.js já mostra o apóstrofo."""
+    t = re.sub(r"\s*[\(\[].*$", "", title).strip()
+    t = re.sub(r"(?<=[a-z])_(?=(s|n|t|ll|re|d|ve|m)\b| )", "'", t)
+    if not re.search(r"[A-Za-z]", t):
+        return False
+    return "_" in t or t == t.lower() or (t == t.upper() and len(re.findall(r"\b[A-Z]{4,}\b", t)) >= 2)
+
+
+def rawg_names(files):
+    """Nome oficial do RAWG (só para nomes crus): "dino_crisis_2" → "Dino Crisis 2". O RAWG às vezes põe o ano
+    ("Yoshi's Story (1997)"); sai. O nome do arquivo continua em `rom` (página do jogo, "Onde está")."""
+    path = os.path.join(ROOT, "data", "rawg-cache.json")
+    cache = json.load(open(path)) if os.path.exists(path) else {}
+    out = {}
+    for f in files:
+        v = cache.get(f["game_key"])
+        if v and v.get("nome") and cru(f["title"]):
+            out[f["game_key"]] = re.sub(r"\s*\(\d{4}\)$", "", v["nome"])
+    return out
 
 
 def rawg_scores():

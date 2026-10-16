@@ -134,6 +134,8 @@ def main():
             ck = f"{s}|{k}"
             if ck not in cache:
                 limpo = re.sub(r"\s*[\(\[].*$", "", titulo).strip() or titulo
+                if "_" in limpo or limpo == limpo.lower():  # nome de arquivo cru ("dino_crisis_2"): busca pela chave
+                    limpo = re.sub(r"\s*\d{3}$", "", k)    # "metal slug x super vehicle 001" → sem o "-001"
                 CONSULTAS[0] += 1
                 res = buscar(key, limpo, PLATAFORMAS[s])
                 if res is None:

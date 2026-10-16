@@ -1377,3 +1377,17 @@ tr[data-gp-focus="true"] td:first-child {
 @media (prefers-reduced-motion: no-preference) { .today-card { animation: todayIn .25s ease-out; } }
 @keyframes todayIn { from { opacity: 0; transform: translateY(4px); } }
 .play-head .seg { order: 0; }
+/* Prêmios do RetroAchievements: aro dourado = masterizado/completado, prata = zerado. */
+.ra-awards { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 6px; padding: 0; }
+.aw { display: block; border-radius: 10px; padding: 3px; }
+.aw img { width: 48px; height: 48px; border-radius: 7px; display: block; }
+.aw-mastered, .aw-completed { background: linear-gradient(135deg, #f5c542, #b8860b); }
+.aw-beaten-hardcore, .aw-beaten-softcore { background: linear-gradient(135deg, #d9dee5, #8a94a3); }
+.aw-completed img, .aw-beaten-softcore img { opacity: .9; }
+.ra-near { list-style: none; display: grid; gap: 8px; margin: 8px 0 4px; padding: 0; }
+.ra-near a { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+.ra-near img { width: 40px; height: 40px; border-radius: 6px; }
+.ra-near span { display: grid; }
+.ra-award { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; background: var(--hover); font-size: 14px; }
+.ra-award.aw-mastered, .ra-award.aw-completed { background: rgb(245 197 66 / .16); }
+.ra-award .btn { margin-left: auto; }

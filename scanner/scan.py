@@ -20,7 +20,8 @@ ADB_SERIAL = os.environ.get("ANDROID_SERIAL", "")
 # Arquivos que não são jogo (mídia, saves, metadados de front-end).
 SKIP_EXT = {"nomedia", "png", "jpg", "jpeg", "gif", "webp", "mp4", "txt", "xml", "db", "lpl", "srm",
             "sav", "state", "cfg", "ini", "nfo", "dat", "json", "md", "ds_store", "url", "lnk",
-            "ico", "pdf", "gdoc", "xlsx", "opt", "rtc", "mcr"}
+            "ico", "pdf", "gdoc", "xlsx", "opt", "rtc", "mcr",
+            "bak", "tmp", "log"}                         # "miyoogamelist.xml.bak": backup da lista do Miyoo, não jogo
 SKIP_DIRS = {"media", "ps2_bios", "bios", "apps", "images", "videos", "manuals", "snap", "covers", "imgs"}
 # O Drive duplica pastas como "media (1)": compara sem o " (n)" do fim.
 skip_dir = lambda d: re.sub(r"\s*\(\d+\)$", "", d.strip().lower()) in SKIP_DIRS

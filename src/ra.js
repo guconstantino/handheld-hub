@@ -17,10 +17,11 @@ export async function summary({ user, key }) {
   // Últimas conquistas: o RecentAchievements do resumo só cobre os jogos dos últimos dias; o
   // "earned between" (últimos 10 anos) traz o histórico completo com data e selo.
   const now = Math.floor(Date.now() / 1000);
-  const [sum, prog, earned] = await Promise.all([
+  const [sum, prog, earned, aw] = await Promise.all([
     call("API_GetUserSummary", { u: user, g: 30, a: 10 }, key),
     call("API_GetUserCompletionProgress", { u: user, c: 500 }, key),
     call("API_GetAchievementsEarnedBetween", { u: user, f: now - 10 * 365 * 86400, t: now }, key).catch(() => []),
+    call("API_GetUserAwards", { u: user }, key).catch(() => null),
   ]);
   // Jogados recentemente trazem a contagem em sum.Awarded[GameID]; o progresso geral traz no próprio item.
   const game = (g) => {
@@ -47,6 +48,24 @@ export async function summary({ user, key }) {
       badge: a.BadgeURL ? MEDIA + a.BadgeURL : null, date: a.Date, hardcore: !!Number(a.HardcoreMode || 0),
     })).sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, 12),
     progress: (prog.Results || []).map(game),
+    awards: awards(aw),
+  };
+}
+
+// Prêmios de jogo (os de site/evento ficam de fora). Tipo como no HighestAwardKind do progresso:
+// mastered (100% hardcore), completed (100% softcore), beaten-hardcore, beaten-softcore (zerou: conquistas de progressão).
+function awards(aw) {
+  if (!aw) return null;
+  const kind = (a) => a.AwardType === "Mastery/Completion" ? (Number(a.AwardDataExtra) ? "mastered" : "completed")
+    : a.AwardType === "Game Beaten" ? (Number(a.AwardDataExtra) ? "beaten-hardcore" : "beaten-softcore") : null;
+  const list = (aw.VisibleUserAwards || []).map((a) => ({
+    gameId: Number(a.AwardData), title: a.Title, console: a.ConsoleName, icon: a.ImageIcon ? MEDIA + a.ImageIcon : null,
+    kind: kind(a), date: a.AwardedAt,
+  })).filter((a) => a.kind).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  return {
+    mastered: Number(aw.MasteryAwardsCount || 0), completed: Number(aw.CompletionAwardsCount || 0),
+    beatenHardcore: Number(aw.BeatenHardcoreAwardsCount || 0), beatenSoftcore: Number(aw.BeatenSoftcoreAwardsCount || 0),
+    list,
   };
 }
 

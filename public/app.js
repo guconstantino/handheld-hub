@@ -1154,6 +1154,7 @@ function drawRA() {
         <span><b>${esc(a.title)}</b><span class="muted small">${k ? `<a class="tlink" href="#game-${encodeURIComponent(k)}">${esc(a.game)}</a>` : esc(a.game)} · <time datetime="${esc(a.date.replace(" ", "T"))}">${when}</time>${a.hardcore ? " · hardcore" : ""}</span></span>
         <span class="ach-pts">${fmtN(a.points)}</span></li>`;
     }).join("")}</ul>` : "";
+  drawAwards(d);
   clampList($("#raRecent"), 6, "Jogados recentemente");
   if ($("#raAch .ach")) clampList($("#raAch .ach"), 6, "Últimas conquistas");
   const started = d.progress.filter((g) => g.earned > 0).sort((a, b) => b.earned / b.total - a.earned / a.total);
@@ -1161,6 +1162,33 @@ function drawRA() {
     ? `${fmtN(started.length)} jogos com conquistas desbloqueadas.`
     : "Ainda sem conquistas desbloqueadas. Elas aparecem aqui assim que você ganhar a primeira (RetroArch → Conquistas ligado).";
 }
+// Prêmios do RA: masterizados e zerados (de cada pessoa: cada um liga a própria conta do RA). Sem prêmio ainda,
+// mostra os jogos mais perto de completar, que é o que dá vontade de voltar a jogar.
+const AWARD = { mastered: ["Masterizado", "trophy"], completed: ["Completado", "trophy"], "beaten-hardcore": ["Zerado (hardcore)", "circle-check"], "beaten-softcore": ["Zerado", "circle-check"] };
+function drawAwards(d) {
+  const el = $("#raAwards");
+  if (!el) return;
+  const a = d.awards, list = a?.list || [];
+  const byId = new Map([...d.progress, ...d.recent].map((g) => [g.id, g]));
+  if (list.length) {
+    const n = (x, um, varios) => x ? `${fmtN(x)} ${x === 1 ? um : varios}` : "";
+    const counts = [n(a.mastered, "masterizado", "masterizados"), n(a.completed, "completado", "completados"),
+      n(a.beatenHardcore + a.beatenSoftcore, "zerado", "zerados")].filter(Boolean).join(" · ");
+    el.innerHTML = `<h3 class="ra-sub">Prêmios · ${counts}</h3><ul class="ra-awards">${list.slice(0, 24).map((x) => {
+      const g = byId.get(x.gameId) || { id: x.gameId }, [label] = AWARD[x.kind];
+      const when = x.date ? new Date(x.date.replace(" ", "T")).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "";
+      return `<li><a class="aw aw-${x.kind}" href="${raHref(g)}" ${raExt(g)} title="${esc(`${x.title} · ${label}${when ? ` · ${when}` : ""}`)}">
+        <img src="${esc(x.icon || "")}" alt="" loading="lazy"><span class="sr-only">${esc(x.title)}: ${label}${when ? `, ${when}` : ""}</span></a></li>`;
+    }).join("")}</ul>`;
+    return;
+  }
+  // Ainda sem prêmio: os 3 mais perto de 100% (já começados).
+  const near = d.progress.filter((g) => g.total && g.earned > 0 && g.earned < g.total).sort((x, y) => y.earned / y.total - x.earned / x.total).slice(0, 3);
+  el.innerHTML = `<h3 class="ra-sub">Prêmios</h3><p class="muted small">Nenhum jogo zerado ou masterizado ainda.${near.length ? " Mais perto:" : ""}</p>
+    ${near.length ? `<ul class="ra-near">${near.map((g) => `<li><a href="${raHref(g)}" ${raExt(g)}><img src="${esc(g.icon || "")}" alt="" loading="lazy">
+      <span><b>${esc(g.title)}</b><span class="muted small">${fmtN(g.earned)} de ${fmtN(g.total)} conquistas · faltam ${fmtN(g.total - g.earned)}</span></span></a></li>`).join("")}</ul>` : ""}`;
+}
+
 async function drawGameRA(g) {
   const sec = $("#graSec");
   if (!sec) return;
@@ -1177,7 +1205,12 @@ async function drawGameRA(g) {
   const x = await r.json();
   const pct = x.total ? (x.earned / x.total) * 100 : 0;
   const neverPlayed = !RA.data.progress.some((p) => p.id === x.id) && !RA.data.recent.some((p) => p.id === x.id);
-  sec.innerHTML = `<div class="tile-head"><h2>Conquistas · ${fmtN(x.earned)} de ${fmtN(x.total)}</h2>
+  // Prêmio deste jogo (o mais alto). Zerou no RA e ainda não está no "Zerei": oferece marcar (lista é de cada pessoa).
+  const kind = RA.data.awards?.list?.find((a) => a.gameId === x.id)?.kind
+    || [...RA.data.progress, ...RA.data.recent].find((p) => p.id === x.id)?.award;
+  const award = AWARD[kind] ? `<p class="ra-award aw-${kind}">${icon(AWARD[kind][1], "sm")}<b>${AWARD[kind][0]}</b> no RetroAchievements
+      ${inList("done", g.game_key) ? "" : `<button type="button" class="btn sm" id="raMarkDone">Marcar como Zerei</button>`}</p>` : "";
+  sec.innerHTML = `${award}<div class="tile-head"><h2>Conquistas · ${fmtN(x.earned)} de ${fmtN(x.total)}</h2>
       <a class="tlink small" href="https://retroachievements.org/game/${x.id}" target="_blank" rel="noopener">Ver no RetroAchievements</a></div>
     <div class="ra-progress"><span class="bar"><i style="width:${pct}%"></i></span><span class="muted small">${neverPlayed ? "Você ainda não jogou com conquistas ligadas · " : ""}${fmtN(x.userPoints)} de ${fmtN(x.points)} pontos · ${fmtN(x.players)} jogadores</span></div>
     <ul class="ach">${x.achievements.map((a) => `<li class="${a.earned ? "on" : ""}">
@@ -1185,6 +1218,12 @@ async function drawGameRA(g) {
       <span><b>${esc(a.title)}</b><span class="muted small">${esc(a.description)}</span></span>
       <span class="ach-pts">${fmtN(a.points)}</span>
       <span class="sr-only">${a.earned ? "desbloqueada" : "bloqueada"}</span></li>`).join("")}</ul>`;
+  $("#raMarkDone")?.addEventListener("click", (e) => {
+    toggleList("done", g.game_key);
+    document.querySelector('#view-game [data-list="done"]')?.setAttribute("aria-pressed", "true");
+    e.target.remove();
+    toast("Marcado como Zerei");
+  });
 }
 
 // ---------- página do jogo (dados: libretro-database, um arquivo por plataforma) ----------
