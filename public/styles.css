@@ -837,9 +837,9 @@ footer { border-top: 1px solid var(--line); padding: 20px clamp(16px, 3vw, 56px)
   #portsTabs, #epicTabs { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; padding: 2px; }
   #portsTabs button, #epicTabs button { padding: 4px 8px; font-size: 11px; white-space: nowrap; }
   #portsRefreshBtn, #epicRefreshBtn { white-space: nowrap; padding: 4px 8px; font-size: 11px; }
-  #epicSearchInput { min-width: 120px !important; width: 135px; padding: 4px 8px !important; font-size: 11px; }
-  #epicSortSelect { max-width: 135px; padding: 4px 6px !important; font-size: 11px; }
-  #epicBody .tile-head + .muted.small { display: none !important; }
+  #epicSearchInput, #portsSearchInput { min-width: 120px !important; width: 135px; padding: 4px 8px !important; font-size: 11px; }
+  #epicSortSelect, #portsSortSelect { max-width: 135px; padding: 4px 6px !important; font-size: 11px; }
+  #epicBody .tile-head + .muted.small, #portsBody .tile-head + .muted.small { display: none !important; }
   #portsBody .table-wrap, #epicBody .table-wrap { margin-top: 4px !important; }
   .table th { padding: 4px 8px; font-size: 10.5px; white-space: nowrap; }
   .table td { padding: 4px 8px; font-size: 12px; vertical-align: middle; }

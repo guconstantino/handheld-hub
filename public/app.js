@@ -1776,7 +1776,7 @@ $("#themeList").onclick = (e) => {
   dlg.addEventListener("close", () => { pending = null; });
 })();
 
-let portsCache = null, portsFilter = "all", liveHashes = { epicHash: null, portsHash: null };
+let portsCache = null, portsFilter = "all", portsSort = "status", portsQuery = "", liveHashes = { epicHash: null, portsHash: null };
 async function fetchLiveOrStatic(liveUrl, staticUrl) {
   try {
     const r = await fetch(liveUrl, { cache: "no-store" });
@@ -1891,13 +1891,78 @@ async function renderPorts(forceReload = false) {
       }
     }
 
-    const catOrder = { installed: 0, "android-ready": 1, "n64recomp-desktop": 2, "decomp-radar": 3 };
-    const list = [...(portsFilter === "all" ? all : all.filter((p) => p.category === portsFilter))].sort((a, b) => {
-      const ca = catOrder[a.category] ?? 9, cb = catOrder[b.category] ?? 9;
-      if (ca !== cb) return ca - cb;
-      const sa = (a.packageName && pkgStats[a.packageName]?.totalSeconds) || 0;
-      const sb = (b.packageName && pkgStats[b.packageName]?.totalSeconds) || 0;
-      if (sb !== sa) return sb - sa;
+    const updatesCount = all.filter((p) => p.updateStatus === "update-available").length;
+    const readyCount = all.filter((p) => p.category === "android-ready" || p.updateStatus === "ready-to-install").length;
+    const ptbrCount = all.filter((p) => p.ptbr && p.ptbr !== "—" && !p.ptbr.toLowerCase().startsWith("não")).length;
+    const pcCount = all.filter((p) => p.category === "n64recomp-desktop").length;
+    const decompCount = all.filter((p) => p.category === "decomp-radar").length;
+    const installedCount = all.filter((p) => p.category === "installed").length;
+
+    const filtered = all.filter((p) => {
+      if (portsFilter === "installed" && p.category !== "installed") return false;
+      if (portsFilter === "updates" && p.updateStatus !== "update-available") return false;
+      if (portsFilter === "ready" && !(p.category === "android-ready" || p.updateStatus === "ready-to-install")) return false;
+      if (portsFilter === "pc" && p.category !== "n64recomp-desktop") return false;
+      if (portsFilter === "decomp" && p.category !== "decomp-radar") return false;
+      if (portsFilter === "ptbr" && !(p.ptbr && p.ptbr !== "—" && !p.ptbr.toLowerCase().startsWith("não"))) return false;
+
+      if (portsQuery) {
+        const q = portsQuery.toLowerCase();
+        const hay = `${p.name || ""} ${p.shortName || ""} ${p.engine || ""} ${p.system || ""} ${p.packageName || ""} ${p.repository || ""} ${p.ptbr || ""} ${(p.features || []).join(" ")}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    const getStatusPriority = (p) => {
+      if (p.updateStatus === "update-available") return 0;
+      if (p.category === "android-ready" || p.updateStatus === "ready-to-install") return 1;
+      if (p.category === "installed") return 2;
+      if (p.category === "n64recomp-desktop") return 3;
+      if (p.category === "decomp-radar") {
+        const is100 = (p.name || "").includes("100%") || (p.features || []).some((f) => f.includes("100%"));
+        return is100 ? 4 : 5;
+      }
+      return 6;
+    };
+
+    filtered.sort((a, b) => {
+      if (portsSort === "played") {
+        const sa = (a.packageName && pkgStats[a.packageName]?.totalSeconds) || 0;
+        const sb = (b.packageName && pkgStats[b.packageName]?.totalSeconds) || 0;
+        if (sb !== sa) return sb - sa;
+        return (a.name || "").localeCompare(b.name || "", "pt-BR");
+      }
+      if (portsSort === "recent") {
+        const da = a.publishedAt || "1970-01-01";
+        const db = b.publishedAt || "1970-01-01";
+        if (db !== da) return db.localeCompare(da);
+        return (a.name || "").localeCompare(b.name || "", "pt-BR");
+      }
+      if (portsSort === "title") {
+        return (a.name || "").localeCompare(b.name || "", "pt-BR");
+      }
+      if (portsSort === "system") {
+        const sa = a.system || "zzz";
+        const sb = b.system || "zzz";
+        if (sa !== sb) return sa.localeCompare(sb);
+        return (a.name || "").localeCompare(b.name || "", "pt-BR");
+      }
+      if (portsSort === "category") {
+        const catOrder = { installed: 0, "android-ready": 1, "n64recomp-desktop": 2, "decomp-radar": 3 };
+        const ca = catOrder[a.category] ?? 9, cb = catOrder[b.category] ?? 9;
+        if (ca !== cb) return ca - cb;
+        return (a.name || "").localeCompare(b.name || "", "pt-BR");
+      }
+      // default: status (Prontos e Updates primeiro)
+      const pa = getStatusPriority(a);
+      const pb = getStatusPriority(b);
+      if (pa !== pb) return pa - pb;
+      if (pa === 2) {
+        const sa = (a.packageName && pkgStats[a.packageName]?.totalSeconds) || 0;
+        const sb = (b.packageName && pkgStats[b.packageName]?.totalSeconds) || 0;
+        if (sb !== sa) return sb - sa;
+      }
       return (a.name || "").localeCompare(b.name || "", "pt-BR");
     });
 
@@ -1969,25 +2034,39 @@ async function renderPorts(forceReload = false) {
 
     el.innerHTML = `
       <div class="kpis" role="list" aria-label="Resumo de Ports e Decompilações">
-        <div class="kpi" role="listitem"><span class="kpi-label">${icon("gamepad-2", "sm")}Instalados no S20 FE</span><span class="kpi-value">${fmtN(c.installed || 0)}</span><span class="kpi-sub">60 fps · Widescreen 20:9</span></div>
-        <div class="kpi" role="listitem"><span class="kpi-label">${icon("shield-check", "sm")}Traduzidos PT-BR</span><span class="kpi-value">${fmtN(c.ptbr || 0)}</span><span class="kpi-sub">Mods .o2r, Lua e nativos</span></div>
-        <div class="kpi" role="listitem"><span class="kpi-label">${icon("layers", "sm")}Prontos p/ Android</span><span class="kpi-value">${fmtN(c.androidReady || 0)}</span><span class="kpi-sub">Com APK oficial no GitHub</span></div>
-        <div class="kpi" role="listitem"><span class="kpi-label">${icon("wrench", "sm")}Radar de Decomps</span><span class="kpi-value">${fmtN((c.desktopRecomp || 0) + (c.decompRadar || 0))}</span><span class="kpi-sub">${c.decompRadar || 0} decomp.dev · ${c.desktopRecomp || 0} recomps</span></div>
+        <div class="kpi" role="button" tabindex="0" title="Filtrar instalados no S20 FE" data-kpi-filter="installed" style="cursor:pointer"><span class="kpi-label">${icon("gamepad-2", "sm")}Instalados no S20 FE</span><span class="kpi-value">${fmtN(installedCount)}</span><span class="kpi-sub">60 fps · Widescreen 20:9</span></div>
+        <div class="kpi" role="button" tabindex="0" title="Filtrar traduzidos em PT-BR" data-kpi-filter="ptbr" style="cursor:pointer"><span class="kpi-label">${icon("shield-check", "sm")}Traduzidos PT-BR</span><span class="kpi-value">${fmtN(ptbrCount)}</span><span class="kpi-sub">Mods .o2r, Lua e nativos</span></div>
+        <div class="kpi" role="button" tabindex="0" title="Filtrar prontos para Android" data-kpi-filter="ready" style="cursor:pointer"><span class="kpi-label">${icon("layers", "sm")}Prontos p/ Android</span><span class="kpi-value">${fmtN(readyCount)}</span><span class="kpi-sub">Com APK oficial no GitHub</span></div>
+        <div class="kpi" role="button" tabindex="0" title="Filtrar radar de recomps e decomps" data-kpi-filter="decomp" style="cursor:pointer"><span class="kpi-label">${icon("wrench", "sm")}Radar de Decomps</span><span class="kpi-value">${fmtN(pcCount + decompCount)}</span><span class="kpi-sub">${decompCount} decomp.dev · ${pcCount} recomps</span></div>
       </div>
 
       <div class="tile">
         <div class="tile-head" style="flex-wrap:wrap;gap:12px">
           <div class="seg tabs" role="group" aria-label="Filtrar categoria de port" id="portsTabs">
             <button type="button" data-pcat="all" aria-pressed="${portsFilter === "all"}">Todos (${all.length})</button>
-            <button type="button" data-pcat="installed" aria-pressed="${portsFilter === "installed"}">No S20 FE (${c.installed || 0})</button>
-            <button type="button" data-pcat="android-ready" aria-pressed="${portsFilter === "android-ready"}">Prontos p/ Android (${c.androidReady || 0})</button>
-            <button type="button" data-pcat="n64recomp-desktop" aria-pressed="${portsFilter === "n64recomp-desktop"}">Recomps PC (${c.desktopRecomp || 0})</button>
-            <button type="button" data-pcat="decomp-radar" aria-pressed="${portsFilter === "decomp-radar"}">Radar Decomp .dev (${c.decompRadar || 0})</button>
+            <button type="button" data-pcat="installed" aria-pressed="${portsFilter === "installed"}">No S20 FE (${installedCount})</button>
+            ${updatesCount > 0 ? `<button type="button" data-pcat="updates" aria-pressed="${portsFilter === "updates"}" style="color:var(--warn);font-weight:600">Updates (${updatesCount})</button>` : ""}
+            <button type="button" data-pcat="ready" aria-pressed="${portsFilter === "ready"}">Prontos p/ Android (${readyCount})</button>
+            <button type="button" data-pcat="pc" aria-pressed="${portsFilter === "pc"}">Só PC (${pcCount})</button>
+            <button type="button" data-pcat="decomp" aria-pressed="${portsFilter === "decomp"}">Radar Decomp .dev (${decompCount})</button>
+            <button type="button" data-pcat="ptbr" aria-pressed="${portsFilter === "ptbr"}">Traduzidos PT-BR (${ptbrCount})</button>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-            <span class="badge ok" title="Sincronizado com o S20 FE e Cloudflare KV">Ao vivo · ${esc(syncDate)}</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto">
+            <input type="search" id="portsSearchInput" value="${esc(portsQuery)}" placeholder="Buscar port, console ou engine..." style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);min-width:140px;max-width:240px;flex:1 1 180px">
+            <select id="portsSortSelect" aria-label="Ordenar por" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg)">
+              <option value="status" ${portsSort === "status" ? "selected" : ""}>Status (Prontos / Updates primeiro)</option>
+              <option value="played" ${portsSort === "played" ? "selected" : ""}>Mais jogados no S20 FE</option>
+              <option value="recent" ${portsSort === "recent" ? "selected" : ""}>Lançamentos / Updates recentes</option>
+              <option value="title" ${portsSort === "title" ? "selected" : ""}>Ordem alfabética (A–Z)</option>
+              <option value="system" ${portsSort === "system" ? "selected" : ""}>Plataforma / Console</option>
+              <option value="category" ${portsSort === "category" ? "selected" : ""}>Categoria de Port</option>
+            </select>
             <button type="button" class="btn small" id="portsRefreshBtn">Atualizar agora</button>
           </div>
+        </div>
+        <div class="muted small" style="margin-top:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <span>Exibindo <b>${filtered.length}</b> de ${all.length} projetos catalogados</span>
+          <span><span class="badge ok">Sync Inteligente (KV)</span> · Último sync: ${esc(syncDate)}</span>
         </div>
         <div class="table-wrap xscroll" style="margin-top:12px" tabindex="0" role="region" aria-label="Tabela de Ports e Decompilações">
           <table class="table" id="portsTable">
@@ -2002,7 +2081,7 @@ async function renderPorts(forceReload = false) {
               </tr>
             </thead>
             <tbody>
-              ${list.length ? list.map((p) => `
+              ${filtered.length ? filtered.map((p) => `
                 <tr>
                   <td>
                     <div style="display:flex;align-items:center;gap:10px">
@@ -2041,6 +2120,40 @@ async function renderPorts(forceReload = false) {
         renderPorts();
       };
     });
+    el.querySelectorAll(".kpi[data-kpi-filter]").forEach((kpi) => {
+      kpi.onclick = () => {
+        portsFilter = kpi.dataset.kpiFilter;
+        renderPorts();
+      };
+      kpi.onkeydown = (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          portsFilter = kpi.dataset.kpiFilter;
+          renderPorts();
+        }
+      };
+    });
+    const searchInput = el.querySelector("#portsSearchInput");
+    if (searchInput) {
+      searchInput.oninput = (ev) => {
+        portsQuery = ev.target.value;
+        const pos = searchInput.selectionStart;
+        renderPorts().then(() => {
+          const next = $("#portsSearchInput");
+          if (next) {
+            next.focus();
+            try { next.setSelectionRange(pos, pos); } catch {}
+          }
+        });
+      };
+    }
+    const sortSel = el.querySelector("#portsSortSelect");
+    if (sortSel) {
+      sortSel.onchange = (ev) => {
+        portsSort = ev.target.value;
+        renderPorts();
+      };
+    }
     const rBtn = el.querySelector("#portsRefreshBtn");
     if (rBtn) {
       rBtn.onclick = () => {
