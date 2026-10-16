@@ -1409,3 +1409,14 @@ tr[data-gp-focus="true"] td:first-child {
 .similar { grid-column: 1 / -1; }
 .similar .morerow { grid-auto-columns: minmax(96px, 110px); }
 .sim-why { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Minha estante */
+.shelf { margin-bottom: 16px; }
+.shelf .kpis { margin-bottom: 4px; }
+.shelf-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 24px; margin-top: 18px; }
+.shelf-h { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+.shelf-gen { list-style: none; display: grid; gap: 8px; margin: 0 0 8px; padding: 0; }
+.shelf-gen li { display: grid; grid-template-columns: 110px minmax(0, 1fr) 28px; gap: 10px; align-items: center; font-size: 13px; }
+.shelf-gen .bar { height: 8px; }
+.shelf-time { min-height: 160px; }
+@media (max-width: 800px) { .shelf-grid { grid-template-columns: minmax(0, 1fr); } }
+.shelf-gen .bar { margin-top: 0; } .shelf-gen .bar i { display: block; height: 100%; background: var(--series); border-radius: inherit; }

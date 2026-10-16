@@ -73,7 +73,7 @@
       return P.plot(base(el, {
         ariaLabel: aria, height: narrow ? 180 : 220, marginLeft: 40, marginRight: 8, marginTop: 12, marginBottom: 28,
         x: { type: "band", domain: xs, label: null, tickSize: 0, padding: 0.12, tickFormat: (d) => (d % step === 0 ? String(d) : "") },
-        y: { label: null, grid: true, nice: true, ticks: 4, tickFormat: (d) => nf(d) },
+        y: { label: null, grid: true, nice: true, ticks: 4, tickFormat: (d) => (Number.isInteger(d) ? nf(d) : "") },   // contagem: sem "0,5 jogo"
         marks: [
           P.ruleY([0], { stroke: css("--line") }),
           P.barY(rows, { x, y, fill: css("--series"), rx: 2, href: href ? (d) => href(d) : undefined }),

@@ -1444,12 +1444,59 @@ async function drawLists() {
   $("#listTabs").innerHTML = LIST_TABS.map(([l, label]) => `<button type="button" data-tab="${l}" aria-pressed="${l === listTab}">${esc(label)} <span class="muted">${fmtN(keysOf(l).length)}</span></button>`).join("");
   $("#listTabs").querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { listTab = b.dataset.tab; setPref("hh_listtab", listTab); drawLists(); }));
   $("#listsNote").textContent = listsRemote ? "Salvas na sua conta: iguais em todos os aparelhos." : "Sem conexão com a conta: salvas só neste navegador por enquanto.";
+  drawShelf();
   const keys = keysOf(listTab);
   listShown = keys.length ? await api(`/api/pick?keys=${encodeURIComponent(JSON.stringify(keys))}`) : [];
   listOffset = 0;
   $("#listGames").innerHTML = "";
   moreLists();
 }
+// Minha estante: o resumo de cada pessoa (listas, RetroAchievements e dados do RAWG). Cada sobrinho vê a sua.
+async function drawShelf() {
+  const el = $("#shelf");
+  if (!el) return;
+  const pick = (set) => (set.size ? api(`/api/pick?keys=${encodeURIComponent(JSON.stringify([...set]))}`) : Promise.resolve([]));
+  const [done, fav, want, playing] = await Promise.all([pick(LISTS.done), pick(LISTS.fav), pick(LISTS.want), pick(LISTS.playing)]);
+  await RA.ready?.catch?.(() => {});
+  const ra = RA.data, aw = ra?.awards;
+  const fila = want.reduce((n, g) => n + (g.horas || 0), 0), semH = want.filter((g) => !g.horas).length;
+  const kpi = (label, value, sub, ic) => `<div class="kpi" role="listitem"><span class="kpi-label">${icon(ic, "sm")}${label}</span>
+      <span class="kpi-value">${value}</span><span class="kpi-sub">${sub}</span></div>`;
+  const premios = aw ? aw.mastered + aw.completed + aw.beatenHardcore + aw.beatenSoftcore : null;
+  // Gêneros: dos favoritos, zerados e do que está jogando (cada jogo conta uma vez).
+  const gostos = new Map([...fav, ...done, ...playing].map((g) => [g.game_key, g]));
+  const gen = {};
+  for (const g of gostos.values()) for (const x of g.generos) gen[x] = (gen[x] || 0) + 1;
+  const topGen = Object.entries(gen).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  // Linha do tempo pessoal: ano de lançamento de tudo o que está nas listas.
+  const todos = new Map([...gostos, ...want.map((g) => [g.game_key, g])]);
+  const anos = {};
+  for (const g of todos.values()) if (g.ano) anos[g.ano] = (anos[g.ano] || 0) + 1;
+  const ys = Object.keys(anos).map(Number), years = [];
+  if (ys.length) for (let y = Math.min(...ys); y <= Math.max(...ys); y++) years.push({ year: y, n: anos[y] || 0 });
+  const dec = {};
+  for (const y of ys) dec[Math.floor(y / 10) * 10] = (dec[Math.floor(y / 10) * 10] || 0) + anos[y];
+  const decTop = Object.entries(dec).sort((a, b) => b[1] - a[1])[0];
+  el.innerHTML = `
+    <div class="kpis" role="list" aria-label="Números da estante">
+      ${kpi("Zerei", fmtN(LISTS.done.size), done.length ? `em ${fmtN(new Set(done.map((g) => g.system)).size)} plataformas` : "marque na página do jogo", "circle-check")}
+      ${kpi("Prêmios no RA", premios == null ? "—" : fmtN(premios), ra ? `${fmtN(ra.achievementsTotal || 0)} conquistas` : "ligue sua conta em Configurações", "trophy")}
+      ${kpi("Quero jogar", fmtN(LISTS.want.size), fila ? `~${fmtN(fila)} h de jogo na fila${semH ? ` (+${fmtN(semH)} sem dado)` : ""}` : "sua fila de próximos", "bookmark")}
+      ${kpi("Favoritos", fmtN(LISTS.fav.size), playing.length ? `jogando agora: ${esc(cleanTitle(playing[0].title))}` : "os que você mais gosta", "star")}
+    </div>
+    ${topGen.length || years.length ? `<div class="shelf-grid">
+      ${topGen.length ? `<div><h2 class="shelf-h">Seus gêneros</h2><ul class="shelf-gen">${topGen.map(([g, n]) =>
+        `<li><span>${esc(g)}</span><span class="bar"><i style="width:${(n / topGen[0][1]) * 100}%"></i></span><span class="muted small">${fmtN(n)}</span></li>`).join("")}</ul>
+        <p class="muted small">Dos favoritos, zerados e do que está jogando (gêneros do RAWG).</p></div>` : ""}
+      ${years.length > 1 ? `<div><h2 class="shelf-h">De que época você joga</h2><div id="shelfTime" class="shelf-time"></div>
+        <p class="muted small">${decTop ? `A maior parte é dos anos ${String(decTop[0]).slice(2)}. ` : ""}Ano de lançamento dos jogos das suas listas.</p></div>` : ""}
+    </div>` : `<p class="muted small">Marque jogos como favorito, zerado ou quero jogar para montar sua estante.</p>`}`;
+  if (years.length > 1 && window.HH_CHARTS) HH_CHARTS.columns($("#shelfTime"), years, {
+    x: (d) => d.year, y: (d) => d.n, tipLabel: (d) => `${d.year}: ${fmtN(d.n)} ${d.n === 1 ? "jogo" : "jogos"}`,
+    aria: `Jogos das suas listas por ano de lançamento, de ${years[0].year} a ${years.at(-1).year}.`,
+  });
+}
+
 function moreLists() {
   if (!listShown.length) {
     const hint = { playing: "Na página de um jogo, toque em “Jogando agora”.", fav: "Na página de um jogo, toque na estrela.", want: "Na página de um jogo, toque em “Quero jogar”.",
@@ -1602,6 +1649,9 @@ async function loadHealth() {
 
 // Duplicatas: o mesmo arquivo repetido na mesma pasta (scripts/dupes.py). Idênticas = mesmo tamanho, dá para
 // apagar (o comando fica no Mac do admin); prováveis = tamanho diferente, só revisar. O portal não apaga nada.
+// Como a duplicata foi confirmada (scripts/dupes.py --crc).
+const DUP_BY = { crc: "mesma ROM, zip diferente", "cabeçalho": "mesma ROM; a cópia tem cabeçalho de copiadora (.smc/.smd), fica a limpa",
+  conjunto: "mesmo pacote; fica o mais completo", "corrompida": "a cópia está corrompida (não descompacta)" };
 async function loadDupes() {
   const el = $("#dupSec");
   const d = await fetch("data/dupes.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
@@ -1611,7 +1661,7 @@ async function loadDupes() {
   for (const i of [...d.exact, ...d.probable]) byLoc[i.loc] = (byLoc[i.loc] || 0) + i.extras.length;
   const base = (p) => p.split("/").pop();
   const item = (i) => `<li><span><a class="tlink" href="${gameHref({ game_key: i.key })}">${esc(base(i.keep))}</a>
-      <span class="muted small">${esc(sysName(i.system))} · ${esc(copyLabel(deviceOf(locOf(i.loc).device_id), i.loc))} · fica este${locOf(i.loc).device_id !== "drive" ? " · no console: confira qual tem o save antes" : ""}</span></span>
+      <span class="muted small">${esc(sysName(i.system))} · ${esc(copyLabel(deviceOf(locOf(i.loc).device_id), i.loc))} · fica este${DUP_BY[i.by] ? ` · ${DUP_BY[i.by]}` : ""}${i.diff ? " · conteúdo diferente: outro dump ou revisão" : ""}${locOf(i.loc).device_id !== "drive" ? " · no console: confira qual tem o save antes" : ""}</span></span>
       <span class="small dup-extra"><b>Cópia${i.extras.length > 1 ? "s" : ""}:</b> ${i.extras.map((x) => `${esc(base(x.rel))} <span class="muted">(${fmtB(x.size)})</span>`).join("<br>")}</span></li>`;
   const list = (lst, label) => lst.length ? `<ul class="list fixlist dup-list" tabindex="0" aria-label="${label}">${lst.slice(0, 200).map(item).join("")}</ul>
       ${lst.length > 200 ? `<p class="muted small">E mais ${fmtN(lst.length - 200)}.</p>` : ""}` : `<p class="muted small">Nenhuma.</p>`;
@@ -1620,11 +1670,11 @@ async function loadDupes() {
       <span class="muted small">${Object.entries(byLoc).map(([l, n]) => `${esc(copyLabel(deviceOf(locOf(l).device_id), l))}: ${fmtN(n)}`).join(" · ")}</span></div>
     <p class="muted small">O mesmo jogo repetido na mesma pasta: cópias "(1)" e "- Copia" do Drive ou do Windows. Disco 1 e disco 2, versões de região e revisões diferentes não contam. Atualizado em ${esc(d.generated)}.</p>
     <div class="fixgroups">
-      <details><summary><span class="fix ok">Idênticas: dá para apagar</span> <b>${fmtN(files(d.exact))}</b> <span class="muted small">${fmtB(bytes(d.exact))} · mesmo nome e mesmo tamanho</span></summary>
+      <details><summary><span class="fix ok">Idênticas: dá para apagar</span> <b>${fmtN(files(d.exact))}</b> <span class="muted small">${fmtB(bytes(d.exact))} · mesmo arquivo ou a mesma ROM conferida pelo CRC (inclui cópias corrompidas)</span></summary>
         ${admin && d.exact.length ? `<p class="muted small dup-cmd">O comando para apagar as do Drive fica no Mac: <code>data/dupes-remover.sh</code>. Confira e rode no Terminal; o arquivo vai para a lixeira do Drive (dá para recuperar por 30 dias). Nos consoles o save fica preso ao nome do arquivo, por isso eles ficam fora do comando.</p>` : ""}
         ${list(d.exact, "Duplicatas idênticas")}</details>
       <details><summary><span class="fix warn">Prováveis: revisar</span> <b>${fmtN(files(d.probable))}</b> <span class="muted small">${fmtB(bytes(d.probable))} · mesmo jogo, arquivo de tamanho diferente</span></summary>
-        <p class="muted small">Pode ser o mesmo jogo compactado de outro jeito ou outro dump. Abra no emulador antes de apagar.</p>
+        <p class="muted small">${d.probable.some((i) => i.diff) ? `${fmtN(d.probable.filter((i) => i.diff).length)} conferidos pelo CRC: o conteúdo é diferente (outro dump, revisão ou tradução). ` : ""}Abra no emulador antes de apagar qualquer um.</p>
         ${list(d.probable, "Duplicatas prováveis")}</details>
     </div>`;
 }

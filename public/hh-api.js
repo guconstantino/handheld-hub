@@ -231,10 +231,10 @@
       return out;
     },
     // Vários jogos pela chave, na ordem pedida (favoritos, vistos recentemente).
-    "/api/pick": ({ D, byKey, alias, sc }, p) => [...new Set((p.get("keys") ? JSON.parse(p.get("keys")) : []).map((k) => alias[k] || k))].map((k) => {
-      const c = byKey.get(k), [mc, horas] = sc(k);
+    "/api/pick": ({ D, byKey, alias, sc, yr }, p) => [...new Set((p.get("keys") ? JSON.parse(p.get("keys")) : []).map((k) => alias[k] || k))].map((k) => {
+      const c = byKey.get(k), [mc, horas, gen] = sc(k);
       return c && { game_key: k, system: c[0].system, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), cover: D.covers[k] || null, copies: c,
-        mc: mc || null, horas: horas || null };
+        mc: mc || null, horas: horas || null, ano: yr(k), generos: gen ? gen.split("|") : [] };
     }).filter(Boolean),
     // Linha do tempo: jogos (únicos) por ano de lançamento; `known` = quantos têm ano conhecido.
     // `device` (opcional): só os jogos que têm cópia naquele lugar.
