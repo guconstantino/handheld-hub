@@ -38,7 +38,7 @@ def build():
     rows = [[loc_ids.index(f["location_id"]), systems.index(f["system"]), f["title"], f["game_key"].split("|", 1)[1],
              status.index(f["status"]), f["size"] or 0, f["ext"] or "", f["drive_id"] or ""] for f in files]
     return {"devices": devices, "locations": locations, "systems": systems, "status": status,
-            "files": rows, "covers": covers, "names": {**rawg_names(files), **arcade_names(files)}, "scores": rawg_scores()}
+            "files": rows, "covers": covers, "names": {**rawg_names(files), **arcade_names(files)}, "scores": rawg_scores(), "years": years(files)}
 
 
 def cru(title):
@@ -61,6 +61,21 @@ def rawg_names(files):
         v = cache.get(f["game_key"])
         if v and v.get("nome") and cru(f["title"]):
             out[f["game_key"]] = re.sub(r"\s*\(\d{4}\)$", "", v["nome"])
+    return out
+
+
+def years(files):
+    """Ano de lançamento de cada jogo (linha do tempo e filtro por ano): ficha do libretro e, se faltar, o RAWG."""
+    out, keys = {}, {f["game_key"] for f in files}
+    for kind in ("info", "scores"):                       # info primeiro: o RAWG só completa o que falta
+        d = os.path.join(ROOT, "public", "data", kind)
+        for fn in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+            if not fn.endswith(".json"):
+                continue
+            for k, v in json.load(open(os.path.join(d, fn))).items():
+                gk, a = f"{fn[:-5]}|{k}", str(v.get("ano") or "")[:4]
+                if gk in keys and gk not in out and a.isdigit() and 1970 <= int(a) <= 2100:
+                    out[gk] = int(a)
     return out
 
 

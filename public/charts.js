@@ -66,5 +66,22 @@
     })));
   }
 
-  window.HH_CHARTS = { bars, percent, stack, redraw };
+  // Colunas por ano (linha do tempo): série única, grade horizontal discreta, dica ao passar o mouse e clique no ano.
+  function columns(el, rows, { x, y, href, tipLabel, aria }) {
+    mount(el, () => {
+      const narrow = el.clientWidth < 480, xs = rows.map(x), step = narrow ? 10 : 5;
+      return P.plot(base(el, {
+        ariaLabel: aria, height: narrow ? 180 : 220, marginLeft: 40, marginRight: 8, marginTop: 12, marginBottom: 28,
+        x: { type: "band", domain: xs, label: null, tickSize: 0, padding: 0.12, tickFormat: (d) => (d % step === 0 ? String(d) : "") },
+        y: { label: null, grid: true, nice: true, ticks: 4, tickFormat: (d) => nf(d) },
+        marks: [
+          P.ruleY([0], { stroke: css("--line") }),
+          P.barY(rows, { x, y, fill: css("--series"), rx: 2, href: href ? (d) => href(d) : undefined }),
+          P.tip(rows, P.pointerX({ x, y, title: (d) => tipLabel(d) })),
+        ],
+      }));
+    });
+  }
+
+  window.HH_CHARTS = { bars, percent, stack, columns, redraw };
 })();

@@ -122,6 +122,11 @@
             <div class="tile-head"><h2 id="t-sys">Jogos por plataforma</h2><div id="topSort"></div></div>
             <div id="topSystems"></div>
           </section>
+          <section class="tile b-12 timeline" aria-labelledby="t-time" data-block="linha">
+            <div class="tile-head"><h2 id="t-time">Linha do tempo</h2><span class="muted small" id="timeNote"></span></div>
+            <div class="time-chart" id="timeChart"></div>
+            <ul class="time-decades" id="timeDecades" aria-label="Jogos por década"></ul>
+          </section>
           <section class="tile b-4" aria-labelledby="t-mosaic" data-block="mosaico">
             <h2 id="t-mosaic">Do acervo</h2>
             <ul class="mosaic" id="mosaic"></ul>
@@ -414,7 +419,7 @@
   <button type="button" class="totop" id="toTop" hidden><svg class="ic sm" aria-hidden="true"><use href="icons.svg#i-chevron-left"/></svg>Voltar ao topo</button>
   <dialog class="shot-dlg" id="shotDlg" aria-label="Imagem ampliada">
     <img id="shotImg" alt="">
-    <div class="shot-bar"><button type="button" class="btn" id="shotPrev" aria-label="Imagem anterior">‹</button><span id="shotCount" class="small"></span>
+    <div class="shot-bar"><button type="button" class="btn" id="shotPrev" aria-label="Imagem anterior">‹</button><span id="shotCount" class="small" aria-live="polite"></span>
       <button type="button" class="btn" id="shotNext" aria-label="Próxima imagem">›</button><form method="dialog"><button class="btn">Fechar</button></form></div>
   </dialog>
   <dialog class="palette shortcuts themes-dlg" id="themeDlg" aria-labelledby="t-theme">

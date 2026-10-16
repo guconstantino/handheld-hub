@@ -1341,7 +1341,7 @@ tr[data-gp-focus="true"] td:first-child {
 .gscore .muted { color: #d4d4da; }
 
 /* Dados do RAWG na página do jogo: duração, ficha extra, screenshots e trailer. */
-.gtime { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 6px 10px; border-radius: 8px; background: rgb(0 0 0 / .45); border: 1px solid rgb(255 255 255 / .25); }
+.gtime { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; padding: 6px 10px; border-radius: 8px; background: rgb(0 0 0 / .45); border: 1px solid rgb(255 255 255 / .25); }
 .gfacts { margin-bottom: 14px; }
 .gvideo { width: 100%; max-width: 720px; aspect-ratio: 16 / 9; border-radius: 10px; background: #000; margin-bottom: 14px; display: block; }
 .gshots { list-style: none; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 280px); gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
@@ -1391,3 +1391,9 @@ tr[data-gp-focus="true"] td:first-child {
 .ra-award { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; background: var(--hover); font-size: 14px; }
 .ra-award.aw-mastered, .ra-award.aw-completed { background: rgb(245 197 66 / .16); }
 .ra-award .btn { margin-left: auto; }
+#raAwards:not(:empty) { margin-bottom: 16px; }
+/* Linha do tempo */
+.time-chart { min-height: 180px; }
+.time-chart [aria-label] rect { cursor: pointer; }
+.time-decades { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; }
+.time-decades .chip b { font-weight: 650; margin-right: 4px; }

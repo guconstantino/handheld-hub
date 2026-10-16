@@ -378,7 +378,7 @@ async function loadSummary() {
 
 // ---------- visão geral personalizável (ordem e visibilidade dos blocos, salvas no navegador) ----------
 // Ordem padrão: primeiro os consoles/devices no topo, seguido pela atividade ao vivo do S20 FE e resumo do acervo.
-const BLOCKS = [["consoles", "Consoles"], ["s20live", "Atividade ao Vivo · S20 FE"], ["portsFeed", "Radar de Ports & Novidades"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["jogar", "Para jogar"], ["ra", "RetroAchievements"], ["plataformas", "Jogos por plataforma"],
+const BLOCKS = [["consoles", "Consoles"], ["s20live", "Atividade ao Vivo · S20 FE"], ["portsFeed", "Radar de Ports & Novidades"], ["hero", "Jogos no acervo"], ["stats", "Indicadores"], ["relacao", "Entre os aparelhos"], ["meus", "Seus jogos"], ["jogar", "Para jogar"], ["ra", "RetroAchievements"], ["plataformas", "Jogos por plataforma"], ["linha", "Linha do tempo"],
   ["mosaico", "Do acervo (capas)"], ["onde", "Onde estão os arquivos"], ["capas", "Capas por sistema"], ["saude", "Saúde do acervo"]];
 const loadLayout = () => {
   let l; try { l = JSON.parse(localStorage.getItem("hh_layout")); } catch {}
@@ -430,7 +430,7 @@ $("#layoutList").addEventListener("click", (e) => {
 // Abre a tela Jogos já filtrada (usado pela página do console e pelos chips).
 function goGames(filters = {}) {
   // Filtros que não têm seletor (vindos dos cruzamentos da visão geral): viram etiqueta removível.
-  state.gx = { missing: filters.missing, where: filters.where };
+  state.gx = { missing: filters.missing, where: filters.where, ano: filters.ano };
   location.hash = "#games";
   setTimeout(() => {
     for (const [id, v] of Object.entries({ "#fDevice": filters.device, "#fSystem": filters.system, "#fStatus": filters.status, "#fScore": filters.score }))
@@ -787,6 +787,7 @@ function renderChips() {
     sys && ["system", sysName(sys)], st && ["status", STATUS[st]], sco && ["score", $("#fScore").selectedOptions[0].text], q && ["q", `“${q}”`],
     state.gx?.missing && ["missing", `Pronto para instalar no ${shortName(deviceOf(state.gx.missing))}`],
     state.gx?.where && ["where", `Só em: ${whereLabel(state.gx.where)}`],
+    state.gx?.ano && ["ano", anoLabel(state.gx.ano)],
   ].filter(Boolean);
   $("#gChips").innerHTML = `<div class="chiprow" role="group" aria-label="Lugar">${devChips}</div>` + (active.length
     ? `<div class="chiprow" aria-label="Filtros ativos">${active.map(([k, label]) =>
@@ -805,6 +806,7 @@ $("#gChips")?.addEventListener("click", (e) => {
   if (c === "all") $("#fDevice").value = "";
   if (c === "missing" || c === "all") state.gx = { ...state.gx, missing: undefined };
   if (c === "where" || c === "all") state.gx = { ...state.gx, where: undefined };
+  if (c === "ano" || c === "all") state.gx = { ...state.gx, ano: undefined };
   loadGames();
 });
 
@@ -1637,6 +1639,41 @@ $("#matrix").addEventListener("click", (e) => {
 });
 $("#matrixMore").onclick = () => drawMatrix(true);
 
+// Linha do tempo: jogos por ano de lançamento (ficha do libretro + RAWG). Cada coluna e cada década abre a lista.
+const anoLabel = (a) => (a.endsWith("s") ? `Anos ${a.slice(2, 4)} (${a.slice(0, 4)}–${+a.slice(0, 4) + 9})` : `Lançados em ${a}`);
+async function loadTimeline() {
+  if (!$("#timeChart") || !window.HH_CHARTS) return;
+  const t = await api("/api/timeline");
+  if (!t.years.length) return;
+  $("#timeNote").textContent = `${fmtN(t.known)} de ${fmtN(t.total)} jogos com ano conhecido`;
+  const peak = t.years.reduce((a, b) => (b.n > a.n ? b : a));
+  HH_CHARTS.columns($("#timeChart"), t.years, {
+    x: (d) => d.year, y: (d) => d.n, href: (d) => (d.n ? `#games?ano=${d.year}` : null),
+    tipLabel: (d) => `${d.year}: ${fmtN(d.n)} ${d.n === 1 ? "jogo" : "jogos"}`,
+    aria: `Jogos por ano de lançamento, de ${t.years[0].year} a ${t.years.at(-1).year}. Ano com mais jogos: ${peak.year}, com ${fmtN(peak.n)}.`,
+  });
+  // Décadas: resumo legível (e alternativa em texto ao gráfico), cada uma abre a lista filtrada.
+  const dec = {};
+  for (const y of t.years) dec[Math.floor(y.year / 10) * 10] = (dec[Math.floor(y.year / 10) * 10] || 0) + y.n;
+  const max = Math.max(...Object.values(dec));
+  $("#timeDecades").innerHTML = Object.entries(dec).filter(([, n]) => n).map(([d, n]) =>
+    `<li><button type="button" class="chip" data-ano="${d}s" aria-label="${esc(anoLabel(d + "s"))}: ${fmtN(n)} jogos. Ver jogos">
+      <b>Anos ${String(d).slice(2)}</b> ${fmtN(n)}${n === max ? ` <span class="muted">· a maior</span>` : ""}</button></li>`).join("");
+}
+$("#timeDecades")?.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-ano]");
+  if (b) goGames({ ano: b.dataset.ano, device: "", system: "", status: "" });
+});
+// Coluna do gráfico: o link "#games?ano=1995" vira o filtro. Troca a entrada do histórico (não empilha):
+// senão o "voltar" cairia de novo no "#games?ano=…" e redirecionaria para Jogos sem fim.
+addEventListener("hashchange", () => {
+  const m = location.hash.match(/^#games\?ano=(\d{4}s?)$/);
+  if (!m) return;
+  history.replaceState(null, "", "#games");
+  dispatchEvent(new HashChangeEvent("hashchange"));
+  goGames({ ano: m[1], device: "", system: "", status: "" });
+});
+
 const whereLabel = (sig) => sig.split("+").map((d) => shortName(deviceOf(d))).join(" + ");
 async function loadRelation() {
   const x = await api("/api/insights");
@@ -1841,6 +1878,7 @@ function openShot(shots, n, title) {
   dlg.onkeydown = (e) => { if (e.key === "ArrowLeft") $("#shotPrev").click(); if (e.key === "ArrowRight") $("#shotNext").click(); };
   show();
   dlg.showModal();
+  $("#shotNext").focus();                      // sem isso o foco cai no "anterior" (primeiro botão)
 }
 
 // ---------- tema das plataformas ----------
@@ -2711,6 +2749,7 @@ document.addEventListener("visibilitychange", () => {
     await loadSummary();
     await loadSystems();
     loadTopPlatforms();
+    loadTimeline();
     loadMosaic();
     loadMine();
     loadRelation();

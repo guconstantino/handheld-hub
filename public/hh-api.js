@@ -54,7 +54,8 @@
     window.HH_MEMBERS = members;                   // chave do grupo → todas as chaves
     // Nota (Metacritic) e duração (horas para zerar), do RAWG: [nota|0, horas|0]. O grupo herda de qualquer grafia.
     const sc = (k) => (members[k] || [k]).map((m) => D.scores?.[m]).find(Boolean) || [0, 0];
-    return { D, F, byKey, alias, sc };
+    const yr = (k) => (members[k] || [k]).map((m) => D.years?.[m]).find(Boolean) || null;   // ano de lançamento
+    return { D, F, byKey, alias, sc, yr };
   }
   const bySystem = (list) => Object.entries(list.reduce((m, g) => ((m[g.system] = (m[g.system] || 0) + 1), m), {}))
     .map(([system, n]) => ({ system, n })).sort((a, b) => b.n - a.n);
@@ -99,7 +100,7 @@
       }
       return [...m.values()].map(({ keys, ...r }) => ({ ...r, games: keys.size })).sort((a, b) => a.system.localeCompare(b.system));
     },
-    "/api/games": ({ D, F, byKey, sc }, p) => {
+    "/api/games": ({ D, F, byKey, sc, yr }, p) => {
       const q = (p.get("q") || "").toLowerCase();
       const hit = new Set();
       for (const f of F) {
@@ -140,6 +141,12 @@
       }
       const SCORE = { mc75: ([m]) => m >= 75, mc85: ([m]) => m >= 85, curto: ([, h]) => h && h <= 10, longo: ([, h]) => h >= 30 };
       if (SCORE[p.get("score")]) for (const k of [...hit]) if (!SCORE[p.get("score")](sc(k))) hit.delete(k);
+      // Ano de lançamento: "1995" (o ano) ou "1990s" (a década).
+      const ano = p.get("ano");
+      if (ano) {
+        const dec = ano.endsWith("s"), a = parseInt(ano, 10);
+        for (const k of [...hit]) { const y = yr(k); if (!y || (dec ? Math.floor(y / 10) * 10 !== a : y !== a)) hit.delete(k); }
+      }
       const list = [...hit].map((k) => {
         const copies = byKey.get(k), [mc, horas] = sc(k);
         return { game_key: k, system: copies[0].system, title: copies.reduce((t, c) => (c.title < t ? c.title : t), copies[0].title), copies,
@@ -219,6 +226,14 @@
       return c && { game_key: k, system: c[0].system, title: c.reduce((t, x) => (x.title < t ? x.title : t), c[0].title), cover: D.covers[k] || null, copies: c,
         mc: mc || null, horas: horas || null };
     }).filter(Boolean),
+    // Linha do tempo: jogos (únicos) por ano de lançamento; `known` = quantos têm ano conhecido.
+    "/api/timeline": (X) => X.timeline ||= (() => {
+      const n = {};
+      for (const k of X.byKey.keys()) { const y = X.yr(k); if (y) n[y] = (n[y] || 0) + 1; }
+      const ys = Object.keys(n).map(Number), years = [];
+      for (let y = Math.min(...ys); y <= Math.max(...ys); y++) years.push({ year: y, n: n[y] || 0 });
+      return { years, known: Object.values(n).reduce((a, b) => a + b, 0), total: X.byKey.size };
+    })(),
     // Joias esquecidas: nota alta no Metacritic e só no Drive (em nenhum console). `runs` = consoles que já rodam a
     // plataforma (dá para instalar). Fora do backup por decisão (Switch, ports...) não entra.
     "/api/gems": (X, p) => {
