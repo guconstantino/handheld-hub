@@ -1171,6 +1171,7 @@ async function renderGame(key) {
             <a class="pchip" href="#platform-${esc(g.system)}">${esc(sysName(g.system))}</a>
             <h1 tabindex="-1">${esc(g.title)}</h1>
             <p class="gsub">${[year, info.dev, info.genero].filter(Boolean).map(esc).join(" · ") || "Sem ficha no banco do libretro"}</p>
+            <p class="gscore" id="gScore" hidden></p>
             ${gameRegions(g).length ? `<p class="gregions">${gameRegions(g).map((c) => `<span>${flag(c)}${REGION_NAME[c]}</span>`).join("")}</p>` : ""}
             ${bad ? `<span class="badge bad">${icon("triangle-alert", "sm")}Tem cópia corrompida</span>` : ""}
             <div class="gactions">
@@ -1251,6 +1252,19 @@ async function renderGame(key) {
       || `<li class="muted small">Sem outros jogos com capa nesta plataforma.</li>`;
   });
   // Sobre o jogo: introdução da Wikipédia (casada pelo Wikidata), um arquivo por plataforma.
+  // Nota do Metacritic (dados do RAWG; os termos pedem crédito e link). Cor como no Metacritic.
+  getData("scores", g.system).then((all) => {
+    const sc = pickAny(all);
+    const el = $("#gScore");
+    if (!sc?.mc || !el) return;
+    const tier = sc.mc >= 75 ? "good" : sc.mc >= 50 ? "mixed" : "bad";
+    el.innerHTML = `<a class="mc-badge mc-${tier}" href="https://rawg.io/games/${encodeURIComponent(sc.slug)}" target="_blank" rel="noopener"
+      aria-label="Nota do Metacritic: ${sc.mc} de 100. Dados do RAWG"><b>${sc.mc}</b><span>Metacritic</span></a><span class="muted small">via RAWG</span>`;
+    el.hidden = false;
+    // Sem ficha no libretro: o ano vem do RAWG.
+    const sub = el.previousElementSibling;
+    if (sc.ano && sub?.classList.contains("gsub") && sub.textContent.startsWith("Sem ficha")) sub.textContent = sc.ano;
+  });
   getData("about", g.system).then((all) => {
     const ab = pickAny(all);
     if (!ab) return;

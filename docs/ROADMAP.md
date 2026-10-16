@@ -57,6 +57,7 @@ Handoff completo (portal + console) em `s20fe-gamesirx5lite/docs/STATE.md`, seç
 - [x] **Varredura agendada (2026-10-16):** `scripts/scheduled_scan.py` pelo LaunchAgent `com.gustavo.handheld-hub.scan` (todo dia às 5h): S20 se estiver no adb, Miyoo se o cartão estiver montado, capas novas + R2, catálogo e deploy. Log em `data/scheduled-scan.log`. O Drive fica de fora (o launchd não enxerga a pasta do Google Drive). Trava no `scan.py` contra varredura que volta com menos da metade dos arquivos.
 - [x] **Drive completo (2026-10-16):** 0 jogos retro dos consoles fora do Drive, depois de casar nomes com acento (NFD do Mac × NFC dos consoles).
 - [x] **Capas, cauda longa (2026-10-16):** passada por semelhança de nome (corte 0,9, números arábicos e romanos iguais) e eShop para os jogos novos do Switch. Restam ~500 sem capa (PAL alemães do Atari 2600, protótipos, homebrew, ports caseiros de Switch).
+- [x] **Nota do Metacritic (2026-10-16):** `scripts/rawg_scores.py` pela API do RAWG (chave `RAWG_API_KEY` no `.env`; não raspa o Metacritic). Só plataformas da era do Metacritic (PS1/PS2/PSP, GBA/GBC, DS/3DS, GameCube, Wii, Switch, N64, Dreamcast): 320 jogos com nota de 2.439. Selo na página do jogo (cores do Metacritic, contraste conferido, link "via RAWG" pedido nos termos); ano do RAWG quando falta ficha no libretro. Roda na varredura das 5h (cache em `data/rawg-cache.json`, só consulta jogos novos). Ressalva: quando o RAWG não tem a nota da plataforma, usa a nota geral do jogo.
 - [ ] **Depois:** pendências de cada repo no painel.
 
 ## Fora do escopo

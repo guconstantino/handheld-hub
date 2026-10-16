@@ -1329,3 +1329,13 @@ tr[data-gp-focus="true"] td:first-child {
 }
 
 
+
+/* Nota do Metacritic na página do jogo (cores do próprio Metacritic; o número sempre escrito). */
+.gscore { display: flex; align-items: center; gap: 10px; }
+.mc-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; border-radius: 8px; background: rgb(0 0 0 / .45); color: #fff; text-decoration: none; font-size: 13px; border: 1px solid rgb(255 255 255 / .25); }
+.mc-badge b { display: grid; place-items: center; min-width: 34px; height: 34px; border-radius: 6px; font-size: 17px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.mc-good b { background: #66cc33; color: #0b1a05; }
+.mc-mixed b { background: #ffcc33; color: #241b00; }
+.mc-bad b { background: #c62828; color: #fff; }        /* 5,6:1 */
+.mc-badge:hover { border-color: #fff; }
+.gscore .muted { color: #d4d4da; }
