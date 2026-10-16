@@ -1980,7 +1980,7 @@ async function renderPorts(forceReload = false) {
                 <tr>
                   <td>
                     <div style="display:flex;align-items:center;gap:10px">
-                      ${p.iconUrl ? `<img src="${esc(p.iconUrl)}" alt="" width="34" height="34" loading="lazy" style="border-radius:6px;object-fit:cover;background:var(--surface-2);flex-shrink:0">` : `<span class="brand-mark" style="width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0">${icon("gamepad-2", "sm")}</span>`}
+                      ${p.iconUrl ? `<img src="${esc(p.iconUrl)}" alt="" width="34" height="34" loading="lazy" style="border-radius:6px;object-fit:cover;background:var(--surface-2);flex-shrink:0" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-flex'"><span class="brand-mark" style="display:none;width:34px;height:34px;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0">${icon("gamepad-2", "sm")}</span>` : `<span class="brand-mark" style="width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0">${icon("gamepad-2", "sm")}</span>`}
                       <div>
                         <b>${esc(p.name)}</b>
                         ${p.packageName ? `<div class="muted small"><code>${esc(p.packageName)}</code></div>` : ""}
@@ -2130,7 +2130,7 @@ async function renderEpic(forceReload = false) {
                 <tr>
                   <td>
                     <div style="display:flex;align-items:center;gap:10px">
-                      ${g.cover ? `<img src="${esc(g.cover)}" alt="" width="34" height="45" loading="lazy" style="border-radius:5px;object-fit:cover;background:var(--surface-2);flex-shrink:0">` : `<span class="brand-mark" style="width:34px;height:45px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;flex-shrink:0">${icon("layers", "sm")}</span>`}
+                      ${g.cover ? `<img src="${esc(g.cover)}" alt="" width="34" height="45" loading="lazy" style="border-radius:5px;object-fit:cover;background:var(--surface-2);flex-shrink:0" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-flex'"><span class="brand-mark" style="display:none;width:34px;height:45px;align-items:center;justify-content:center;border-radius:5px;flex-shrink:0">${icon("layers", "sm")}</span>` : `<span class="brand-mark" style="width:34px;height:45px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;flex-shrink:0">${icon("layers", "sm")}</span>`}
                       <div>
                         <b>${esc(g.title)}</b>
                         <div class="muted small">${esc(g.developer || "—")}${g.exe ? ` · <code>${esc(g.exe)}</code>` : ""}</div>

@@ -192,7 +192,7 @@
         "Quick Swap L/R",
         "PT-BR"
       ],
-      "iconUrl": "https://raw.githubusercontent.com/doutorraposo/moonpearl/main/app/src/main/ic_launcher-playstore.png",
+      "iconUrl": "covers/5ecb32eb37056c5d.webp",
       "romQuery": "Link to the Past",
       "latestTag": "v1.0.0",
       "publishedAt": "2026-10-07",
@@ -939,7 +939,7 @@
         "Vulkan / Turnip",
         "ARM64 Nativo"
       ],
-      "iconUrl": "covers/nfsmw.webp",
+      "iconUrl": "covers/82d19d161d04fd5a.webp",
       "romQuery": "Need for Speed - Most Wanted",
       "latestTag": "v0.4.2",
       "publishedAt": "2026-10-14",
@@ -1427,7 +1427,7 @@
         "Em andamento",
         "Sequência direta de SMG1"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/44ad16ec4ae9c4bc01c045b4c106ddc6/32/256x256.png",
+      "iconUrl": "covers/01ed502b206405ef.webp",
       "romQuery": "Super Mario Galaxy 2",
       "latestTag": null,
       "publishedAt": "2026-10-16",
@@ -1459,7 +1459,7 @@
         "Matching C++",
         "Base para futuro PC/Android Port"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/1b6238b939f7e8a9463ae74c827cfa4a/32/256x256.png",
+      "iconUrl": "covers/21fdbc3631232c5b.webp",
       "romQuery": "Super Mario Sunshine",
       "latestTag": null,
       "publishedAt": "2026-10-16",
@@ -1491,7 +1491,7 @@
         "High-profile",
         "Foco em Rollback & PC/Mobile"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/c213db09ec35e9be982db2f0b78c8945/32/256x256.png",
+      "iconUrl": "covers/bf2fc14e070783a4.webp",
       "romQuery": "Super Smash Bros. Melee",
       "latestTag": null,
       "publishedAt": "2026-10-14",
@@ -1523,7 +1523,7 @@
         "Em andamento",
         "Base para PC/Android Port"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/33f1ff790f146be57f20815752945d9e/32/256x256.png",
+      "iconUrl": "covers/ttyd.webp",
       "romQuery": "Thousand-Year Door",
       "latestTag": null,
       "publishedAt": "2026-09-27",
@@ -1555,7 +1555,7 @@
         "ZeldaRET",
         "Alta prioridade para Native Port"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/31b46322ad194e43cfbcabce3aa93cb3/32/256x256.png",
+      "iconUrl": "covers/74248fddeb96524e.webp",
       "romQuery": "Wind Waker",
       "latestTag": null,
       "publishedAt": "2026-10-14",
@@ -1587,7 +1587,7 @@
         "Base pronta",
         "Aguardando APK Android final"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/26079d37bbbbd6fbca5be682ef1096a7/32/256x256.png",
+      "iconUrl": "covers/58b4393f096fd8f4.webp",
       "romQuery": "Paper Mario",
       "latestTag": null,
       "publishedAt": "2026-09-26",
@@ -1619,7 +1619,7 @@
         "PSY-Q Matching",
         "Survival Horror nativo"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/54b73256082ec09c522ae2499d0c266a/32/256x256.png",
+      "iconUrl": "covers/1665e2d37db9c211.webp",
       "romQuery": "Silent Hill",
       "latestTag": null,
       "publishedAt": "2026-10-09",
@@ -1651,7 +1651,7 @@
         "PSY-Q Matching",
         "Reverse Engineering ativo"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/e20f26ff01ca5d81a986fe7f074465b0/32/256x256.png",
+      "iconUrl": "covers/d070d1eb7566351d.webp",
       "romQuery": "Symphony of the Night",
       "latestTag": "cc1-psx-26",
       "publishedAt": "2023-04-05",
@@ -1683,7 +1683,7 @@
         "Em andamento",
         "N64Recomp candidate"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/9d77f883da4c2f82ba1a21e4ea474134/32/256x256.png",
+      "iconUrl": "covers/8a2788b65c5d30d2.webp",
       "romQuery": "Conker's Bad Fur Day",
       "latestTag": null,
       "publishedAt": "2026-10-15",
@@ -1715,7 +1715,7 @@
         "C quase 100%",
         "Candidato a port nativo"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/921bf34d35276332152b1b3ae190989f/32/256x256.png",
+      "iconUrl": "covers/0ddb9cd6c99d2489.webp",
       "romQuery": "Diddy Kong Racing",
       "latestTag": null,
       "publishedAt": null,
@@ -1747,7 +1747,7 @@
         "Reverse Engineering",
         "PC/Mobile port target"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/c4103133e9d8e7b99c2b4c1001a1829e/32/256x256.png",
+      "iconUrl": "covers/mgs.webp",
       "romQuery": "Metal Gear Solid",
       "latestTag": null,
       "publishedAt": "2026-10-14",
@@ -1779,7 +1779,7 @@
         "C++ Decomp",
         "IndustrialGamer Engine"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/d41a77e387c8b211bb15c6d3284ff8ae/32/256x256.png",
+      "iconUrl": "covers/bcb1b3399cf5d623.webp",
       "romQuery": "Battle for Bikini Bottom",
       "latestTag": null,
       "publishedAt": "2026-08-31",
@@ -1811,7 +1811,7 @@
         "GOOL bytecode engine",
         "Reverse engineering"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/82944b5a2bf2a35cf91be24e819b1616/32/256x256.png",
+      "iconUrl": "covers/82b05f9f3762d7ee.webp",
       "romQuery": "Crash Bandicoot",
       "latestTag": null,
       "publishedAt": null,
@@ -1843,7 +1843,7 @@
         "Arm9 / PowerPC",
         "Em andamento no decomp.dev"
       ],
-      "iconUrl": "https://cdn2.steamgriddb.com/icon/47dbbf5be8440026e632db2f0b78c894/32/256x256.png",
+      "iconUrl": "covers/0bdbe880c1a07f8e.webp",
       "romQuery": "Super Mario 3D Land",
       "latestTag": null,
       "publishedAt": null,
