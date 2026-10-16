@@ -24,7 +24,7 @@
   color-scheme: light;
   /* Acento de cada console: paleta categórica validada (dataviz) nos dois temas.
      Ordem fixa nos gráficos empilhados: Switch → S20 → Drive → Miyoo. */
-  --acc-switch: #e34948; --acc-s20fe: #2a78d6; --acc-drive: #1baf7a; --acc-miyoo: #d98200;
+  --acc-switch: #e34948; --acc-s20fe: #2a78d6; --acc-drive: #1baf7a; --acc-miyoo: #d98200; --acc-pc: #7c4ddb;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -36,7 +36,7 @@
     --shadow: inset 0 1px 0 0 rgb(255 255 255 / .05), 0 2px 8px rgb(0 0 0 / .28);
     --shadow-hover: inset 0 1px 0 0 rgb(255 255 255 / .09), 0 14px 32px -8px rgb(0 0 0 / .55);
     color-scheme: dark;
-    --acc-switch: #f06464; --acc-s20fe: #3b82f6; --acc-drive: #10b981; --acc-miyoo: #f59e0b;
+    --acc-switch: #f06464; --acc-s20fe: #3b82f6; --acc-drive: #10b981; --acc-miyoo: #f59e0b; --acc-pc: #a78bfa;
   }
 }
 :root[data-theme="dark"] {
@@ -48,7 +48,7 @@
   --shadow: inset 0 1px 0 0 rgb(255 255 255 / .05), 0 2px 8px rgb(0 0 0 / .28);
   --shadow-hover: inset 0 1px 0 0 rgb(255 255 255 / .09), 0 14px 32px -8px rgb(0 0 0 / .55);
   color-scheme: dark;
-  --acc-switch: #f06464; --acc-s20fe: #3b82f6; --acc-drive: #10b981; --acc-miyoo: #f59e0b;
+  --acc-switch: #f06464; --acc-s20fe: #3b82f6; --acc-drive: #10b981; --acc-miyoo: #f59e0b; --acc-pc: #a78bfa;
 }
 /* Tema escuro: fundo com um brilho bem leve nas cores da marca (menos "chapado"). Só decoração. */
 :root { --glow: none; }
@@ -60,6 +60,7 @@
 [data-dev="s20fe"]  { --accent: var(--acc-s20fe); }
 [data-dev="drive"]  { --accent: var(--acc-drive); }
 [data-dev="miyoo"]  { --accent: var(--acc-miyoo); }
+[data-dev="pc"]     { --accent: var(--acc-pc); }
 
 @font-face { font-family: "Geist"; src: url("fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: "Geist Mono"; src: url("fonts/GeistMono-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }

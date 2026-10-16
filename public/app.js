@@ -43,7 +43,7 @@ const cover = (d, badges = "") => `<div class="cover">${COVER[d.id]
 // Cor de cada console vem do CSS (paleta validada nos dois temas), pelo atributo data-dev.
 const dev = (id) => `data-dev="${esc(id)}"`;
 // Ordem fixa dos consoles nos gráficos (a cor segue o console, nunca a posição).
-const ORDER = ["switch", "s20fe", "drive", "miyoo"];
+const ORDER = ["switch", "s20fe", "drive", "miyoo", "pc"];
 
 // Nome de exibição de cada sistema (o id fica nos filtros e no código).
 const SYSTEM_NAME = {

@@ -41,7 +41,7 @@ SYSTEM_ALIAS = {"megadrivebr": "megadrive", "snesbr": "snes", "mastersystembr": 
 EMU_DATA_DIRS = {"user", "config", "nand", "sdmc", "shaders", "states", "sysdata", "cheats", "log", "load", "dump"}
 # Sistemas em que cada subpasta é UM jogo (3DS instalado, PSX multidisco, PC, Lutro).
 # Nos demais, subpastas são só organização (c64/A-Z, gba/hacks) e cada arquivo é um jogo.
-FOLDER_SYSTEMS = {"3ds", "psx", "ps2", "psp", "windows", "lutro", "naomi"}
+FOLDER_SYSTEMS = {"3ds", "psx", "ps2", "psp", "windows", "lutro", "naomi", "ps3", "xbox"}
 
 
 def now():
@@ -212,6 +212,20 @@ def scan_local(loc, root, detect=None, read_head=False, with_ids=False, follow_l
     return rows, space, ids
 
 
+def scan_inventory(loc, root, prefix):
+    """Disco de outro computador (PC · GPBox): lê o inventário JSON que o próprio PC gera no Drive
+    ({"files": [[caminho, tamanho, mtime], ...]}). Só a parte sob `prefix` (a pasta de ROMs) vira jogo."""
+    matches = glob.glob(os.path.expanduser(root))
+    if len(matches) != 1:
+        sys.exit(f"{loc}: inventário não encontrado em {root}. Gere de novo no PC.")
+    data = json.load(open(matches[0], encoding="utf-8-sig"))
+    rows = [(r[len(prefix):], s, int(m or 0), None) for r, s, m in data.get("files", [])
+            if r.startswith(prefix) and not os.path.basename(r).startswith(".")
+            and (r.rsplit(".", 1)[-1].lower() if "." in os.path.basename(r) else "") not in SKIP_EXT]
+    print(f"{loc}: inventário de {data.get('generated', '?')}")
+    return rows, (None, None)
+
+
 def scan_ftp(loc, root):
     """Switch: lê dbi.titles (jogos instalados pelo DBI) e /JKSV/ (saves) via FTP."""
     base = root.rstrip("/")
@@ -333,6 +347,8 @@ def main():
                 entries, space = scan_adb(loc, l["root"])
             elif method == "ftp":
                 entries, space = scan_ftp(loc, l["root"])
+            elif method == "inventory":
+                entries, space = scan_inventory(loc, l["root"], l.get("prefix", ""))
             else:
                 entries, space, ids = scan_local(loc, l["root"], l.get("detect"), l.get("read_head", False), l.get("drive_ids", False),
                                                  l.get("follow_links", False))

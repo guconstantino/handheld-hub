@@ -225,6 +225,13 @@
       "specs": {
         "logo": "b-googledrive"
       }
+    },
+    {
+      "id": "pc",
+      "name": "PC · GPBox",
+      "kind": "console",
+      "accent": "#8b5cf6",
+      "notes": "Disco F: do PC com o GPBox (front-end de emulação no padrão Batocera). Lido por inventário: o PC gera Games/_inventarios/pc-gpbox.json no Drive (só nome, tamanho e data)."
     }
   ],
   "locations": [
@@ -282,6 +289,14 @@
       "method": "local",
       "drive_ids": true,
       "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/Batocera/3-Jogos"
+    },
+    {
+      "id": "pc-gpbox",
+      "device_id": "pc",
+      "label": "GPBox (F:)",
+      "method": "inventory",
+      "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/_inventarios/pc-gpbox.json",
+      "prefix": "GPBOXPC/gpbox/roms/"
     }
   ]
 }

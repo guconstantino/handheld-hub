@@ -18,7 +18,9 @@ from covers import norm, fuzzy  # noqa: E402  (mesma normalização e mesma trav
 PLATAFORMAS = {"psx": 27, "ps2": 15, "psp": 17, "gba": 24, "gbc": 43, "nds": 9, "3ds": 8, "gamecube": 105,
                "wii": 11, "switch": 7, "n64": 83, "dreamcast": 106,
                # antes do Metacritic: sem nota, mas com screenshots, gêneros e duração
-               "snes": 79, "nes": 49, "megadrive": 167, "gb": 26}
+               "snes": 79, "nes": 49, "megadrive": 167, "gb": 26,
+               # PC · GPBox (2026-10-16)
+               "xbox360": 14, "ps3": 16, "xbox": 80, "saturn": 107}
 CACHE = os.path.join(ROOT, "data", "rawg-cache.json")
 OUT = os.path.join(ROOT, "public", "data", "scores")
 
