@@ -1963,7 +1963,7 @@ async function renderPorts(forceReload = false) {
             <button type="button" class="btn small" id="portsRefreshBtn">Atualizar agora</button>
           </div>
         </div>
-        <div class="table-wrap" style="margin-top:12px">
+        <div class="table-wrap xscroll" style="margin-top:12px" tabindex="0" role="region" aria-label="Tabela de Ports e Decompilações">
           <table class="table" id="portsTable">
             <thead>
               <tr>
@@ -2100,7 +2100,7 @@ async function renderEpic(forceReload = false) {
             <button type="button" data-ecat="heavy-or-incompat" aria-pressed="${epicFilter === "heavy-or-incompat"}">Pesados / Incompatíveis (${c.heavyOrIncompat || 0})</button>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto">
-            <input type="search" id="epicSearchInput" value="${esc(epicQuery)}" placeholder="Buscar jogo, engine ou estúdio..." style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);min-width:220px">
+            <input type="search" id="epicSearchInput" value="${esc(epicQuery)}" placeholder="Buscar jogo, engine ou estúdio..." style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);min-width:140px;max-width:240px;flex:1 1 180px">
             <select id="epicSortSelect" aria-label="Ordenar por" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg)">
               <option value="compat" ${epicSort === "compat" ? "selected" : ""}>Maior compatibilidade S20 FE</option>
               <option value="size-asc" ${epicSort === "size-asc" ? "selected" : ""}>Menor tamanho em disco</option>
@@ -2114,7 +2114,7 @@ async function renderEpic(forceReload = false) {
           <span>Exibindo <b>${filtered.length}</b> de ${all.length} títulos da conta Epic Games</span>
           <span><span class="badge ok">Sync Inteligente (KV)</span> · Último sync: ${esc(syncDate)}</span>
         </div>
-        <div class="table-wrap" style="margin-top:12px">
+        <div class="table-wrap xscroll" style="margin-top:12px" tabindex="0" role="region" aria-label="Tabela da Biblioteca Epic Games">
           <table class="table" id="epicTable">
             <thead>
               <tr>

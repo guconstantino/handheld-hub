@@ -125,9 +125,9 @@ button, input, select { font: inherit; color: inherit; }
 .icon-btn:hover { color: var(--text); background: var(--hover); }
 
 /* ---------- conteúdo ---------- */
-.content { display: flex; flex-direction: column; min-width: 0; }
-main { padding: 36px clamp(16px, 3vw, 56px) 64px; width: 100%; max-width: 2560px; }
-.view { display: flex; flex-direction: column; gap: 32px; }
+.content { display: flex; flex-direction: column; min-width: 0; max-width: 100%; overflow-x: hidden; }
+main { padding: 36px clamp(16px, 3vw, 56px) 64px; width: 100%; max-width: 2560px; min-width: 0; box-sizing: border-box; }
+.view { display: flex; flex-direction: column; gap: 32px; min-width: 0; max-width: 100%; }
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 h1 { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; }
 h2 { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 12px; }
@@ -141,7 +141,7 @@ h2 .ic { color: var(--faint); }
 /* ---------- bento da visão geral: 12 colunas → 6 → 1 ---------- */
 .bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
 .bento .contents { display: contents; }
-.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); min-width: 0; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); min-width: 0; max-width: 100%; box-sizing: border-box; }
 .b-full { grid-column: 1 / -1; margin: 12px 0 -4px; }
 .b-hero { grid-column: span 6; grid-row: span 2; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px;
   background: radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--series) 12%, var(--surface)), var(--surface) 60%); }
@@ -181,10 +181,10 @@ h2 .ic { color: var(--faint); }
 }
 
 /* ---------- indicadores ---------- */
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; min-width: 0; max-width: 100%; }
 .kpi .bar { margin-top: 4px; }
 .kpi .bar i { background: var(--series); }
-.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .kpi-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 .kpi-label .ic { color: var(--faint); }
 .kpi-value { font-size: 28px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -653,7 +653,7 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 @media (max-width: 1100px) { .pabout { grid-template-columns: 1fr; } }
 
 /* ---------- saúde ---------- */
-.view-stack { display: grid; gap: 16px; }
+.view-stack { display: grid; gap: 16px; min-width: 0; max-width: 100%; }
 .small-btn { margin-top: 8px; font-size: 13px; padding: 5px 12px; }
 .fixgroups details { border-top: 1px solid var(--line); padding: 12px 0; }
 .fixgroups summary { cursor: pointer; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -701,14 +701,18 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .search { position: relative; flex: 1 1 280px; display: flex; }
 .search .ic { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--faint); pointer-events: none; }
 .filters .search input { flex: 1; padding-left: 36px; }
-.table-wrap { padding: 0; overflow: clip; }
-.xscroll { overflow-x: auto; max-width: 100%; }               /* tabela larga rola dentro do bloco no celular */
+.table-wrap { padding: 0; overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.table-wrap:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.xscroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 .xscroll:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th { position: sticky; top: 0; z-index: 1; text-align: left; font-weight: 550; color: var(--muted); font-size: 13px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
 .table td { padding: 10px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .table tbody tr:last-child td { border-bottom: 0; }
 .table tbody tr:hover td { background: var(--hover); }
+#portsTable, #epicTable { min-width: 760px; }
+#portsTable th, #portsTable td,
+#epicTable th, #epicTable td { padding: 8px 12px; font-size: 13.5px; }
 .table .sys { color: var(--muted); font-family: var(--mono); font-size: 13px; }
 .copies { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; }
 .copies span { display: inline-flex; align-items: center; gap: 6px; padding: 1px 8px 1px 6px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); }
