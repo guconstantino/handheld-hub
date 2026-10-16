@@ -1837,15 +1837,18 @@ async function loadPortsFeed(forceReload = false) {
     feedList.innerHTML = sorted.slice(0, 10).map((p) => {
       let statusBadge = "";
       if (p.updateStatus === "update-available") {
-        statusBadge = `<span class="port-feed-badge warn">Update · ${esc(p.latestTag || "novo")}</span>`;
-      } else if (p.updateStatus === "ready-to-install") {
-        statusBadge = `<span class="port-feed-badge info">Pronto p/ APK</span>`;
+        statusBadge = `<span class="port-feed-badge warn">🔄 Update</span>`;
+      } else if (p.updateStatus === "ready-to-install" || p.category === "android-ready") {
+        statusBadge = `<span class="port-feed-badge info">📲 Pronto p/ Instalar</span>`;
       } else if (p.category === "installed") {
-        statusBadge = `<span class="port-feed-badge ok">Instalado</span>`;
+        statusBadge = `<span class="port-feed-badge ok">✅ No S20 FE</span>`;
       } else if (p.category === "decomp-radar") {
-        statusBadge = `<span class="port-feed-badge" style="background:rgba(85,60,154,0.9);color:#fff">Decomp .dev</span>`;
+        const is100 = (p.name || "").includes("100%") || (p.features || []).some((f) => f.includes("100%"));
+        statusBadge = is100
+          ? `<span class="port-feed-badge" style="background:#0891b2;color:#fff">🎯 Decomp 100%</span>`
+          : `<span class="port-feed-badge muted">⏳ Não jogável</span>`;
       } else {
-        statusBadge = `<span class="port-feed-badge muted">Radar (${esc(p.system?.toUpperCase() || "PC")})</span>`;
+        statusBadge = `<span class="port-feed-badge" style="background:#7c3aed;color:#fff">💻 Só PC</span>`;
       }
 
       const coverSrc = p.iconUrl || "icons/favicon-96.png";
@@ -1912,6 +1915,29 @@ async function renderPorts(forceReload = false) {
       if (p.category === "decomp-radar")
         return `<span class="badge" style="background:rgba(85,60,154,0.9);color:#fff">Decomp .dev (${esc(p.system?.toUpperCase() || "WII")})</span>`;
       return `<span class="badge muted">Mac/PC · ${esc(p.latestTag || "N64Recomp")}</span>`;
+    };
+
+    const portStateBadge = (p) => {
+      if (p.updateStatus === "update-available") {
+        return `<span class="port-state-badge state-update" title="Nova versão disponível no GitHub (${esc(p.latestTag || "update")})">🔄 Update</span>`;
+      }
+      if (p.category === "installed") {
+        return `<span class="port-state-badge state-installed" title="Instalado e jogável no S20 FE">✅ No S20 FE</span>`;
+      }
+      if (p.category === "android-ready" || p.updateStatus === "ready-to-install") {
+        return `<span class="port-state-badge state-ready" title="APK oficial pronto para download e instalação no Android">📲 Pronto p/ Instalar</span>`;
+      }
+      if (p.category === "n64recomp-desktop") {
+        return `<span class="port-state-badge state-pc" title="Recompilação executável somente no Mac/PC (sem port Android)">💻 Só PC</span>`;
+      }
+      if (p.category === "decomp-radar") {
+        const is100 = (p.name || "").includes("100%") || (p.features || []).some((f) => f.includes("100%"));
+        if (is100) {
+          return `<span class="port-state-badge state-decomp-ready" title="Código 100% decompilado, aguardando port Android/Recomp">🎯 Decomp 100%</span>`;
+        }
+        return `<span class="port-state-badge state-decomp-wip" title="Decompilação em andamento no decomp.dev (ainda não jogável / sem app)">⏳ Não jogável</span>`;
+      }
+      return "";
     };
 
     const romBadges = (rom) => {
@@ -1982,7 +2008,10 @@ async function renderPorts(forceReload = false) {
                     <div style="display:flex;align-items:center;gap:10px">
                       ${p.iconUrl ? `<img src="${esc(p.iconUrl)}" alt="" width="34" height="34" loading="lazy" style="border-radius:6px;object-fit:cover;background:var(--surface-2);flex-shrink:0" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-flex'"><span class="brand-mark" style="display:none;width:34px;height:34px;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0">${icon("gamepad-2", "sm")}</span>` : `<span class="brand-mark" style="width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0">${icon("gamepad-2", "sm")}</span>`}
                       <div>
-                        <b>${esc(p.name)}</b>
+                        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                          <b>${esc(p.name)}</b>
+                          ${portStateBadge(p)}
+                        </div>
                         ${p.packageName ? `<div class="muted small"><code>${esc(p.packageName)}</code></div>` : ""}
                       </div>
                     </div>
