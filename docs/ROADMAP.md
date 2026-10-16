@@ -54,7 +54,10 @@ Handoff completo (portal + console) em `s20fe-gamesirx5lite/docs/STATE.md`, seç
   1. **Navegação espacial 2D (`D-Pad` e Analógico Esquerdo):** foco visível de alto contraste (na cor `--accent` de cada console) entre cards de consoles, grade de jogos, tabelas (`#portsTable`, `#epicTable`, `#gamesTable`, `.copies-table`) e modais, com quebra de linha inteligente (wrap) e rolagem suave pelo Analógico Direito.
   2. **Atalhos de botões estilo console (GameSir X5 Lite):** `A` confirma/abre, `B` volta (`history.back()`), `L1`/`R1` alternam entre as seções principais (`Visão geral`, `Plataformas`, `Jogos`, `Ports & Decomp`, `Epic Games`, `Listas`, `Saúde`), `L2`/`R2` trocam abas internas de filtro (ou jogo Anterior/Próximo na página do jogo), `Y` ou `Select` abre a busca global (`⌘K`), `X` favorita na página do jogo ou volta ao topo nas listas, `Start` abre Configurações.
   3. **Integração WebView Android (`HubActivity.java`) + HTML5 Gamepad API:** `setFocusableInTouchMode(true)` para resposta imediata no 1º clique do D-Pad, orientação `sensorLandscape` fixa, suporte a gatilhos analógicos/digitais (`AXIS_LTRIGGER`/`AXIS_RTRIGGER`) e barra de dicas `.gp-hud` integrada ao cabeçalho.
-- [ ] **Depois:** pendências de cada repo no painel, varredura agendada.
+- [x] **Varredura agendada (2026-10-16):** `scripts/scheduled_scan.py` pelo LaunchAgent `com.gustavo.handheld-hub.scan` (todo dia às 5h): S20 se estiver no adb, Miyoo se o cartão estiver montado, capas novas + R2, catálogo e deploy. Log em `data/scheduled-scan.log`. O Drive fica de fora (o launchd não enxerga a pasta do Google Drive). Trava no `scan.py` contra varredura que volta com menos da metade dos arquivos.
+- [x] **Drive completo (2026-10-16):** 0 jogos retro dos consoles fora do Drive, depois de casar nomes com acento (NFD do Mac × NFC dos consoles).
+- [x] **Capas, cauda longa (2026-10-16):** passada por semelhança de nome (corte 0,9, números arábicos e romanos iguais) e eShop para os jogos novos do Switch. Restam ~500 sem capa (PAL alemães do Atari 2600, protótipos, homebrew, ports caseiros de Switch).
+- [ ] **Depois:** pendências de cada repo no painel.
 
 ## Fora do escopo
 - Escrever ou apagar arquivos nos devices pelo portal.

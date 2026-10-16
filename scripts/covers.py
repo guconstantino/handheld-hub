@@ -110,6 +110,17 @@ def listing(system, folder=None):
     return names
 
 
+def fuzzy(key, byn, cutoff=0.9):
+    """Último recurso: nome quase igual ("code breaker" ~ "Codebreaker"). Só aceita se os números (arábicos e
+    romanos) forem os mesmos — senão "River Raid III" casaria com "River Raid II"."""
+    import difflib
+    m = difflib.get_close_matches(key, byn.keys(), n=1, cutoff=cutoff)
+    if not m:
+        return None
+    nums = lambda t: (re.findall(r"\d+", t), [w for w in t.split() if re.fullmatch(r"[ivx]+", w)])
+    return byn[m[0]] if nums(key) == nums(m[0]) else None
+
+
 def match(systems):
     """game_key → nome da capa no libretro. Primeiro o nome exato do arquivo, depois o nome normalizado."""
     games = d1("SELECT game_key, system, GROUP_CONCAT(title, '\x1f') AS titles FROM files GROUP BY game_key")
@@ -124,7 +135,8 @@ def match(systems):
         hit = 0
         for g in rows:
             titles = sorted(set(g["titles"].split("\x1f")), key=region_rank)
-            name = next((exact[safe(t)] for t in titles if safe(t) in exact), None) or byn.get(g["game_key"].split("|", 1)[1])
+            name = next((exact[safe(t)] for t in titles if safe(t) in exact), None) or byn.get(g["game_key"].split("|", 1)[1]) \
+                or fuzzy(g["game_key"].split("|", 1)[1], byn)
             if name:
                 plan[g["game_key"]] = (s, name)
                 hit += 1

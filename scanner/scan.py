@@ -279,6 +279,17 @@ def build_sql(loc, rows, space):
     return "\n".join(out) + "\n"
 
 
+def d1_count(loc, remote=False):
+    """Quantos arquivos o local tem hoje no D1 (0 se não der para ler)."""
+    try:
+        out = subprocess.run(["npx", "wrangler", "d1", "execute", "gamehub", "--remote" if remote else "--local", "--json",
+                              "--command", f"SELECT COUNT(*) AS n FROM files WHERE location_id='{loc}'"],
+                             cwd=ROOT, capture_output=True, text=True, check=True).stdout
+        return json.loads(out)[0]["results"][0]["n"]
+    except Exception:
+        return 0
+
+
 def main():
     args = sys.argv[1:]
     remote = "--remote" in args
@@ -315,8 +326,17 @@ def main():
                 entries, space = scan_ftp(loc, l["root"])
             else:
                 entries, space, ids = scan_local(loc, l["root"], l.get("detect"), l.get("read_head", False), l.get("drive_ids", False))
-            json.dump({"entries": entries, "space": space, "ids": ids}, open(raw_path(loc), "w"))
         rows = to_rows(loc, entries, ids)
+        # Trava: uma varredura que volta com menos da metade dos arquivos de antes quase sempre é falha de
+        # acesso (permissão do macOS, cartão desmontado, Drive fora do ar), não jogos apagados. Não grava nada.
+        if not rebuild and "--force" not in args:
+            prev = d1_count(loc, remote)
+            if prev > 100 and len(rows) < prev * 0.5:
+                print(f"{loc}: ABORTADO — {len(rows)} arquivos agora contra {prev} antes (menos da metade). "
+                      f"Nada gravado. Se for real, rode de novo com --force.")
+                continue
+        if not rebuild:
+            json.dump({"entries": entries, "space": space, "ids": ids}, open(raw_path(loc), "w"))
         path = os.path.join(ROOT, "data", f"{loc}.sql")
         open(path, "w").write(build_sql(loc, rows, space))
         bad = sum(r["status"] == "corrupted" for r in rows)
