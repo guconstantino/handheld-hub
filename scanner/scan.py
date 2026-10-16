@@ -76,6 +76,8 @@ def record(loc, rel, size, mtime, head=None):
     folder = parts[0]
     if any(skip_dir(p) for p in parts[:-1]) or parts[-1].startswith("."):
         return None
+    if len(parts) > 2 and folder.lower() == "psp" and parts[1].lower() == "psp":
+        return None                                      # psp/PSP/: pasta de dados do PPSSPP (saves, estados), não é jogo
     name = parts[-1]
     ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
     if folder == "switch" and ext not in {"nsp", "xci", "nsz", "nro"}:  # pasta de save do JKSV: o nome inteiro é o título

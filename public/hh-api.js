@@ -7,6 +7,10 @@
     : fetch("data/catalog.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(`catálogo: ${r.status}`)))))
     .then(index));
 
+  // Fora do backup por decisão do Gustavo: não são ROMs retro (Switch, ports/apps Android, PC, Pinball FX3).
+  // Não contam como "sem backup no Drive" (o alerta ficaria sempre aceso por algo intencional).
+  const NO_BACKUP = new Set(["switch", "ports", "android", "windows", "pinballfx3"]);
+
   // Descompacta uma vez e monta os agrupamentos que todas as rotas usam.
   function index(D) {
     // Arcade: o arquivo tem o nome curto da ROM ("kof98"); D.names traz o título completo do DAT. A busca
@@ -60,7 +64,7 @@
           const s = (per[dev] ||= { games: 0, systems: new Set(), covered: 0, noBackup: 0, driveOnly: 0 });
           s.games++; s.systems.add(copies[0].system);
           if (D.covers[k]) s.covered++;
-          if (dev !== "drive" && !inDrive) s.noBackup++;
+          if (dev !== "drive" && !inDrive && !NO_BACKUP.has(copies[0].system)) s.noBackup++;
           if (dev === "drive" && copies.every((c) => c.device_id === "drive")) s.driveOnly++;
         }
       }
@@ -107,7 +111,7 @@
       if (pres === "nobackup" || pres === "driveonly") {
         for (const k of [...hit]) {
           const c = byKey.get(k), drive = c.some((x) => x.device_id === "drive"), cons = c.some((x) => x.device_id !== "drive");
-          if ((pres === "nobackup" && (drive || !cons)) || (pres === "driveonly" && cons)) hit.delete(k);
+          if ((pres === "nobackup" && (drive || !cons || NO_BACKUP.has(c[0].system))) || (pres === "driveonly" && cons)) hit.delete(k);
         }
       }
       // Combinação exata de lugares ("s20fe+drive"): os jogos que estão nesses e só nesses.
@@ -152,7 +156,7 @@
         p.games++; p.files += copies.length;
         if (D.covers[k]) p.covered++;
         if (copies.some((c) => c.status === "corrupted")) p.corrupted++;
-        if (!copies.some((c) => c.device_id === "drive")) p.noBackup++;
+        if (!copies.some((c) => c.device_id === "drive") && !NO_BACKUP.has(sys)) p.noBackup++;
         for (const dev of new Set(copies.map((c) => c.device_id))) p.byDevice[dev] = (p.byDevice[dev] || 0) + 1;
       }
       return Object.values(m).sort((a, b) => b.games - a.games);
@@ -252,7 +256,7 @@
         corrupted: F.filter((f) => f.status === "corrupted").sort(byTitle).map((f) => ({
           ...f, others: byKey.get(f.game_key).filter((c) => c !== f).map((c) => ({ device_id: c.device_id, location_id: c.location_id, status: c.status })),
         })),
-        noBackup: bySystem(all.filter((g) => !g.drive)), driveOnly: bySystem(all.filter((g) => !g.console)),
+        noBackup: bySystem(all.filter((g) => !g.drive && !NO_BACKUP.has(g.system))), driveOnly: bySystem(all.filter((g) => !g.console)),
       };
     },
   };

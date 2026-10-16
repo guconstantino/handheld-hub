@@ -1440,7 +1440,7 @@ async function loadHealth() {
     </section>
     <div class="grid-2">
       <section class="tile" aria-labelledby="t-nob"><h2 id="t-nob">${icon("archive", "sm")}Sem backup no Drive, por plataforma</h2>
-        <p class="muted small" style="margin-bottom:10px">Estão em algum console, mas não no Drive. Vale copiar para o Drive.</p>${sysList(h.noBackup, "nobackup", "Sem backup no Drive")}</section>
+        <p class="muted small" style="margin-bottom:10px">Estão em algum console, mas não no Drive. Vale copiar para o Drive. Switch, ports e jogos de PC ficam fora do backup por escolha e não entram nesta conta.</p>${sysList(h.noBackup, "nobackup", "Sem backup no Drive")}</section>
       <section class="tile" aria-labelledby="t-don"><h2 id="t-don">${icon("cloud", "sm")}Só no Drive, por plataforma</h2>
         <p class="muted small" style="margin-bottom:10px">Estão no acervo, mas em nenhum console. Bom para escolher o que instalar.</p>${sysList(h.driveOnly, "driveonly", "Só no Drive")}</section>
     </div>`;
@@ -1519,6 +1519,7 @@ async function loadRelation() {
   // Risco: com backup (Drive + console), sem backup (só em console), só no Drive (não está em nenhum console).
   const risk = (ds) => {
     const drive = ds.includes("drive"), cons = ds.some((d) => d !== "drive");
+    if (ds.length === 1 && ds[0] === "switch") return ["muted", "info", "fora do backup"];   // Switch: fora por decisão
     return drive && cons ? ["ok", "shield-check", "com backup"] : cons ? ["warn", "triangle-alert", "sem backup"] : ["muted", "cloud", "só no Drive"];
   };
   $("#relCombos").innerHTML = x.combos.map((c) => {
@@ -2053,7 +2054,7 @@ async function renderPorts(forceReload = false) {
             <button type="button" data-pcat="ptbr" aria-pressed="${portsFilter === "ptbr"}">Traduzidos PT-BR (${ptbrCount})</button>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto">
-            <input type="search" id="portsSearchInput" value="${esc(portsQuery)}" placeholder="Buscar port, console ou engine..." style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);min-width:140px;max-width:240px;flex:1 1 180px">
+            <input type="search" id="portsSearchInput" aria-label="Buscar nos ports" value="${esc(portsQuery)}" placeholder="Buscar port, console ou engine..." style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);min-width:140px;max-width:240px;flex:1 1 180px">
             <select id="portsSortSelect" aria-label="Ordenar por" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg)">
               <option value="status" ${portsSort === "status" ? "selected" : ""}>Status (Prontos / Updates primeiro)</option>
               <option value="played" ${portsSort === "played" ? "selected" : ""}>Mais jogados no S20 FE</option>
@@ -2243,7 +2244,7 @@ async function renderEpic(forceReload = false) {
             <button type="button" data-ecat="heavy-or-incompat" aria-pressed="${epicFilter === "heavy-or-incompat"}">Pesados / Incompatíveis (${c.heavyOrIncompat || 0})</button>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto">
-            <input type="search" id="epicSearchInput" value="${esc(epicQuery)}" placeholder="Buscar jogo, engine ou estúdio..." style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);min-width:140px;max-width:240px;flex:1 1 180px">
+            <input type="search" id="epicSearchInput" aria-label="Buscar na biblioteca da Epic" value="${esc(epicQuery)}" placeholder="Buscar jogo, engine ou estúdio..." style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);min-width:140px;max-width:240px;flex:1 1 180px">
             <select id="epicSortSelect" aria-label="Ordenar por" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg)">
               <option value="compat" ${epicSort === "compat" ? "selected" : ""}>Maior compatibilidade S20 FE</option>
               <option value="size-asc" ${epicSort === "size-asc" ? "selected" : ""}>Menor tamanho em disco</option>
