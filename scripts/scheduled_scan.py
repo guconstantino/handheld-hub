@@ -45,6 +45,8 @@ def main():
                 run(log, sys.executable, "scanner/scan.py", "miyoo-sd")
             else:
                 log.write("cartão do Miyoo não montado: pulei\n")
+            # PC · GPBox: FTP só leitura sempre ligado no PC; se não responder, o scan.py usa o inventário do Drive.
+            run(log, sys.executable, "scanner/scan.py", "pc-gpbox")
             run(log, PY, "-I", "scripts/covers.py", "--all")
             run(log, "npm", "run", "r2")
             run(log, PY, "-I", "scripts/covers.py", "--sql")
