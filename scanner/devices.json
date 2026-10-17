@@ -231,7 +231,7 @@
       "name": "PC · GPBox",
       "kind": "console",
       "accent": "#8b5cf6",
-      "notes": "Disco F: do PC com o GPBox (front-end de emulação no padrão Batocera). Lido por inventário: o PC gera Games/_inventarios/pc-gpbox.json no Drive (só nome, tamanho e data)."
+      "notes": "PC de mesa com o GPBox (front-end de emulação no padrão Batocera) no disco F:. Fica sempre ligado; o portal lê o disco por um FTP só leitura (rede de casa) e, se ele não responder, pelo inventário que o PC salva no Drive."
     }
   ],
   "locations": [

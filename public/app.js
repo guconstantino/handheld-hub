@@ -24,18 +24,20 @@ const logo = (d, cls = "") => {
   return `<svg class="logo ${id === "b-samsung" ? "wide" : ""} ${cls}" aria-hidden="true"><use href="icons.svg#${id}"/></svg>`;
 };
 // Foto de capa de estúdio de cada console. Sem foto: o logo grande.
-const COVER = { s20fe: "img/s20fe.webp?v=2", miyoo: "img/miyoo.webp?v=2", switch: "img/switch.webp?v=2", drive: "img/drive.webp?v=2" };
+const COVER = { s20fe: "img/s20fe.webp?v=2", miyoo: "img/miyoo.webp?v=2", switch: "img/switch.webp?v=2", drive: "img/drive.webp?v=2", pc: "img/pc.webp?v=1" };
 const DEV_TAG = {
   s20fe: "SM-G780G · X5 Lite",
   miyoo: "OnionOS · RetroArch",
   switch: "Atmosphère · emuMMC",
   drive: "Cloud Vault · rclone",
+  pc: "Windows · GPBox",
 };
 const DEV_SUB = {
   s20fe: "Snapdragon 865 · Daijishō · 25 Ports nativos",
   miyoo: "SigmaStar · 3,5\" IPS 4:3 · 81 traduções PT-BR",
   switch: "Mariko CFW 22.5 · hekate + JKSV · Offline",
   drive: "Espelho mestre na nuvem · Games/Retrogame",
+  pc: "Disco F: · front-end GPBox · lido ao vivo pelo FTP",
 };
 const cover = (d, badges = "") => `<div class="cover">${COVER[d.id]
   ? `<img src="${COVER[d.id]}" alt="" loading="lazy" decoding="async">`
