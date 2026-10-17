@@ -294,9 +294,10 @@
       "id": "pc-gpbox",
       "device_id": "pc",
       "label": "GPBox (F:)",
-      "method": "inventory",
-      "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/_inventarios/pc-gpbox.json",
-      "prefix": "GPBOXPC/gpbox/roms/"
+      "method": "ftp-tree",
+      "root": "ftp://192.168.0.96:2121",
+      "prefix": "GPBOXPC/gpbox/roms/",
+      "inventory": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/_inventarios/pc-gpbox.json"
     }
   ]
 }

@@ -222,11 +222,71 @@ def scan_inventory(loc, root, prefix):
     # Cabeçalhos lidos pelo FTP temporário do PC (8 bytes por arquivo com assinatura): data/<local>-heads.json.
     hp = os.path.join(ROOT, "data", f"{loc}-heads.json")
     heads = json.load(open(hp)) if os.path.exists(hp) else {}
-    rows = [(r[len(prefix):], s, int(m or 0), heads.get(r)) for r, s, m in data.get("files", [])
+    rows = [(r[len(prefix):], s, int(m or 0), heads.get(f"{r}|{s}", heads.get(r))) for r, s, m in data.get("files", [])
             if r.startswith(prefix) and not os.path.basename(r).startswith(".")
             and (r.rsplit(".", 1)[-1].lower() if "." in os.path.basename(r) else "") not in SKIP_EXT]
     print(f"{loc}: inventário de {data.get('generated', '?')}")
     return rows, (None, None)
+
+
+def scan_ftp_tree(loc, url, prefix, head_ext=SIGNED_EXT):
+    """Disco de outro computador por FTP só leitura (PC · GPBox, servidor sempre ligado): percorre `prefix` com MLSD
+    e lê os 8 primeiros bytes dos arquivos com assinatura que ainda não estão no cache (data/<local>-heads.json,
+    chave "caminho|tamanho"), para marcar corrompidos. Levanta OSError se o servidor não responder."""
+    import ftplib
+    from concurrent.futures import ThreadPoolExecutor
+    from urllib.parse import urlparse
+    u = urlparse(url)
+    ftp = ftplib.FTP(); ftp.connect(u.hostname, u.port or 21, timeout=20); ftp.login(); ftp.encoding = "utf-8"
+    files = []
+
+    def walk(path):
+        for name, f in ftp.mlsd(path, facts=["type", "size", "modify"]):
+            if name in (".", "..") or name.startswith("."):
+                continue
+            p = f"{path}/{name}"
+            if f.get("type") == "dir":
+                if not skip_dir(name):
+                    walk(p)
+            elif f.get("type") == "file":
+                ts = int(time.mktime(time.strptime(f["modify"][:14], "%Y%m%d%H%M%S"))) if f.get("modify") else 0
+                files.append((p.lstrip("/"), int(f.get("size", 0)), ts))
+    walk("/" + prefix.strip("/"))
+    ftp.quit()
+    files = [f for f in files if (f[0].rsplit(".", 1)[-1].lower() if "." in os.path.basename(f[0]) else "") not in SKIP_EXT]
+
+    hp = os.path.join(ROOT, "data", f"{loc}-heads.json")
+    cache = json.load(open(hp)) if os.path.exists(hp) else {}
+    key = lambda p, s: f"{p}|{s}"
+    old = {k: v for k, v in cache.items() if "|" not in k}          # formato antigo: só o caminho
+    falta = [(p, s) for p, s, _ in files if p.rsplit(".", 1)[-1].lower() in head_ext and key(p, s) not in cache and p not in old]
+
+    def head(item):
+        p, _ = item
+        try:
+            f = ftplib.FTP(); f.connect(u.hostname, u.port or 21, timeout=20); f.login(); f.encoding = "utf-8"; f.voidcmd("TYPE I")
+            s = f.transfercmd("RETR /" + p); b = b""
+            while len(b) < 8:
+                more = s.recv(8 - len(b))
+                if not more:
+                    break
+                b += more
+            s.close(); f.close()
+            return b.hex() or "0"
+        except Exception:
+            return None
+    if falta:
+        print(f"{loc}: lendo o começo de {len(falta)} arquivos novos ou alterados")
+        with ThreadPoolExecutor(max_workers=4) as ex:
+            for item, h in zip(falta, ex.map(head, falta)):
+                if h is not None:
+                    cache[key(*item)] = h
+    for p, s, _ in files:                                             # migra o cache antigo para "caminho|tamanho"
+        if p in old and key(p, s) not in cache:
+            cache[key(p, s)] = old[p]
+    json.dump({k: v for k, v in cache.items() if "|" in k}, open(hp, "w"))
+    pre = prefix.strip("/") + "/"
+    return [(p[len(pre):], s, m, cache.get(key(p, s))) for p, s, m in files], (None, None)
 
 
 def scan_ftp(loc, root):
@@ -350,6 +410,12 @@ def main():
                 entries, space = scan_adb(loc, l["root"])
             elif method == "ftp":
                 entries, space = scan_ftp(loc, l["root"])
+            elif method == "ftp-tree":
+                try:
+                    entries, space = scan_ftp_tree(loc, l["root"], l.get("prefix", ""))
+                except (OSError, EOFError) as e:                  # PC desligado ou IP mudou: usa o inventário do Drive
+                    print(f"{loc}: FTP {l['root']} não respondeu ({e}); usando o inventário")
+                    entries, space = scan_inventory(loc, l["inventory"], l.get("prefix", ""))
             elif method == "inventory":
                 entries, space = scan_inventory(loc, l["root"], l.get("prefix", ""))
             else:
