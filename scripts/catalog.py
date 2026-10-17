@@ -36,7 +36,12 @@ def build():
     systems = sorted({f["system"] for f in files})
     status = ["unknown", "ok", "corrupted"]
     rows = [[loc_ids.index(f["location_id"]), systems.index(f["system"]), f["title"], f["game_key"].split("|", 1)[1],
-             status.index(f["status"]), f["size"] or 0, f["ext"] or "", f["drive_id"] or ""] for f in files]
+             status.index(f["status"]), f["size"] or 0, f["ext"] or "", 1 if f["drive_id"] else 0] for f in files]
+    # IDs do Google Drive fora do catálogo (0,7 MB comprimidos, aleatórios, só usados no clique em "Abrir no Drive"):
+    # data/drive-ids.json, lido pelo Worker na rota /go/drive. Chave: local|sistema|arquivo|extensão.
+    ids = {f"{f['location_id']}|{f['system']}|{f['title']}|{f['ext'] or ''}": ("d:" if f["ext"] == "pasta" else "f:") + f["drive_id"]
+           for f in files if f["drive_id"]}
+    open(os.path.join(ROOT, "public", "data", "drive-ids.json"), "w").write(json.dumps(ids, ensure_ascii=False, separators=(",", ":")))
     return {"devices": devices, "locations": locations, "systems": systems, "status": status,
             "files": rows, "covers": covers, "names": {**rawg_names(files), **arcade_names(files)}, "scores": rawg_scores(), "years": years(files)}
 

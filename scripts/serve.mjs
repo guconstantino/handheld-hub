@@ -19,6 +19,12 @@ const env = existsSync(ENV_FILE) ? Object.fromEntries(readFileSync(ENV_FILE, "ut
 createServer(async (req, res) => {
   const u = new URL(req.url, "http://x");
   // Teste local: sem Access, quem abre é tratado como admin; o painel mostra usuários vazios (o KV só existe no Worker).
+  if (u.pathname === "/go/drive") {                       // mesmo redirecionamento do Worker, para testar local
+    const ids = JSON.parse(readFileSync(join(ROOT, "data", "drive-ids.json"), "utf8"));
+    const v = ids[[u.searchParams.get("l"), u.searchParams.get("s"), u.searchParams.get("t"), u.searchParams.get("e") || ""].join("|")];
+    if (!v) return res.writeHead(404).end("não encontrado");
+    return res.writeHead(302, { location: v.startsWith("d:") ? `https://drive.google.com/drive/folders/${v.slice(2)}` : `https://drive.google.com/file/d/${v.slice(2)}/view` }).end();
+  }
   if (u.pathname === "/api/me") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ email: "local@teste", role: "admin" }));
   if (u.pathname === "/api/admin/overview") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ me: "local@teste", users: [] }));
   if (u.pathname.startsWith("/api/ra/") && env.RA_API_KEY) {

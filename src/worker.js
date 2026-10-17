@@ -43,9 +43,21 @@ export default {
     if (url.pathname === "/api/me") return me(request, env);
     if (url.pathname.startsWith("/api/admin/")) return admin(request, env, url);
     if (url.pathname.startsWith("/api/live/")) return live(request, env, url);
+    if (url.pathname === "/go/drive") return goDrive(request, env, url);
     return env.ASSETS.fetch(request);
   },
 };
+
+// "Abrir no Drive": o ID do arquivo fica em data/drive-ids.json (fora do catálogo do navegador). Redireciona.
+let driveIds = null;
+async function goDrive(request, env, url) {
+  driveIds ||= await env.ASSETS.fetch(new Request(new URL("/data/drive-ids.json", request.url))).then((r) => (r.ok ? r.json() : {}));
+  const p = url.searchParams;
+  const v = driveIds[[p.get("l"), p.get("s"), p.get("t"), p.get("e") || ""].join("|")];
+  if (!v) return new Response("Arquivo não encontrado no Drive (catálogo desatualizado?).", { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
+  const id = encodeURIComponent(v.slice(2));
+  return Response.redirect(v.startsWith("d:") ? `https://drive.google.com/drive/folders/${id}` : `https://drive.google.com/file/d/${id}/view`, 302);
+}
 
 async function ingestTelemetry(request, env) {
   const key = request.headers.get("x-telemetry-key") || "";

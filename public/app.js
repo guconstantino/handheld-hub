@@ -643,14 +643,16 @@ async function loadTopPlatforms() {
 }
 
 // Link do Drive do jogo: a cópia no Drive (arquivo ou pasta de jogo), se houver.
+// O ID do Drive não vem no catálogo (pesava 0,7 MB): o link vai para /go/drive no próprio portal e o Worker
+// redireciona. `data-ext-host` faz o aviso de "sair do portal" tratar o link como externo (drive.google.com).
+const driveHref = (c) => `go/drive?${new URLSearchParams({ l: c.location_id, s: c.system, t: c.rom, e: c.ext || "" })}`;
 const driveUrl = (g) => {
-  const c = g.copies.find((x) => x.device_id === "drive" && x.drive_id);
-  if (!c) return null;
-  return c.ext === "pasta" ? `https://drive.google.com/drive/folders/${c.drive_id}` : `https://drive.google.com/file/d/${c.drive_id}/view`;
+  const c = g.copies.find((x) => x.device_id === "drive" && x.drive);
+  return c ? driveHref(c) : null;
 };
 const driveBtn = (g, label = "Drive") => {
   const u = driveUrl(g);
-  return u ? `<a class="drive-btn" href="${esc(u)}" target="_blank" rel="noopener" aria-label="Abrir ${esc(g.title)} no Google Drive (nova aba)"><svg class="logo" aria-hidden="true"><use href="icons.svg#b-googledrive"/></svg>${label}</a>` : "";
+  return u ? `<a class="drive-btn" href="${esc(u)}" target="_blank" rel="noopener" data-ext-host="drive.google.com" aria-label="Abrir ${esc(g.title)} no Google Drive (nova aba)"><svg class="logo" aria-hidden="true"><use href="icons.svg#b-googledrive"/></svg>${label}</a>` : "";
 };
 // Capa (alt vazio: o título está escrito ao lado) ou cartão com o sistema.
 const coverImg = (g) => g.cover ? `<img src="covers/${esc(g.cover)}" alt="" loading="lazy" decoding="async">` : "";
@@ -1322,7 +1324,7 @@ async function renderGame(key) {
             <td>${esc(c.ext === "pasta" ? "pasta" : (c.ext || "—").toUpperCase())}${c.rom && c.rom !== c.title ? ` <span class="muted small">${esc(c.rom)}${c.ext && c.ext !== "pasta" ? "." + esc(c.ext) : ""}</span>` : ""}</td>
             <td class="num-cell">${c.size ? fmtB(c.size) : "—"}</td>
             <td>${c.status === "corrupted" ? `<span class="badge bad">corrompido</span>` : c.status === "ok" ? `<span class="badge ok">${icon("shield-check", "sm")}ok</span>` : `<span class="muted small">não verificado</span>`}</td>
-            <td>${c.device_id === "drive" && c.drive_id ? `<a class="small tlink" href="${esc(c.ext === "pasta" ? `https://drive.google.com/drive/folders/${c.drive_id}` : `https://drive.google.com/file/d/${c.drive_id}/view`)}" target="_blank" rel="noopener">Abrir no Drive</a>` : ""}</td>
+            <td>${c.device_id === "drive" && c.drive ? `<a class="small tlink" href="${esc(driveHref(c))}" target="_blank" rel="noopener" data-ext-host="drive.google.com">Abrir no Drive</a>` : ""}</td>
           </tr>`).join("")}</tbody></table></div>
       </section>
     </div>
@@ -2054,14 +2056,17 @@ $("#themeList").onclick = (e) => {
     const a = e.target.closest?.("a[href]");
     if (!a || e.defaultPrevented || (e.type === "auxclick" && e.button !== 1)) return;
     const url = new URL(a.href, location.href);
-    if (!/^https?:$/.test(url.protocol) || url.origin === location.origin) return;
-    const host = url.hostname.replace(/^www\./, "");
+    // Link interno que leva para fora (ex.: /go/drive redireciona ao Drive): avisa com o site de destino.
+    const ext = a.dataset.extHost;
+    if (!/^https?:$/.test(url.protocol) || (url.origin === location.origin && !ext)) return;
+    const host = ext || url.hostname.replace(/^www\./, "");
     const blank = a.target === "_blank" || e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1;
     if (trusted().includes(host)) return;                    // segue o comportamento normal do link
     e.preventDefault();
     pending = { url: url.href, blank, host };
     $("#leaveHost").textContent = host;
-    $("#leaveUrl").textContent = url.href.length > 120 ? url.href.slice(0, 117) + "…" : url.href;
+    const shown = ext ? `https://${ext}/…` : url.href;
+    $("#leaveUrl").textContent = shown.length > 120 ? shown.slice(0, 117) + "…" : shown;
     $("#leaveTrust").checked = false;
     dlg.showModal();
   };
