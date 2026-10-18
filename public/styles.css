@@ -322,7 +322,7 @@ a.name:hover { text-decoration-color: var(--text); }
 .barlist.cov .track i { border-radius: 4px; }
 .chart-note { margin-top: 12px; font-size: 13px; color: var(--muted); }
 
-.tip { position: fixed; z-index: 30; pointer-events: none; background: var(--text); color: var(--bg); font-size: 13px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
+.tip { position: fixed; z-index: 30; pointer-events: none; background: var(--text); color: var(--bg); font-size: 12.5px; padding: 6px 10px; border-radius: 6px; max-width: min(320px, calc(100vw - 24px)); line-height: 1.35; text-align: center; transform: translate(-50%, calc(-100% - 10px)); }
 
 /* ---------- jogos: alternância, capas, grade ---------- */
 .seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; border: 1px solid var(--control); border-radius: 8px; padding: 2px; background: var(--surface); }
@@ -338,6 +338,10 @@ a.name:hover { text-decoration-color: var(--text); }
 .drive-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; padding: 5px 10px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); }
 .drive-btn:hover { border-color: var(--text); }
 .drive-btn .logo { width: 14px; height: 14px; color: var(--acc-drive); }
+.drive-btn.disabled, .drive-btn:disabled { opacity: .5; cursor: not-allowed; border-color: var(--line) !important; color: var(--muted) !important; }
+.drive-btn.disabled:hover, .drive-btn:disabled:hover { border-color: var(--line) !important; }
+.drive-btn.disabled .logo, .drive-btn:disabled .logo { filter: grayscale(1); opacity: .7; }
+.gdrive .drive-btn.disabled, .ghero .drive-btn.disabled { background: rgb(0 0 0 / .45) !important; border-color: rgb(255 255 255 / .2) !important; color: rgb(255 255 255 / .5) !important; }
 
 .grid { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
 @media (min-width: 2000px) { .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
@@ -617,6 +621,11 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border: 1px s
 .page-head:has(#themeBtn) { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
 .leave .leave-url { overflow-wrap: anywhere; margin-top: -6px; }
 .leave .layout-actions { justify-content: flex-end; }
+.portfolio-demo { width: min(480px, calc(100% - 24px)); }
+.portfolio-demo p { line-height: 1.5; }
+.portfolio-demo .layout-actions { justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.showcase-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; background: var(--hover); border: 1px solid var(--line); border-radius: 10px; font-size: 13.5px; margin-bottom: 14px; line-height: 1.4; }
+.showcase-banner a { color: var(--text); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 
 /* ---------- comparar ---------- */
 .cmp-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }

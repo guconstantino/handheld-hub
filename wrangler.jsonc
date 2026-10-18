@@ -21,6 +21,7 @@
   // mais o endpoint write-only s20-telemetry (que só aceita POST /api/telemetry com X-Telemetry-Key).
   "routes": [
     { "pattern": "gamehub.gustavoconstantino.com", "custom_domain": true },
+    { "pattern": "handheldhub.gustavoconstantino.com", "custom_domain": true },
     { "pattern": "s20-telemetry.gustavoconstantino.com", "custom_domain": true }
   ],
   "workers_dev": false,

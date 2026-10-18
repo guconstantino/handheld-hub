@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-10-16T01:45:22Z",
+  "updatedAt": "2026-10-18T08:00:17Z",
   "source": "SirDiabo/GithubLauncher + decomp.dev + S20 FE Decompiled Ports",
   "counts": {
-    "total": 57,
-    "installed": 32,
-    "androidReady": 1,
+    "total": 58,
+    "installed": 23,
+    "androidReady": 11,
     "desktopRecomp": 9,
     "decompRadar": 15,
     "ptbr": 20
@@ -30,6 +30,9 @@
       ],
       "iconUrl": "https://cdn2.steamgriddb.com/icon/d1cd0a8c9b28f58703a097d5a25534e3/32/256x256.png",
       "romQuery": "Ocarina of Time",
+      "versionTags": {
+        "9.0.2": "v9.0.2P2"
+      },
       "latestTag": "v9.0.2P2",
       "publishedAt": "2025-07-11",
       "releaseUrl": "https://github.com/Waterdish/Shipwright-Android/releases/tag/v9.0.2P2",
@@ -41,7 +44,7 @@
         "gdrive": true,
         "bestPath": "n64/Legend of Zelda, The - Ocarina of Time (USA) (Rev B).zip"
       },
-      "updateStatus": "update-available"
+      "updateStatus": "up-to-date"
     },
     {
       "id": "2ship",
@@ -64,7 +67,7 @@
       "iconUrl": "https://cdn2.steamgriddb.com/icon/6c7dbdd98cd70f67f102524761f3b4d2/24/256x256.png",
       "romQuery": "Majora",
       "latestTag": null,
-      "publishedAt": null,
+      "publishedAt": "2025-06-13",
       "releaseUrl": "https://github.com/izzy2lost/2ship2harkinian-Android",
       "apkName": null,
       "apkUrl": null,
@@ -291,6 +294,9 @@
       ],
       "iconUrl": "covers/d-3e50135d5f8735ed.webp",
       "romQuery": "Mario Party 4",
+      "versionTags": {
+        "0.1.0": "partyboard_0.2.0"
+      },
       "latestTag": "partyboard_0.2.0",
       "publishedAt": "2026-05-08",
       "releaseUrl": "https://github.com/mariopartyrd/partyboard/releases/tag/partyboard_0.2.0",
@@ -302,7 +308,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "update-available"
+      "updateStatus": "up-to-date"
     },
     {
       "id": "driftdroid",
@@ -343,11 +349,11 @@
       "shortName": "Space Cadet Pinball",
       "system": "pc",
       "engine": "SpaceCadetPinball Decomp",
-      "category": "installed",
+      "category": "android-ready",
       "repository": "fexed/Pinball-on-Android",
       "upstreamRepo": "k4zmu2a/SpaceCadetPinball",
       "packageName": "com.fexed.spacecadetpinball",
-      "installedVersion": "2.5",
+      "installedVersion": null,
       "ptbr": "Sim",
       "features": [
         "60 FPS",
@@ -367,7 +373,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "hollowknight",
@@ -507,11 +513,11 @@
       "shortName": "GTA: San Andreas",
       "system": "android",
       "engine": "Unreal Engine 4 (Netflix)",
-      "category": "installed",
+      "category": "android-ready",
       "repository": null,
       "upstreamRepo": null,
       "packageName": "com.netflix.NGP.GTASanAndreasDefinitiveEdition",
-      "installedVersion": "1.86.44544238",
+      "installedVersion": null,
       "ptbr": "Sim (Nativo PT-BR)",
       "features": [
         "20:9 Widescreen",
@@ -531,7 +537,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "limbo",
@@ -539,11 +545,11 @@
       "shortName": "LIMBO",
       "system": "android",
       "engine": "Box2D / Playdead",
-      "category": "installed",
+      "category": "android-ready",
       "repository": null,
       "upstreamRepo": null,
       "packageName": "com.playdead.limbo.full",
-      "installedVersion": "1.27",
+      "installedVersion": null,
       "ptbr": "Sim (Nativo PT-BR)",
       "features": [
         "60 FPS",
@@ -564,7 +570,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "evoland",
@@ -572,11 +578,11 @@
       "shortName": "Evoland",
       "system": "android",
       "engine": "Heaps / Shiro Games",
-      "category": "installed",
+      "category": "android-ready",
       "repository": null,
       "upstreamRepo": null,
       "packageName": "air.com.shirogames.evoland12",
-      "installedVersion": "2.0.4",
+      "installedVersion": null,
       "ptbr": "Não",
       "features": [
         "60 FPS",
@@ -596,7 +602,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "evoland2",
@@ -636,11 +642,11 @@
       "shortName": "Fall Guys",
       "system": "android",
       "engine": "Unity / Epic Games",
-      "category": "installed",
+      "category": "android-ready",
       "repository": null,
       "upstreamRepo": null,
       "packageName": "com.Mediatonic.FallGuys_client",
-      "installedVersion": "19.0.0",
+      "installedVersion": null,
       "ptbr": "Sim (Nativo PT-BR)",
       "features": [
         "60 FPS",
@@ -661,7 +667,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "haak",
@@ -765,11 +771,11 @@
       "shortName": "Tiny Dangerous Dungeons",
       "system": "android",
       "engine": "Adventure Islands",
-      "category": "installed",
+      "category": "android-ready",
       "repository": null,
       "upstreamRepo": null,
       "packageName": "com.adventureislands.tinydd",
-      "installedVersion": "1.3.2",
+      "installedVersion": null,
       "ptbr": "Não",
       "features": [
         "60 FPS",
@@ -788,7 +794,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "snakeio",
@@ -796,11 +802,11 @@
       "shortName": "Snake.io",
       "system": "android",
       "engine": "Kooapps / Netflix",
-      "category": "installed",
+      "category": "android-ready",
       "repository": null,
       "upstreamRepo": null,
       "packageName": "com.netflix.NGP.Snakeio",
-      "installedVersion": "1.0.8",
+      "installedVersion": null,
       "ptbr": "Sim (Nativo PT-BR)",
       "features": [
         "60 FPS",
@@ -821,7 +827,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "perfect_dark",
@@ -829,11 +835,11 @@
       "shortName": "Perfect Dark",
       "system": "n64",
       "engine": "n64decomp",
-      "category": "installed",
+      "category": "android-ready",
       "repository": "izzy2lost/perfect_dark",
       "upstreamRepo": "fgsfdsfgs/perfect_dark",
       "packageName": "com.perfectdark.port",
-      "installedVersion": "2.0.0",
+      "installedVersion": null,
       "ptbr": "Disponível via ROM/Textos",
       "features": [
         "60 FPS",
@@ -853,7 +859,7 @@
         "gdrive": true,
         "bestPath": "n64/Perfect Dark (USA) (Rev A).zip"
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "devilutionx",
@@ -894,11 +900,11 @@
       "shortName": "OpenLara",
       "system": "psx",
       "engine": "OpenLara",
-      "category": "installed",
+      "category": "android-ready",
       "repository": "XProger/OpenLara",
       "upstreamRepo": "XProger/OpenLara",
       "packageName": "com.xproger.openlara",
-      "installedVersion": "0.1",
+      "installedVersion": null,
       "ptbr": "Não",
       "features": [
         "60 FPS",
@@ -919,7 +925,7 @@
         "gdrive": true,
         "bestPath": "psx/TOMBRAIDER.iso"
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "nfsmw",
@@ -941,18 +947,51 @@
       ],
       "iconUrl": "covers/82d19d161d04fd5a.webp",
       "romQuery": "Need for Speed - Most Wanted",
-      "latestTag": "v0.4.2",
-      "publishedAt": "2026-10-14",
-      "releaseUrl": "https://github.com/victorgbd/NFSMW-Recompiled-Mobile/releases/tag/v0.4.2",
-      "apkName": "nfsmw-ediciones-0.4.2-release.apk",
-      "apkUrl": "https://github.com/victorgbd/NFSMW-Recompiled-Mobile/releases/download/v0.4.2/nfsmw-ediciones-0.4.2-release.apk",
-      "apkSize": 118384209,
+      "latestTag": "v0.5.1",
+      "publishedAt": "2026-10-17",
+      "releaseUrl": "https://github.com/victorgbd/NFSMW-Recompiled-Mobile/releases/tag/v0.5.1",
+      "apkName": "nfsmw-all-0.5.1-release.apk",
+      "apkUrl": "https://github.com/victorgbd/NFSMW-Recompiled-Mobile/releases/download/v0.5.1/nfsmw-all-0.5.1-release.apk",
+      "apkSize": 118798097,
       "rom": {
         "s20Sd": false,
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "update-available"
+    },
+    {
+      "id": "gta4",
+      "name": "Grand Theft Auto IV (Liberty Recompiled)",
+      "shortName": "Grand Theft Auto IV",
+      "system": "x360",
+      "engine": "LibertyRecomp",
+      "category": "android-ready",
+      "repository": "vaduur/LibertyRecompAndroid",
+      "upstreamRepo": "OZORDI/LibertyRecomp",
+      "packageName": "com.libertyrecomp",
+      "installedVersion": null,
+      "ptbr": "Original ou Mods",
+      "features": [
+        "30 FPS VSync",
+        "720p Nativo",
+        "Mesa Turnip R6",
+        "ARM64 Nativo"
+      ],
+      "iconUrl": "covers/gta4.webp",
+      "romQuery": "Grand Theft Auto IV",
+      "latestTag": "v0.5.9.3",
+      "publishedAt": "2026-10-14",
+      "releaseUrl": "https://github.com/vaduur/LibertyRecompAndroid/releases/tag/v0.5.9.3",
+      "apkName": "LibertyRecompAndroid-v0.5.9.3.apk",
+      "apkUrl": "https://github.com/vaduur/LibertyRecompAndroid/releases/download/v0.5.9.3/LibertyRecompAndroid-v0.5.9.3.apk",
+      "apkSize": 47324934,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "ghostship",
@@ -1218,11 +1257,11 @@
       "shortName": "Mega Man 64 Recomp",
       "system": "n64",
       "engine": "N64Recomp",
-      "category": "installed",
+      "category": "android-ready",
       "repository": "DevZer0D4Y/MegaMan64Recompiled-Mobile",
       "upstreamRepo": "MegaMan64Recomp/MegaMan64Recompiled",
       "packageName": "com.devz.megaman64",
-      "installedVersion": "0.9.1-mobile.1",
+      "installedVersion": null,
       "ptbr": "Não",
       "features": [
         "60 FPS",
@@ -1243,7 +1282,7 @@
         "gdrive": true,
         "bestPath": "n64/Mega Man 64 (USA).zip"
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "ready-to-install"
     },
     {
       "id": "quest64recomp",
@@ -1297,9 +1336,9 @@
       ],
       "iconUrl": "https://raw.githubusercontent.com/arcanite24/pinyon-shift/refs/heads/main/config/steam/capsule.png",
       "romQuery": "Forza Horizon",
-      "latestTag": "v0.5.1",
-      "publishedAt": "2026-10-12",
-      "releaseUrl": "https://github.com/arcanite24/pinyon-shift/releases/tag/v0.5.1",
+      "latestTag": "v0.6.0",
+      "publishedAt": "2026-10-17",
+      "releaseUrl": "https://github.com/arcanite24/pinyon-shift/releases/tag/v0.6.0",
       "apkName": null,
       "apkUrl": null,
       "apkSize": null,
@@ -1316,11 +1355,11 @@
       "shortName": "Super Mario Galaxy",
       "system": "wii",
       "engine": "Petari / OpenGL ES 3.2",
-      "category": "android-ready",
+      "category": "installed",
       "repository": "OpenPort-Labs/Galaxy-Android",
       "upstreamRepo": "SMGCommunity/Petari",
       "packageName": "com.openport.galaxyandroid",
-      "installedVersion": null,
+      "installedVersion": "0.0.2",
       "ptbr": "Não",
       "features": [
         "Nativo ARM64",
@@ -1331,18 +1370,18 @@
       ],
       "iconUrl": "covers/smg.webp",
       "romQuery": "Super Mario Galaxy",
-      "latestTag": "v0.0.1c",
-      "publishedAt": "2026-10-15",
-      "releaseUrl": "https://github.com/OpenPort-Labs/Galaxy-Android/releases/tag/v0.0.1c",
-      "apkName": "GalaxyAndroid.apk",
-      "apkUrl": "https://github.com/OpenPort-Labs/Galaxy-Android/releases/download/v0.0.1c/GalaxyAndroid.apk",
-      "apkSize": 40061767,
+      "latestTag": "v0.0.3",
+      "publishedAt": "2026-10-18",
+      "releaseUrl": "https://github.com/OpenPort-Labs/Galaxy-Android/releases/tag/v0.0.3",
+      "apkName": "GalaxyAndroid-v0.0.3.apk",
+      "apkUrl": "https://github.com/OpenPort-Labs/Galaxy-Android/releases/download/v0.0.3/GalaxyAndroid-v0.0.3.apk",
+      "apkSize": 67366702,
       "rom": {
         "s20Sd": false,
         "gdrive": true,
         "bestPath": "Wii/Super Mario Galaxy.ciso"
       },
-      "updateStatus": "ready-to-install"
+      "updateStatus": "update-available"
     },
     {
       "id": "smgpcport",
@@ -1398,7 +1437,7 @@
       "iconUrl": "covers/smg.webp",
       "romQuery": "Super Mario Galaxy",
       "latestTag": null,
-      "publishedAt": "2026-10-14",
+      "publishedAt": "2026-10-17",
       "releaseUrl": "https://github.com/SMGCommunity/Petari",
       "apkName": null,
       "apkUrl": null,
@@ -1430,7 +1469,7 @@
       "iconUrl": "covers/01ed502b206405ef.webp",
       "romQuery": "Super Mario Galaxy 2",
       "latestTag": null,
-      "publishedAt": "2026-10-16",
+      "publishedAt": "2026-10-17",
       "releaseUrl": "https://github.com/SMGCommunity/Garigari",
       "apkName": null,
       "apkUrl": null,
@@ -1462,7 +1501,7 @@
       "iconUrl": "covers/21fdbc3631232c5b.webp",
       "romQuery": "Super Mario Sunshine",
       "latestTag": null,
-      "publishedAt": "2026-10-16",
+      "publishedAt": "2026-10-17",
       "releaseUrl": "https://github.com/doldecomp/sms",
       "apkName": null,
       "apkUrl": null,
@@ -1494,7 +1533,7 @@
       "iconUrl": "covers/bf2fc14e070783a4.webp",
       "romQuery": "Super Smash Bros. Melee",
       "latestTag": null,
-      "publishedAt": "2026-10-14",
+      "publishedAt": "2026-10-16",
       "releaseUrl": "https://github.com/doldecomp/melee",
       "apkName": null,
       "apkUrl": null,
@@ -1622,7 +1661,7 @@
       "iconUrl": "covers/1665e2d37db9c211.webp",
       "romQuery": "Silent Hill",
       "latestTag": null,
-      "publishedAt": "2026-10-09",
+      "publishedAt": "2026-10-18",
       "releaseUrl": "https://github.com/shdecompilations/silent-hill-decomp",
       "apkName": null,
       "apkUrl": null,
@@ -1686,7 +1725,7 @@
       "iconUrl": "covers/8a2788b65c5d30d2.webp",
       "romQuery": "Conker's Bad Fur Day",
       "latestTag": null,
-      "publishedAt": "2026-10-15",
+      "publishedAt": "2026-10-18",
       "releaseUrl": "https://github.com/DevOldSchool/conkers-bfd-decomp",
       "apkName": null,
       "apkUrl": null,

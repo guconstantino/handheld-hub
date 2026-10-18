@@ -1,15 +1,15 @@
 {
-  "updatedAt": "2026-10-16T01:45:19.507146+00:00",
-  "hash": "d5077ee825ed5618",
+  "updatedAt": "2026-10-18T08:00:08.892615+00:00",
+  "hash": "c980e552c86f20e6",
   "account": "guconstantino",
   "counts": {
-    "total": 376,
+    "total": 378,
     "installed": 8,
     "nativeOrPort": 30,
-    "greatLight": 93,
-    "playableMid": 142,
+    "greatLight": 94,
+    "playableMid": 143,
     "heavyOrIncompat": 111,
-    "drmFree": 264
+    "drmFree": 266
   },
   "games": [
     {
@@ -1438,6 +1438,28 @@
       "diskHuman": "617 MB",
       "dlHuman": "449 MB",
       "cover": "https://cdn1.epicgames.com/spt-assets/f6e3235f6d194a41ba7f20365963c1dd/akxolotl-dx8g0.png?h=256&resize=1",
+      "tier": 5,
+      "score": 90,
+      "category": "great-light",
+      "installedS20": false,
+      "compatLabel": "90% · Leve 60 FPS (Unity)",
+      "compatDetail": "Ótima performance no GameHub (Unity, DRM-Free)"
+    },
+    {
+      "appName": "cca13b369c5748e2b52af7de8c06281e",
+      "title": "Agent A: A puzzle in disguise",
+      "developer": "Yak & Co",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Unity",
+      "exe": "AgentA.exe",
+      "offline": true,
+      "diskBytes": 683739093,
+      "dlBytes": 560165756,
+      "diskHuman": "652 MB",
+      "dlHuman": "534 MB",
+      "cover": "https://cdn1.epicgames.com/spt-assets/45db4fbe68fe43f4b025dec2014d42e7/agent-a-a-puzzle-in-disguise-r001k.png?h=256&resize=1",
       "tier": 5,
       "score": 90,
       "category": "great-light",
@@ -5114,6 +5136,28 @@
       "installedS20": false,
       "compatLabel": "65% · Jogável em 720p (Unity)",
       "compatDetail": "25–45 FPS em 720p no GameHub (Unity)"
+    },
+    {
+      "appName": "a5c160fefaa34497b8f6a277cc105f37",
+      "title": "Bad Cheese",
+      "developer": "FEARDEMIC sp. z o.o.",
+      "platforms": [
+        "Windows"
+      ],
+      "engine": "Unreal",
+      "exe": "BadCheese.exe",
+      "offline": true,
+      "diskBytes": 8845268183,
+      "dlBytes": 2745853096,
+      "diskHuman": "8.24 GB",
+      "dlHuman": "2.56 GB",
+      "cover": "https://cdn1.epicgames.com/spt-assets/6cbb0e3805c4436bafd028cafff48307/bad-cheese-1wv6x.png?h=256&resize=1",
+      "tier": 7,
+      "score": 65,
+      "category": "playable-mid",
+      "installedS20": false,
+      "compatLabel": "65% · Jogável em 720p (Unreal)",
+      "compatDetail": "25–45 FPS em 720p no GameHub (Unreal)"
     },
     {
       "appName": "e7d92786abe54fae9319c1ddb94ae271",

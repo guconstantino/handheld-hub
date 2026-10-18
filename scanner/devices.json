@@ -236,68 +236,50 @@
   ],
   "locations": [
     {
-      "id": "s20-sd",
+      "id": "android-sd",
       "device_id": "s20fe",
-      "label": "Cartão SD",
+      "label": "Cartão SD (Android)",
       "method": "adb",
-      "root": "/storage/6847-D042/Rom"
+      "root": "/storage/0000-0000/Roms"
     },
     {
-      "id": "s20-int",
+      "id": "android-int",
       "device_id": "s20fe",
-      "label": "Interno",
+      "label": "Armazenamento Interno",
       "method": "adb",
-      "root": "/sdcard/Rom"
+      "root": "/sdcard/Roms"
     },
     {
       "id": "miyoo-sd",
       "device_id": "miyoo",
-      "label": "Cartão SD",
+      "label": "Cartão SD (OnionOS)",
       "method": "local",
       "root": "/Volumes/*/Roms",
       "detect": "../.tmp_update",
       "read_head": true
     },
     {
-      "id": "switch-jksv",
+      "id": "switch-ftp",
       "device_id": "switch",
-      "label": "Jogos instalados (DBI)",
+      "label": "Nintendo Switch (FTP)",
       "method": "ftp",
-      "root": "ftp://192.168.0.105:5000"
+      "root": "ftp://192.168.1.105:5000"
     },
     {
-      "id": "drive-plataform",
-      "device_id": "drive",
-      "label": "Retrogame/Plataform",
-      "method": "local",
-      "drive_ids": true,
-      "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/Retrogame/Plataform"
-    },
-    {
-      "id": "drive-gamecube",
-      "device_id": "drive",
-      "label": "Games/gamecube (atalhos compartilhados)",
-      "method": "local",
-      "drive_ids": true,
-      "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/gamecube",
-      "follow_links": true
-    },
-    {
-      "id": "drive-batocera",
-      "device_id": "drive",
-      "label": "Games/Batocera",
-      "method": "local",
-      "drive_ids": true,
-      "root": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/Batocera/3-Jogos"
-    },
-    {
-      "id": "pc-gpbox",
+      "id": "pc-roms",
       "device_id": "pc",
-      "label": "GPBox (F:)",
+      "label": "PC / Emulação (FTP)",
       "method": "ftp-tree",
-      "root": "ftp://192.168.0.96:2121",
-      "prefix": "GPBOXPC/gpbox/roms/",
-      "inventory": "~/Library/CloudStorage/GoogleDrive-*/My Drive/Games/_inventarios/pc-gpbox.json"
+      "root": "ftp://192.168.1.100:2121",
+      "prefix": "roms/"
+    },
+    {
+      "id": "drive-backup",
+      "device_id": "drive",
+      "label": "Nuvem / Backup",
+      "method": "local",
+      "drive_ids": true,
+      "root": "~/Google Drive/Roms"
     }
   ]
 }

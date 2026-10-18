@@ -14,7 +14,8 @@ import ctypes, glob, json, os, re, subprocess, sys, time, unicodedata
 from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CFG = json.load(open(os.path.join(ROOT, "scanner", "devices.json")))
+DEVICES_FILE = os.path.join(ROOT, "scanner", "devices.local.json" if os.path.exists(os.path.join(ROOT, "scanner", "devices.local.json")) else "devices.json")
+CFG = json.load(open(DEVICES_FILE))
 ADB_SERIAL = os.environ.get("ANDROID_SERIAL", "")
 
 # Arquivos que não são jogo (mídia, saves, metadados de front-end).

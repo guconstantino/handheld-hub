@@ -37,10 +37,10 @@ export default {
       request = new Request(request, { headers: h });
     }
     if (url.pathname.startsWith("/covers/") || url.pathname.startsWith("/themes/")) return cover(request, env, ctx, url);
-    if (url.pathname === "/api/lists") return lists(request, env);
-    if (url.pathname === "/api/prefs") return prefs(request, env);
+    if (url.pathname === "/api/lists") return lists(request, env, url);
+    if (url.pathname === "/api/prefs") return prefs(request, env, url);
     if (url.pathname.startsWith("/api/ra/")) return ra(request, env, ctx, url);
-    if (url.pathname === "/api/me") return me(request, env);
+    if (url.pathname === "/api/me") return me(request, env, url);
     if (url.pathname.startsWith("/api/admin/")) return admin(request, env, url);
     if (url.pathname.startsWith("/api/live/")) return live(request, env, url);
     if (url.pathname === "/go/drive") return goDrive(request, env, url);
@@ -51,6 +51,12 @@ export default {
 // "Abrir no Drive": o ID do arquivo fica em data/drive-ids.json (fora do catálogo do navegador). Redireciona.
 let driveIds = null;
 async function goDrive(request, env, url) {
+  if (url.hostname === "handheldhub.gustavoconstantino.com") {
+    return new Response(
+      "Demonstração pública de portfólio. Downloads diretos e links para o Google Drive estão desabilitados nesta visualização.",
+      { status: 403, headers: { "content-type": "text/plain; charset=utf-8" } }
+    );
+  }
   driveIds ||= await env.ASSETS.fetch(new Request(new URL("/data/drive-ids.json", request.url))).then((r) => (r.ok ? r.json() : {}));
   const p = url.searchParams;
   const v = driveIds[[p.get("l"), p.get("s"), p.get("t"), p.get("e") || ""].join("|")];
@@ -129,9 +135,16 @@ async function cover(request, env, ctx, url) {
 
 // Favoritos e listas do usuário (KV). O e-mail vem do Cloudflare Access; sem ele, não há lista.
 const LIST_NAMES = ["fav", "want", "done", "playing", "recent"];
-async function lists(request, env) {
+async function lists(request, env, url) {
+  const isPublic = url && url.hostname === "handheldhub.gustavoconstantino.com";
   const user = request.headers.get("cf-access-authenticated-user-email");
-  if (!user) return Response.json({ error: "sem usuário do Access" }, { status: 401 });
+  if (!user) {
+    if (isPublic) {
+      if (request.method === "GET") return Response.json({ fav: [], want: [], done: [], playing: [], recent: [] }, { headers: { "cache-control": "no-store" } });
+      return Response.json({ fav: [], want: [], done: [], playing: [], recent: [] }, { headers: { "cache-control": "no-store" } });
+    }
+    return Response.json({ error: "sem usuário do Access" }, { status: 401 });
+  }
   const key = `lists:${user.toLowerCase()}`;
   const data = { fav: [], want: [], done: [], playing: [], recent: [], ...((await env.LISTS.get(key, "json")) || {}) };
   if (request.method === "GET") return Response.json(data, { headers: { "cache-control": "no-store" } });
@@ -165,9 +178,16 @@ async function lists(request, env) {
 
 // Preferências do usuário (tema, ordenações, layout…): as mesmas em todos os aparelhos. KV por e-mail do Access.
 // Só chaves "hh_…"/"hh-…" com texto curto; o objeto inteiro é substituído a cada gravação (o último aparelho vence).
-async function prefs(request, env) {
+async function prefs(request, env, url) {
+  const isPublic = url && url.hostname === "handheldhub.gustavoconstantino.com";
   const user = request.headers.get("cf-access-authenticated-user-email");
-  if (!user) return Response.json({ error: "sem usuário do Access" }, { status: 401 });
+  if (!user) {
+    if (isPublic) {
+      if (request.method === "GET") return Response.json({}, { headers: { "cache-control": "no-store" } });
+      return Response.json({}, { headers: { "cache-control": "no-store" } });
+    }
+    return Response.json({ error: "sem usuário do Access" }, { status: 401 });
+  }
   const key = `prefs:${user.toLowerCase()}`;
   const headers = { "cache-control": "no-store" };
   if (request.method === "GET") return Response.json((await env.LISTS.get(key, "json")) || {}, { headers });
@@ -186,14 +206,23 @@ async function prefs(request, env) {
 // Quem entra é decidido pelo Cloudflare Access (policy "Só Gustavo"); aqui só se distingue admin de usuário.
 const userOf = (request) => (request.headers.get("cf-access-authenticated-user-email") || "").toLowerCase();
 const isAdmin = (env, email) => !!email && (env.ADMINS || "").toLowerCase().split(",").map((x) => x.trim()).includes(email);
-function me(request, env) {
+function me(request, env, url) {
+  const isPublic = url && url.hostname === "handheldhub.gustavoconstantino.com";
   const email = userOf(request);
-  if (!email) return Response.json({ error: "sem usuário do Access" }, { status: 401 });
-  return Response.json({ email, role: isAdmin(env, email) ? "admin" : "user" }, { headers: { "cache-control": "no-store" } });
+  if (!email) {
+    if (isPublic) {
+      return Response.json({ email: "visitante@portfolio", role: "guest", demo: true }, { headers: { "cache-control": "no-store" } });
+    }
+    return Response.json({ error: "sem usuário do Access" }, { status: 401 });
+  }
+  return Response.json({ email, role: isAdmin(env, email) ? "admin" : "user", demo: isPublic }, { headers: { "cache-control": "no-store" } });
 }
 
 // Painel de admin: usuários que já usaram o portal (listas e preferências no KV) e quando foi a última atividade.
 async function admin(request, env, url) {
+  if (url.hostname === "handheldhub.gustavoconstantino.com") {
+    return Response.json({ error: "não permitido no modo público" }, { status: 403 });
+  }
   const email = userOf(request);
   if (!isAdmin(env, email)) return Response.json({ error: "só para admin" }, { status: 403 });
   if (url.pathname !== "/api/admin/overview") return Response.json({ error: "não encontrado" }, { status: 404 });

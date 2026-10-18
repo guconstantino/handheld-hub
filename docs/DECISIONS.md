@@ -4,6 +4,15 @@ Formato ADR curto. Mais recente no topo. Data AAAA-MM-DD.
 
 ---
 
+## 2026-10-18 — Domínio público para portfólio (handheldhub.gustavoconstantino.com) e isolamento de configs
+
+- **Contexto:** transformar o projeto em showcase público de portfólio e para a comunidade, sem expor IPs locais, caminhos privados nem links diretos do Google Drive com ROMs.
+- **Decisão:**
+  1. **Dual-domain no Worker:** `gamehub.gustavoconstantino.com` (privado, sob Cloudflare Access) e `handheldhub.gustavoconstantino.com` (público, sem login, downloads no Drive bloqueados com modal de portfólio).
+  2. **Isolamento de configs:** `scanner/devices.local.json` (gitignored, com caminhos e IPs reais) sobrepõe `scanner/devices.json` (genérico, público no git) nos scripts (`scan.py`, `backup_to_drive.py`, `fix_corrupted.py`).
+  3. **Segurança jurídica:** `/go/drive` retorna 403 no domínio público; o frontend intercepta cliques e orienta o visitante a clonar o projeto para seu próprio acervo.
+- **Motivo:** vitrine completa para recrutadores e comunidade com zero risco de pirataria e zero exposição de dados sensíveis.
+
 ## 2026-10-07 — Visual minimalista + ficha por console
 
 - **Contexto:** o visual herdado do universal-dashboard (brilhos, vidro, gradientes) ficou carregado; faltavam os dados do Switch.

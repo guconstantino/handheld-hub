@@ -188,12 +188,25 @@ themeLabel();
 const focusHeading = () => { const h = document.querySelector(".view:not(.hidden) h1"); if (h) h.focus({ preventScroll: true }); };
 $("#skip").onclick = focusHeading;
 
-// Dica flutuante dos gráficos (só mouse; o mesmo dado está escrito na legenda ou na linha).
+// Dica flutuante dos gráficos e botões (mouse e foco por teclado).
 document.addEventListener("mousemove", (e) => {
   const el = e.target.closest("[data-tip]"); const tip = $("#tip");
   if (!el) { tip.classList.add("hidden"); return; }
   tip.textContent = el.dataset.tip; tip.style.left = `${e.clientX}px`; tip.style.top = `${e.clientY}px`;
   tip.classList.remove("hidden");
+});
+document.addEventListener("focusin", (e) => {
+  const el = e.target.closest("[data-tip]"); const tip = $("#tip");
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  tip.textContent = el.dataset.tip;
+  tip.style.left = `${rect.left + rect.width / 2}px`;
+  tip.style.top = `${rect.top - 6}px`;
+  tip.classList.remove("hidden");
+});
+document.addEventListener("focusout", (e) => {
+  const el = e.target.closest("[data-tip]"); const tip = $("#tip");
+  if (el) tip.classList.add("hidden");
 });
 
 // ---------- rotas: #overview, #device/<id>, #games, #health ----------
@@ -652,7 +665,11 @@ const driveUrl = (g) => {
 };
 const driveBtn = (g, label = "Drive") => {
   const u = driveUrl(g);
-  return u ? `<a class="drive-btn" href="${esc(u)}" target="_blank" rel="noopener" data-ext-host="drive.google.com" aria-label="Abrir ${esc(g.title)} no Google Drive (nova aba)"><svg class="logo" aria-hidden="true"><use href="icons.svg#b-googledrive"/></svg>${label}</a>` : "";
+  if (!u) return "";
+  if (location.hostname === "handheldhub.gustavoconstantino.com") {
+    return `<span class="drive-btn disabled" role="button" tabindex="0" aria-disabled="true" data-tip="Demonstração de portfólio: download de ROMs desabilitado nesta visualização" aria-label="${esc(label)} (desabilitado na demonstração)"><svg class="logo" aria-hidden="true"><use href="icons.svg#b-googledrive"/></svg>${label}</span>`;
+  }
+  return `<a class="drive-btn" href="${esc(u)}" target="_blank" rel="noopener" data-ext-host="drive.google.com" aria-label="Abrir ${esc(g.title)} no Google Drive (nova aba)"><svg class="logo" aria-hidden="true"><use href="icons.svg#b-googledrive"/></svg>${label}</a>`;
 };
 // Capa (alt vazio: o título está escrito ao lado) ou cartão com o sistema.
 const coverImg = (g) => g.cover ? `<img src="covers/${esc(g.cover)}" alt="" loading="lazy" decoding="async">` : "";
@@ -1324,7 +1341,7 @@ async function renderGame(key) {
             <td>${esc(c.ext === "pasta" ? "pasta" : (c.ext || "—").toUpperCase())}${c.rom && c.rom !== c.title ? ` <span class="muted small">${esc(c.rom)}${c.ext && c.ext !== "pasta" ? "." + esc(c.ext) : ""}</span>` : ""}</td>
             <td class="num-cell">${c.size ? fmtB(c.size) : "—"}</td>
             <td>${c.status === "corrupted" ? `<span class="badge bad">corrompido</span>` : c.status === "ok" ? `<span class="badge ok">${icon("shield-check", "sm")}ok</span>` : `<span class="muted small">não verificado</span>`}</td>
-            <td>${c.device_id === "drive" && c.drive ? `<a class="small tlink" href="${esc(driveHref(c))}" target="_blank" rel="noopener" data-ext-host="drive.google.com">Abrir no Drive</a>` : ""}</td>
+            <td>${c.device_id === "drive" && c.drive ? (location.hostname === "handheldhub.gustavoconstantino.com" ? `<span class="small muted" tabindex="0" role="button" aria-disabled="true" data-tip="Demonstração de portfólio: download de ROMs desabilitado nesta visualização" style="cursor:not-allowed">No Drive</span>` : `<a class="small tlink" href="${esc(driveHref(c))}" target="_blank" rel="noopener" data-ext-host="drive.google.com">Abrir no Drive</a>`) : ""}</td>
           </tr>`).join("")}</tbody></table></div>
       </section>
     </div>
@@ -2048,7 +2065,12 @@ $("#themeList").onclick = (e) => {
 // Links para outros sites (Drive, Wikipédia, RetroAchievements…) pedem confirmação antes de sair do portal.
 // Delegação: vale para links criados depois. "Não perguntar de novo" fica por site, neste aparelho.
 (() => {
-  const dlg = $("#leaveDlg"), KEY = "hh-trusted-hosts";
+  const dlg = $("#leaveDlg"), demoDlg = $("#demoDlg"), KEY = "hh-trusted-hosts";
+  const isDemoHost = location.hostname === "handheldhub.gustavoconstantino.com";
+  if (isDemoHost) {
+    const banner = $("#showcaseBanner");
+    if (banner) banner.hidden = false;
+  }
   const trusted = () => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; } };
   let pending = null;
   const go = ({ url, blank }) => (blank ? window.open(url, "_blank", "noopener") : location.assign(url));
@@ -2056,8 +2078,14 @@ $("#themeList").onclick = (e) => {
     const a = e.target.closest?.("a[href]");
     if (!a || e.defaultPrevented || (e.type === "auxclick" && e.button !== 1)) return;
     const url = new URL(a.href, location.href);
-    // Link interno que leva para fora (ex.: /go/drive redireciona ao Drive): avisa com o site de destino.
     const ext = a.dataset.extHost;
+    // No domínio público do showcase, cliques para o Drive abrem o modal explicativo
+    if (isDemoHost && (ext === "drive.google.com" || url.pathname.includes("/go/drive"))) {
+      e.preventDefault();
+      demoDlg?.showModal();
+      return;
+    }
+    // Link interno que leva para fora (ex.: /go/drive redireciona ao Drive): avisa com o site de destino.
     if (!/^https?:$/.test(url.protocol) || (url.origin === location.origin && !ext)) return;
     const host = ext || url.hostname.replace(/^www\./, "");
     const blank = a.target === "_blank" || e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1;

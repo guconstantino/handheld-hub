@@ -16,7 +16,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from covers import d1  # noqa: E402
 
-CFG = {l["id"]: l for l in json.load(open(os.path.join(ROOT, "scanner", "devices.json")))["locations"]}
+DEVICES_FILE = os.path.join(ROOT, "scanner", "devices.local.json" if os.path.exists(os.path.join(ROOT, "scanner", "devices.local.json")) else "devices.json")
+CFG = {l["id"]: l for l in json.load(open(DEVICES_FILE))["locations"]}
 ADB = ["adb"] + (["-s", os.environ["ANDROID_SERIAL"]] if os.environ.get("ANDROID_SERIAL") else [])
 SKIP = {"switch", "ports", "android", "windows", "pinballfx3"}       # não é ROM retro (ou não tem como copiar)
 LOG = os.path.join(ROOT, "data", "backup-drive.txt")
