@@ -2186,12 +2186,12 @@ async function loadPortsFeed(forceReload = false) {
         statusBadge = `<span class="port-feed-badge" style="background:#7c3aed;color:#fff">💻 Só PC</span>`;
       }
 
-      const coverSrc = p.iconUrl || "icons/favicon-96.png";
+      const coverSrc = p.iconUrl || "icons/icon-192.png";
       const relDate = p.publishedAt ? p.publishedAt.split("-").reverse().slice(0, 2).join("/") : "";
 
       return `<a class="port-feed-card" href="#ports" title="${esc(p.name)} · ${esc(p.engine)}">
         <div class="port-feed-thumb">
-          <img src="${esc(coverSrc)}" alt="${esc(p.name)}" loading="lazy" onerror="this.src='icons/favicon-96.png'">
+          <img src="${esc(coverSrc)}" alt="${esc(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='icons/icon-192.png'">
           ${statusBadge}
         </div>
         <div class="port-feed-info">
