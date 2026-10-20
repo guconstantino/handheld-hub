@@ -245,5 +245,73 @@
     "free": 92073361407
    }
   }
+ },
+ {
+  "date": "2026-10-19",
+  "games": 16088,
+  "files": 51135,
+  "covers": 15520,
+  "corrupted": 206,
+  "devices": {
+   "drive": {
+    "games": 15806,
+    "total": null,
+    "free": null
+   },
+   "miyoo": {
+    "games": 6450,
+    "total": 62535499776,
+    "free": 21645524992
+   },
+   "pc": {
+    "games": 5999,
+    "total": null,
+    "free": null
+   },
+   "s20fe": {
+    "games": 10452,
+    "total": 177608814592,
+    "free": 16734257152
+   },
+   "switch": {
+    "games": 58,
+    "total": 314606354432,
+    "free": 92073361407
+   }
+  }
+ },
+ {
+  "date": "2026-10-20",
+  "games": 16088,
+  "files": 51135,
+  "covers": 15520,
+  "corrupted": 206,
+  "devices": {
+   "drive": {
+    "games": 15806,
+    "total": null,
+    "free": null
+   },
+   "miyoo": {
+    "games": 6450,
+    "total": 62535499776,
+    "free": 21645524992
+   },
+   "pc": {
+    "games": 5999,
+    "total": null,
+    "free": null
+   },
+   "s20fe": {
+    "games": 10452,
+    "total": 177608814592,
+    "free": 16734257152
+   },
+   "switch": {
+    "games": 58,
+    "total": 314606354432,
+    "free": 92073361407
+   }
+  }
  }
 ]

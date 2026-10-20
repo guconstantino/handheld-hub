@@ -44,7 +44,7 @@ export default {
     if (url.pathname.startsWith("/api/admin/")) return admin(request, env, url);
     if (url.pathname.startsWith("/api/live/")) return live(request, env, url);
     if (url.pathname === "/go/drive") return goDrive(request, env, url);
-    return env.ASSETS.fetch(request);
+    return serveAsset(request, env, ctx, url);
   },
 };
 
@@ -125,12 +125,53 @@ async function cover(request, env, ctx, url) {
   const key = decodeURIComponent(url.pathname.slice(1));          // "covers/<arquivo>.webp" ou "themes/<tema>/<sistema>.webp"
   if (!/^(covers\/[\w.-]+|themes\/[a-z0-9-]+\/[\w.-]+)\.webp$/.test(key)) return new Response("não encontrado", { status: 404 });
   const obj = await env.MEDIA.get(key);
-  if (!obj) return env.ASSETS.fetch(request);                       // sem a capa no R2 (rodar npm run r2): os assets respondem 404
+  if (!obj) return serveAsset(request, env, ctx, url);             // sem a capa no R2 (rodar npm run r2): os assets respondem 404
   const res = new Response(obj.body, {
-    headers: { "content-type": "image/webp", "cache-control": "public, max-age=31536000, immutable", etag: obj.httpEtag },
+    headers: { "content-type": "image/webp", "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable", etag: obj.httpEtag },
   });
   ctx.waitUntil(cache.put(request, res.clone()));
   return res;
+}
+
+// Assets estáticos com cache inteligente (evita acordar o Worker repetidamente e economiza cota diária)
+async function serveAsset(request, env, ctx, url) {
+  const cache = caches.default;
+  if (request.method === "GET") {
+    const hit = await cache.match(request);
+    if (hit) return hit;
+  }
+
+  const res = await env.ASSETS.fetch(request);
+  if (!res.ok || request.method !== "GET") return res;
+
+  const path = url.pathname;
+  let cc = "public, max-age=3600, s-maxage=86400"; // padrão: 1h browser, 24h borda da CDN
+
+  if (path.startsWith("/fonts/") || path.endsWith(".woff2") || path.endsWith(".woff")) {
+    cc = "public, max-age=31536000, s-maxage=31536000, immutable";
+  } else if (path.startsWith("/flags/") || path.startsWith("/img/") || path.endsWith(".svg") || path.endsWith(".png") || path.endsWith(".webp") || path.endsWith(".ico")) {
+    cc = "public, max-age=2592000, s-maxage=2592000, immutable";
+  } else if (path.startsWith("/vendor/")) {
+    cc = "public, max-age=604800, s-maxage=604800, immutable";
+  } else if (path === "/data/catalog.json") {
+    cc = "public, max-age=1800, s-maxage=3600";
+  } else if (path.endsWith(".css") || path.endsWith(".js")) {
+    cc = "public, max-age=3600, s-maxage=14400";
+  } else if (path === "/" || path === "/index.html") {
+    cc = "public, max-age=300, s-maxage=600";
+  }
+
+  const headers = new Headers(res.headers);
+  headers.set("cache-control", cc);
+
+  const cachedRes = new Response(res.body, {
+    status: res.status,
+    statusText: res.statusText,
+    headers,
+  });
+
+  ctx.waitUntil(cache.put(request, cachedRes.clone()));
+  return cachedRes;
 }
 
 // Favoritos e listas do usuário (KV). O e-mail vem do Cloudflare Access; sem ele, não há lista.
