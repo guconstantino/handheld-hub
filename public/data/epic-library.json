@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-10-18T16:30:05.102365+00:00",
-  "hash": "c980e552c86f20e6",
+  "updatedAt": "2026-10-23T16:30:09.137382+00:00",
+  "hash": "e3adb5e3569002ed",
   "account": "guconstantino",
   "counts": {
     "total": 378,
@@ -1450,6 +1450,7 @@
       "title": "Agent A: A puzzle in disguise",
       "developer": "Yak & Co",
       "platforms": [
+        "Mac",
         "Windows"
       ],
       "engine": "Unity",
