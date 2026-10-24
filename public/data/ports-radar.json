@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-10-24T18:35:42Z",
+  "updatedAt": "2026-10-24T19:09:03Z",
   "source": "SirDiabo/GithubLauncher + decomp.dev + S20 FE Decompiled Ports",
   "counts": {
-    "total": 69,
+    "total": 68,
     "installed": 32,
-    "androidReady": 13,
+    "androidReady": 12,
     "desktopRecomp": 10,
     "decompRadar": 14,
     "ptbr": 20
@@ -262,12 +262,13 @@
       ],
       "iconUrl": "covers/d-349eebb52660876f.webp",
       "romQuery": "Sonic & Knuckles",
-      "latestTag": "v26.03.28.0-stable",
-      "publishedAt": "2026-03-28",
-      "releaseUrl": "https://github.com/Eukaryot/sonic3air/releases/tag/v26.03.28.0-stable",
-      "apkName": "sonic3air_game.apk",
-      "apkUrl": "https://github.com/Eukaryot/sonic3air/releases/download/v26.03.28.0-stable/sonic3air_game.apk",
-      "apkSize": 43770194,
+      "ignoreTagPattern": "-test",
+      "latestTag": "v26.08.15.0-test",
+      "publishedAt": "2026-08-15",
+      "releaseUrl": "https://github.com/Eukaryot/sonic3air/releases/tag/v26.08.15.0-test",
+      "apkName": null,
+      "apkUrl": null,
+      "apkSize": null,
       "rom": {
         "s20Sd": true,
         "gdrive": true,
@@ -1046,12 +1047,12 @@
       ],
       "iconUrl": "covers/banjorecomp.webp",
       "romQuery": "Banjo-Kazooie",
-      "latestTag": "android-v0.1.1",
-      "publishedAt": "2026-06-14",
-      "releaseUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/tag/android-v0.1.1",
-      "apkName": "BanjoRecompiled-v0.1.1-Android-ARM64.apk",
-      "apkUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/download/android-v0.1.1/BanjoRecompiled-v0.1.1-Android-ARM64.apk",
-      "apkSize": 8718192,
+      "latestTag": "android-v0.1.2",
+      "publishedAt": "2026-07-13",
+      "releaseUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/tag/android-v0.1.2",
+      "apkName": "BanjoRecompiled-v0.1.2-Android-ARM64.apk",
+      "apkUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/download/android-v0.1.2/BanjoRecompiled-v0.1.2-Android-ARM64.apk",
+      "apkSize": 8921758,
       "rom": {
         "s20Sd": true,
         "gdrive": true,
@@ -1271,12 +1272,12 @@
       ],
       "iconUrl": "covers/megaman64recomp.webp",
       "romQuery": "Mega Man 64",
-      "latestTag": "v0.9.1-mobile.1",
-      "publishedAt": "2026-10-13",
-      "releaseUrl": "https://github.com/DevZer0D4Y/MegaMan64Recompiled-Mobile/releases/tag/v0.9.1-mobile.1",
-      "apkName": "MegaMan64-Android-v0.9.1-mobile.1.apk",
-      "apkUrl": "https://github.com/DevZer0D4Y/MegaMan64Recompiled-Mobile/releases/download/v0.9.1-mobile.1/MegaMan64-Android-v0.9.1-mobile.1.apk",
-      "apkSize": 27811935,
+      "latestTag": "v0.9.1-quest-preview.2",
+      "publishedAt": "2026-10-16",
+      "releaseUrl": "https://github.com/DevZer0D4Y/MegaMan64Recompiled-Mobile/releases/tag/v0.9.1-quest-preview.2",
+      "apkName": "MegaMan64-Quest-VR-preview-2.apk",
+      "apkUrl": "https://github.com/DevZer0D4Y/MegaMan64Recompiled-Mobile/releases/download/v0.9.1-quest-preview.2/MegaMan64-Quest-VR-preview-2.apk",
+      "apkSize": 29556984,
       "rom": {
         "s20Sd": true,
         "gdrive": true,
@@ -1370,12 +1371,12 @@
       ],
       "iconUrl": "covers/smg.webp",
       "romQuery": "Super Mario Galaxy",
-      "latestTag": "v0.0.4-gamma",
-      "publishedAt": "2026-10-19",
-      "releaseUrl": "https://github.com/OpenPort-Labs/Galaxy-Android/releases/tag/v0.0.4-gamma",
-      "apkName": "GalaxyAndroid-v0.0.4-gamma.apk",
-      "apkUrl": "https://github.com/OpenPort-Labs/Galaxy-Android/releases/download/v0.0.4-gamma/GalaxyAndroid-v0.0.4-gamma.apk",
-      "apkSize": 67481390,
+      "latestTag": "v0.0.4-delta",
+      "publishedAt": "2026-10-20",
+      "releaseUrl": "https://github.com/OpenPort-Labs/Galaxy-Android/releases/tag/v0.0.4-delta",
+      "apkName": "GalaxyAndroid-v0.0.4-delta.apk",
+      "apkUrl": "https://github.com/OpenPort-Labs/Galaxy-Android/releases/download/v0.0.4-delta/GalaxyAndroid-v0.0.4-delta.apk",
+      "apkSize": 17975132,
       "rom": {
         "s20Sd": false,
         "gdrive": true,
@@ -1883,7 +1884,7 @@
         "Alpha: APK Android ainda não roda o jogo",
         "Exige Vulkan 1.3, jogo v1.0.0 + prod.keys"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/e-cb75f489e96494a6.webp",
       "romQuery": "Echoes of Wisdom",
       "latestTag": "alpha_1",
       "publishedAt": "2026-10-21",
@@ -1916,7 +1917,7 @@
         "Jogo v1.4.1",
         "Entra no jogo (play state)"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/e-5350826475c42e7d.webp",
       "romQuery": "Super Mario Odyssey",
       "latestTag": null,
       "publishedAt": "2026-10-23",
@@ -1948,7 +1949,7 @@
         "Disco USA 1.02 (GALE01)",
         "Netplay em teste"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/bf2fc14e070783a4.webp",
       "romQuery": "Super Smash Bros Melee",
       "latestTag": "v0.4.2",
       "publishedAt": "2026-10-21",
@@ -1973,18 +1974,18 @@
       "repository": "OpenCommunityEdition/OpenCE",
       "upstreamRepo": "OpenCommunityEdition/OpenCE",
       "packageName": "com.halo.decomp",
-      "installedVersion": "build 268",
+      "installedVersion": "build 271",
       "ptbr": "Não",
       "features": [
         "Nativo ARM64, OpenGL ES 3",
         "maps/ extraído da ISO USA Rev 2",
         "Sem vídeos Bink"
       ],
-      "iconUrl": null,
+      "iconUrl": "https://raw.githubusercontent.com/libretro-thumbnails/Microsoft_-_Xbox/master/Named_Boxarts/Halo%20-%20Combat%20Evolved%20(USA).png",
       "romQuery": "Halo",
-      "latestTag": "build-268",
+      "latestTag": "build-271",
       "publishedAt": "2026-10-24",
-      "releaseUrl": "https://github.com/OpenCommunityEdition/OpenCE/releases/tag/build-268",
+      "releaseUrl": "https://github.com/OpenCommunityEdition/OpenCE/releases/tag/build-271",
       "apkName": null,
       "apkUrl": null,
       "apkSize": null,
@@ -2012,7 +2013,7 @@
         "60 fps",
         "Mod No-Blur"
       ],
-      "iconUrl": null,
+      "iconUrl": "https://art.gametdb.com/switch/coverM/US/AR3NA.jpg",
       "romQuery": "Link's Awakening",
       "latestTag": "android-v1.2.0",
       "publishedAt": "2026-10-23",
@@ -2043,7 +2044,7 @@
         "Recomp de Wii U",
         "Vulkan"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/74248fddeb96524e.webp",
       "romQuery": "Wind Waker",
       "latestTag": "v1.14",
       "publishedAt": "2026-10-23",
@@ -2073,7 +2074,7 @@
       "features": [
         "Nativo, decomp do GameCube"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/c7b245bcd52058fe.webp",
       "romQuery": "Metroid Prime",
       "latestTag": "v0.32.0",
       "publishedAt": "2026-10-22",
@@ -2104,7 +2105,7 @@
         "Nativo, Vulkan/GLES",
         "Precisa da versão PC (FNA)"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/e-cab5df1c9295f151.webp",
       "romQuery": "Celeste",
       "latestTag": "v1.0.1",
       "publishedAt": "2026-09-24",
@@ -2134,7 +2135,7 @@
       "features": [
         "APK comunitário (sem código-fonte)"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/e-1eaa1f744cbb419e.webp",
       "romQuery": "Silksong",
       "latestTag": null,
       "publishedAt": null,
@@ -2166,7 +2167,7 @@
         "⚠️ Fecha ao abrir com o GameSir (crash SDL HID)",
         "Bug conhecido: trava ao falar com o prefeito (issues #1–3)"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/7910d8a3c4b3aadc.webp",
       "romQuery": "Animal Crossing",
       "latestTag": "v0.5.0",
       "publishedAt": "2026-10-06",
@@ -2197,7 +2198,7 @@
         "Nativo, widescreen",
         "Discos Europa GPIP01 e GPVP01 (ISO; GCZ convertida no Mac)"
       ],
-      "iconUrl": null,
+      "iconUrl": "covers/f7f46d9445b6613f.webp",
       "romQuery": "Pikmin",
       "latestTag": "1.0.8",
       "publishedAt": "2026-10-22",
@@ -2211,37 +2212,6 @@
         "bestPath": null
       },
       "updateStatus": "up-to-date"
-    },
-    {
-      "id": "gsrandroid",
-      "name": "Golden Sun: Recompiled (GBA)",
-      "shortName": "Golden Sun Recomp",
-      "system": "gba",
-      "engine": "gbarecomp",
-      "category": "android-ready",
-      "repository": "wootbeer/gsrandroid",
-      "upstreamRepo": "mstan/gbarecomp",
-      "packageName": null,
-      "installedVersion": null,
-      "ptbr": "Não",
-      "features": [
-        "Exige ROM original USA/EUR (SHA-1 5c4695…9971)",
-        "A cópia do acervo é a tradução PT-BR (não serve)"
-      ],
-      "iconUrl": null,
-      "romQuery": "Golden Sun",
-      "latestTag": "v0.3",
-      "publishedAt": "2026-10-20",
-      "releaseUrl": "https://github.com/wootbeer/gsrandroid/releases/tag/v0.3",
-      "apkName": "gsrandroid-release.apk",
-      "apkUrl": "https://github.com/wootbeer/gsrandroid/releases/download/v0.3/gsrandroid-release.apk",
-      "apkSize": 2501775,
-      "rom": {
-        "s20Sd": false,
-        "gdrive": true,
-        "bestPath": "gba/ptbr/Golden Sun.gba"
-      },
-      "updateStatus": "ready-to-install"
     }
   ]
 }
