@@ -219,7 +219,10 @@ def scan_inventory(loc, root, prefix):
     matches = glob.glob(os.path.expanduser(root))
     if len(matches) != 1:
         sys.exit(f"{loc}: inventário não encontrado em {root}. Gere de novo no PC.")
-    data = json.load(open(matches[0], encoding="utf-8-sig"))
+    try:
+        data = json.load(open(matches[0], encoding="utf-8-sig"))
+    except PermissionError:                              # launchd (varredura das 5h) não lê o Google Drive
+        sys.exit(f"{loc}: sem permissão para ler o inventário no Drive ({matches[0]}); local mantido como estava.")
     # Cabeçalhos lidos pelo FTP temporário do PC (8 bytes por arquivo com assinatura): data/<local>-heads.json.
     hp = os.path.join(ROOT, "data", f"{loc}-heads.json")
     heads = json.load(open(hp)) if os.path.exists(hp) else {}
