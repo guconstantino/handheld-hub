@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-10-23T22:27:26Z",
+  "updatedAt": "2026-10-24T14:04:37Z",
   "source": "SirDiabo/GithubLauncher + decomp.dev + S20 FE Decompiled Ports",
   "counts": {
-    "total": 66,
-    "installed": 30,
+    "total": 67,
+    "installed": 31,
     "androidReady": 12,
     "desktopRecomp": 10,
     "decompRadar": 14,
@@ -67,7 +67,7 @@
       "iconUrl": "https://cdn2.steamgriddb.com/icon/6c7dbdd98cd70f67f102524761f3b4d2/24/256x256.png",
       "romQuery": "Majora",
       "latestTag": null,
-      "publishedAt": "2025-06-13",
+      "publishedAt": null,
       "releaseUrl": "https://github.com/izzy2lost/2ship2harkinian-Android",
       "apkName": null,
       "apkUrl": null,
@@ -297,9 +297,9 @@
       "versionTags": {
         "0.1.0": "partyboard_0.2.0"
       },
-      "latestTag": "partyboard_0.2.0",
-      "publishedAt": "2026-05-08",
-      "releaseUrl": "https://github.com/mariopartyrd/partyboard/releases/tag/partyboard_0.2.0",
+      "latestTag": null,
+      "publishedAt": "2026-09-29",
+      "releaseUrl": "https://github.com/mariopartyrd/partyboard",
       "apkName": null,
       "apkUrl": null,
       "apkSize": null,
@@ -1046,12 +1046,12 @@
       ],
       "iconUrl": "covers/banjorecomp.webp",
       "romQuery": "Banjo-Kazooie",
-      "latestTag": "android-v0.1.1",
-      "publishedAt": "2026-06-14",
-      "releaseUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/tag/android-v0.1.1",
-      "apkName": "BanjoRecompiled-v0.1.1-Android-ARM64.apk",
-      "apkUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/download/android-v0.1.1/BanjoRecompiled-v0.1.1-Android-ARM64.apk",
-      "apkSize": 8718192,
+      "latestTag": "android-v0.1.2",
+      "publishedAt": "2026-07-13",
+      "releaseUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/tag/android-v0.1.2",
+      "apkName": "BanjoRecompiled-v0.1.2-Android-ARM64.apk",
+      "apkUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/download/android-v0.1.2/BanjoRecompiled-v0.1.2-Android-ARM64.apk",
+      "apkSize": 8921758,
       "rom": {
         "s20Sd": true,
         "gdrive": true,
@@ -1437,7 +1437,7 @@
       "iconUrl": "covers/smg.webp",
       "romQuery": "Super Mario Galaxy",
       "latestTag": null,
-      "publishedAt": "2026-10-23",
+      "publishedAt": "2026-10-24",
       "releaseUrl": "https://github.com/SMGCommunity/Petari",
       "apkName": null,
       "apkUrl": null,
@@ -1469,7 +1469,7 @@
       "iconUrl": "covers/01ed502b206405ef.webp",
       "romQuery": "Super Mario Galaxy 2",
       "latestTag": null,
-      "publishedAt": "2026-10-23",
+      "publishedAt": "2026-10-24",
       "releaseUrl": "https://github.com/SMGCommunity/Garigari",
       "apkName": null,
       "apkUrl": null,
@@ -1501,7 +1501,7 @@
       "iconUrl": "covers/21fdbc3631232c5b.webp",
       "romQuery": "Super Mario Sunshine",
       "latestTag": null,
-      "publishedAt": "2026-10-23",
+      "publishedAt": "2026-10-24",
       "releaseUrl": "https://github.com/doldecomp/sms",
       "apkName": null,
       "apkUrl": null,
@@ -1661,7 +1661,7 @@
       "iconUrl": "covers/1665e2d37db9c211.webp",
       "romQuery": "Silent Hill",
       "latestTag": null,
-      "publishedAt": "2026-10-23",
+      "publishedAt": "2026-10-24",
       "releaseUrl": "https://github.com/shdecompilations/silent-hill-decomp",
       "apkName": null,
       "apkUrl": null,
@@ -1725,7 +1725,7 @@
       "iconUrl": "covers/8a2788b65c5d30d2.webp",
       "romQuery": "Conker's Bad Fur Day",
       "latestTag": null,
-      "publishedAt": "2026-10-23",
+      "publishedAt": "2026-10-24",
       "releaseUrl": "https://github.com/DevOldSchool/conkers-bfd-decomp",
       "apkName": null,
       "apkUrl": null,
@@ -1982,9 +1982,9 @@
       ],
       "iconUrl": null,
       "romQuery": "Halo",
-      "latestTag": "build-266",
-      "publishedAt": "2026-10-23",
-      "releaseUrl": "https://github.com/OpenCommunityEdition/OpenCE/releases/tag/build-266",
+      "latestTag": "build-268",
+      "publishedAt": "2026-10-24",
+      "releaseUrl": "https://github.com/OpenCommunityEdition/OpenCE/releases/tag/build-268",
       "apkName": null,
       "apkUrl": null,
       "apkSize": null,
@@ -1993,7 +1993,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "up-to-date"
+      "updateStatus": "update-available"
     },
     {
       "id": "lasrecomp",
@@ -2005,7 +2005,7 @@
       "repository": "Nycolazs/LASRecomp-Android-Plus",
       "upstreamRepo": "Nycolazs/LASRecomp-Android-Plus",
       "packageName": "com.lasrecomp.android",
-      "installedVersion": "1.1.2",
+      "installedVersion": "1.2.0",
       "ptbr": "Não",
       "features": [
         "Recomp de Switch",
@@ -2025,7 +2025,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "update-available"
+      "updateStatus": "up-to-date"
     },
     {
       "id": "wwhd",
@@ -2037,7 +2037,7 @@
       "repository": "Nycolazs/WindWakerHD-Android-Plus",
       "upstreamRepo": "Nycolazs/WindWakerHD-Android-Plus",
       "packageName": "org.wwhdrecomp.app",
-      "installedVersion": "1.11.1",
+      "installedVersion": "1.14",
       "ptbr": "Não",
       "features": [
         "Recomp de Wii U",
@@ -2056,7 +2056,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "update-available"
+      "updateStatus": "up-to-date"
     },
     {
       "id": "metroidprime",
@@ -2142,6 +2142,38 @@
       "apkName": null,
       "apkUrl": null,
       "apkSize": null,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "acgc",
+      "name": "Animal Crossing (GameCube) – ACGC Android Port",
+      "shortName": "Animal Crossing",
+      "system": "gc",
+      "engine": "ac-decomp + ACGC-PC-Port (GLES3)",
+      "category": "installed",
+      "repository": "zwaetschge/ACGC-Android-Port",
+      "upstreamRepo": "flyngmt/ACGC-PC-Port",
+      "packageName": "com.acpc.port",
+      "installedVersion": null,
+      "ptbr": "Não",
+      "features": [
+        "Disco USA GAFE01 importado",
+        "⚠️ Fecha ao abrir com o GameSir (crash SDL HID)",
+        "Bug conhecido: trava ao falar com o prefeito (issues #1–3)"
+      ],
+      "iconUrl": null,
+      "romQuery": "Animal Crossing",
+      "latestTag": "v0.5.0",
+      "publishedAt": "2026-10-06",
+      "releaseUrl": "https://github.com/zwaetschge/ACGC-Android-Port/releases/tag/v0.5.0",
+      "apkName": "ACGC-Android-v0.5.0.apk",
+      "apkUrl": "https://github.com/zwaetschge/ACGC-Android-Port/releases/download/v0.5.0/ACGC-Android-v0.5.0.apk",
+      "apkSize": 61982422,
       "rom": {
         "s20Sd": false,
         "gdrive": false,
