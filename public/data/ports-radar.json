@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-10-24T14:04:37Z",
+  "updatedAt": "2026-10-24T14:17:23Z",
   "source": "SirDiabo/GithubLauncher + decomp.dev + S20 FE Decompiled Ports",
   "counts": {
-    "total": 67,
-    "installed": 31,
-    "androidReady": 12,
+    "total": 69,
+    "installed": 32,
+    "androidReady": 13,
     "desktopRecomp": 10,
     "decompRadar": 14,
     "ptbr": 20
@@ -2180,6 +2180,68 @@
         "bestPath": null
       },
       "updateStatus": "up-to-date"
+    },
+    {
+      "id": "opennectar",
+      "name": "Pikmin 1 & 2 (Open Nectar)",
+      "shortName": "Pikmin 1 & 2",
+      "system": "gc",
+      "engine": "Pikmin decomps, GX → OpenGL",
+      "category": "installed",
+      "repository": "SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port",
+      "upstreamRepo": "SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port",
+      "packageName": "org.opennectar",
+      "installedVersion": "1.0.8",
+      "ptbr": "Não",
+      "features": [
+        "Nativo, widescreen",
+        "Discos Europa GPIP01 e GPVP01 (ISO; GCZ convertida no Mac)"
+      ],
+      "iconUrl": null,
+      "romQuery": "Pikmin",
+      "latestTag": "1.0.8",
+      "publishedAt": "2026-10-22",
+      "releaseUrl": "https://github.com/SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port/releases/tag/1.0.8",
+      "apkName": "open_nectar_1.0.8.apk",
+      "apkUrl": "https://github.com/SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port/releases/download/1.0.8/open_nectar_1.0.8.apk",
+      "apkSize": 59869468,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": false,
+        "bestPath": null
+      },
+      "updateStatus": "up-to-date"
+    },
+    {
+      "id": "gsrandroid",
+      "name": "Golden Sun: Recompiled (GBA)",
+      "shortName": "Golden Sun Recomp",
+      "system": "gba",
+      "engine": "gbarecomp",
+      "category": "android-ready",
+      "repository": "wootbeer/gsrandroid",
+      "upstreamRepo": "mstan/gbarecomp",
+      "packageName": null,
+      "installedVersion": null,
+      "ptbr": "Não",
+      "features": [
+        "Exige ROM original USA/EUR (SHA-1 5c4695…9971)",
+        "A cópia do acervo é a tradução PT-BR (não serve)"
+      ],
+      "iconUrl": null,
+      "romQuery": "Golden Sun",
+      "latestTag": "v0.3",
+      "publishedAt": "2026-10-20",
+      "releaseUrl": "https://github.com/wootbeer/gsrandroid/releases/tag/v0.3",
+      "apkName": "gsrandroid-release.apk",
+      "apkUrl": "https://github.com/wootbeer/gsrandroid/releases/download/v0.3/gsrandroid-release.apk",
+      "apkSize": 2501775,
+      "rom": {
+        "s20Sd": false,
+        "gdrive": true,
+        "bestPath": "gba/ptbr/Golden Sun.gba"
+      },
+      "updateStatus": "ready-to-install"
     }
   ]
 }
