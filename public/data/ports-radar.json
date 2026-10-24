@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-24T14:17:23Z",
+  "updatedAt": "2026-10-24T18:34:34Z",
   "source": "SirDiabo/GithubLauncher + decomp.dev + S20 FE Decompiled Ports",
   "counts": {
     "total": 69,
@@ -67,7 +67,7 @@
       "iconUrl": "https://cdn2.steamgriddb.com/icon/6c7dbdd98cd70f67f102524761f3b4d2/24/256x256.png",
       "romQuery": "Majora",
       "latestTag": null,
-      "publishedAt": null,
+      "publishedAt": "2025-06-13",
       "releaseUrl": "https://github.com/izzy2lost/2ship2harkinian-Android",
       "apkName": null,
       "apkUrl": null,
@@ -297,9 +297,9 @@
       "versionTags": {
         "0.1.0": "partyboard_0.2.0"
       },
-      "latestTag": null,
-      "publishedAt": "2026-09-29",
-      "releaseUrl": "https://github.com/mariopartyrd/partyboard",
+      "latestTag": "partyboard_0.2.0",
+      "publishedAt": "2026-05-08",
+      "releaseUrl": "https://github.com/mariopartyrd/partyboard/releases/tag/partyboard_0.2.0",
       "apkName": null,
       "apkUrl": null,
       "apkSize": null,
@@ -1046,12 +1046,12 @@
       ],
       "iconUrl": "covers/banjorecomp.webp",
       "romQuery": "Banjo-Kazooie",
-      "latestTag": "android-v0.1.2",
-      "publishedAt": "2026-07-13",
-      "releaseUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/tag/android-v0.1.2",
-      "apkName": "BanjoRecompiled-v0.1.2-Android-ARM64.apk",
-      "apkUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/download/android-v0.1.2/BanjoRecompiled-v0.1.2-Android-ARM64.apk",
-      "apkSize": 8921758,
+      "latestTag": "android-v0.1.1",
+      "publishedAt": "2026-06-14",
+      "releaseUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/tag/android-v0.1.1",
+      "apkName": "BanjoRecompiled-v0.1.1-Android-ARM64.apk",
+      "apkUrl": "https://github.com/AurelioB/BanjoRecomp-Android/releases/download/android-v0.1.1/BanjoRecompiled-v0.1.1-Android-ARM64.apk",
+      "apkSize": 8718192,
       "rom": {
         "s20Sd": true,
         "gdrive": true,
@@ -1973,7 +1973,7 @@
       "repository": "OpenCommunityEdition/OpenCE",
       "upstreamRepo": "OpenCommunityEdition/OpenCE",
       "packageName": "com.halo.decomp",
-      "installedVersion": "build 266",
+      "installedVersion": "build 268",
       "ptbr": "Não",
       "features": [
         "Nativo ARM64, OpenGL ES 3",
@@ -1993,7 +1993,7 @@
         "gdrive": false,
         "bestPath": null
       },
-      "updateStatus": "update-available"
+      "updateStatus": "up-to-date"
     },
     {
       "id": "lasrecomp",
